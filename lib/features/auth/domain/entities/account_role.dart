@@ -1,0 +1,1 @@
+enum AccountRole { talent, client }

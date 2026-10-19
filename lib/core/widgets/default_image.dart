@@ -5,6 +5,7 @@ import '../resources/color_manager.dart';
 
 class DefaultImage extends StatelessWidget {
   final String? imageUrl;
+  final String? assetPath;
   final double? width;
   final double? height;
   final double? radius;
@@ -17,13 +18,25 @@ class DefaultImage extends StatelessWidget {
     this.height,
     this.radius,
     this.fit = BoxFit.cover,
-  });
+  }) : assetPath = null;
+
+  /// Local assets use the same sizing, clipping and fitting as network images.
+  const DefaultImage.asset({
+    super.key,
+    required this.assetPath,
+    this.width,
+    this.height,
+    this.radius,
+    this.fit = BoxFit.cover,
+  }) : imageUrl = null;
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius ?? 8.r),
-      child: imageUrl != null && imageUrl!.isNotEmpty
+      child: assetPath != null
+          ? Image.asset(assetPath!, width: width, height: height, fit: fit)
+          : imageUrl != null && imageUrl!.isNotEmpty
           ? CachedNetworkImage(
               imageUrl: imageUrl!,
               width: width,

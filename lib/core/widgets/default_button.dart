@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../resources/color_manager.dart';
+import '../resources/qader_design.dart';
 import '../resources/styles_manager.dart';
 
 class DefaultButton extends StatelessWidget {
@@ -16,6 +17,7 @@ class DefaultButton extends StatelessWidget {
   final bool isLoading;
   final Widget? icon;
   final TextStyle? textStyle;
+  final Widget? child;
 
   const DefaultButton({
     super.key,
@@ -31,6 +33,25 @@ class DefaultButton extends StatelessWidget {
     this.isLoading = false,
     this.icon,
     this.textStyle,
+    this.child,
+  });
+
+  /// Compact style for Qader's forms and dashboard cards.
+  const DefaultButton.compact({
+    super.key,
+    this.text = '',
+    this.onPressed,
+    this.color = QaderDesign.primary,
+    this.textColor,
+    this.width,
+    this.height = 40,
+    this.fontSize = 14,
+    this.radius = 8,
+    this.isOutlined = false,
+    this.isLoading = false,
+    this.icon,
+    this.textStyle = const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+    this.child,
   });
 
   @override
@@ -77,6 +98,8 @@ class DefaultButton extends StatelessWidget {
         child: CircularProgressIndicator(strokeWidth: 2, color: color),
       );
     }
+
+    if (child != null) return child!;
 
     if (icon != null) {
       return Row(

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/env/app_env.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/di/service_locator.dart';
+import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/widgets/qader_design.dart';
 
 class SplashView extends StatefulWidget {
@@ -17,7 +19,12 @@ class _SplashViewState extends State<SplashView> {
   void initState() {
     super.initState();
     _timer = Timer(AppEnv.instance.splashDuration, () {
-      if (mounted) context.go(AppRouter.chooseRole);
+      if (!mounted) return;
+      context.go(
+        sl<AppPreferences>().isOnBoardingViewed()
+            ? AppRouter.chooseRole
+            : AppRouter.onboarding,
+      );
     });
   }
 

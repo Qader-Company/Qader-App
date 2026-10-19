@@ -29,6 +29,7 @@ class DefaultFormField extends StatelessWidget {
   final TextStyle? textStyle;
   final TextStyle? labelStyle;
   final double? labelSpacing;
+  final bool compact;
 
   const DefaultFormField({
     super.key,
@@ -56,6 +57,7 @@ class DefaultFormField extends StatelessWidget {
     this.textStyle,
     this.labelStyle,
     this.labelSpacing,
+    this.compact = false,
   });
 
   @override
@@ -68,9 +70,19 @@ class DefaultFormField extends StatelessWidget {
             label!,
             style:
                 labelStyle ??
-                getMediumStyle(fontSize: 14.sp, color: ColorManager.textColor),
+                (compact
+                    ? const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        height: 20 / 14,
+                        color: Color(0xFF404040),
+                      )
+                    : getMediumStyle(
+                        fontSize: 14.sp,
+                        color: ColorManager.textColor,
+                      )),
           ),
-          SizedBox(height: labelSpacing ?? 8.h),
+          SizedBox(height: labelSpacing ?? (compact ? 6 : 8.h)),
         ],
         TextFormField(
           controller: controller,
@@ -89,7 +101,12 @@ class DefaultFormField extends StatelessWidget {
           onTap: onTap,
           style:
               textStyle ??
-              getRegularStyle(fontSize: 14.sp, color: ColorManager.textColor),
+              (compact
+                  ? const TextStyle(fontSize: 14, height: 20 / 14)
+                  : getRegularStyle(
+                      fontSize: 14.sp,
+                      color: ColorManager.textColor,
+                    )),
           decoration: InputDecoration(
             hintText: hint,
             prefix: prefix,

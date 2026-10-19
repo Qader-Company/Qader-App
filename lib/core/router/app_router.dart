@@ -5,8 +5,13 @@ import '../../app/env/app_env.dart';
 import '../../features/home/presentation/view/home_view.dart';
 import '../../features/auth/presentation/view/splash_view.dart';
 import '../../features/auth/presentation/view/choose_role_view.dart';
+import '../../features/auth/domain/entities/account_role.dart';
 import '../../features/auth/presentation/view/sign_in_view.dart';
 import '../../features/auth/presentation/view/sign_up_view.dart';
+import '../../features/auth/presentation/view/forgot_password_view.dart';
+import '../../features/auth/presentation/view/otp_view.dart';
+import '../../features/onboarding/presentation/view/onboarding_view.dart';
+import '../../features/auth/domain/entities/password_recovery_request.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<ModalRoute<void>> routeObserver =
@@ -14,10 +19,13 @@ final RouteObserver<ModalRoute<void>> routeObserver =
 
 abstract class AppRouter {
   static const root = '/';
+  static const onboarding = '/onboarding';
   static const chooseRole = '/choose-role';
   static const signIn = '/sign-in';
   static const signUp = '/sign-up';
   static const home = '/home';
+  static const forgotPassword = '/forgot-password';
+  static const otp = '/otp';
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: root,
@@ -25,6 +33,10 @@ abstract class AppRouter {
     debugLogDiagnostics: !AppEnv.instance.isProd,
     routes: [
       GoRoute(path: root, builder: (context, state) => const SplashView()),
+      GoRoute(
+        path: onboarding,
+        builder: (context, state) => const OnboardingView(),
+      ),
       GoRoute(
         path: chooseRole,
         builder: (context, state) => const ChooseRoleView(),
@@ -44,6 +56,29 @@ abstract class AppRouter {
               ? AccountRole.client
               : AccountRole.talent,
         ),
+      ),
+      GoRoute(
+        path: forgotPassword,
+        builder: (context, state) => ForgotPasswordView(
+          role: state.uri.queryParameters['role'] == 'client'
+              ? AccountRole.client
+              : AccountRole.talent,
+        ),
+      ),
+      GoRoute(
+        path: otp,
+        redirect: (context, state) => state.extra is PasswordRecoveryRequest
+            ? null
+            : Uri(
+                path: forgotPassword,
+                queryParameters: {
+                  'role': state.uri.queryParameters['role'] == 'client'
+                      ? 'client'
+                      : 'talent',
+                },
+              ).toString(),
+        builder: (context, state) =>
+            OtpView(request: state.extra! as PasswordRecoveryRequest),
       ),
       GoRoute(path: home, builder: (context, state) => const HomeView()),
     ],
