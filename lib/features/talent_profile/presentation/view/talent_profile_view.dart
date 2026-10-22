@@ -21,10 +21,15 @@ class _TalentProfileViewState extends State<TalentProfileView> {
   @override
   void didUpdateWidget(covariant TalentProfileView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.profile.status != widget.profile.status || oldWidget.profile.name != widget.profile.name || oldWidget.profile.email != widget.profile.email) {
-      profile = widget.profile; tab = 0; available = true;
+    if (oldWidget.profile.status != widget.profile.status ||
+        oldWidget.profile.name != widget.profile.name ||
+        oldWidget.profile.email != widget.profile.email) {
+      profile = widget.profile;
+      tab = 0;
+      available = true;
     }
   }
+
   int tab = 0;
   bool available = true;
   @override

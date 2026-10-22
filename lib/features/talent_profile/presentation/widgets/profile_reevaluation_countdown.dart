@@ -49,10 +49,7 @@ class _ProfileReevaluationCountdownState
           Text(
             minutes == 0
                 ? tc(context, 'Ready for review')
-                : '${tc(context, 'Time Remaining')}, ${DateFormat(
-                        'd MMM',
-                        context.locale.toString(),
-                      ).format(widget.deadline)}',
+                : '${tc(context, 'Time Remaining')}, ${DateFormat('d MMM', context.locale.toString()).format(widget.deadline)}',
             style: const TextStyle(fontSize: 12, color: Color(0xFF525252)),
           ),
           if (minutes > 0)

@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/app/app.dart';
+import 'package:qader/features/home/presentation/view/home_view.dart';
+import 'package:qader/core/storage/app_preferences.dart';
 import 'package:qader/app/env/app_env.dart';
 import 'package:qader/core/di/service_locator.dart';
 import 'package:qader/core/locale/language_manager.dart';
@@ -289,6 +291,11 @@ void main() {
         await capture('profile_ar_$step', const Size(320, 844));
       }
       expect(draft.text('phone').text, '+201012345678');
+      await button('?????? ????????');
+      expect(find.byType(HomeView), findsOneWidget);
+      expect(find.byType(ProfileSetupView), findsNothing);
+      expect(AppRouter.router.canPop(), isFalse);
+      expect(sl<AppPreferences>().isLoggedIn, isFalse);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
     },

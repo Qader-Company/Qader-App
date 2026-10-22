@@ -490,5 +490,6 @@
     "talent_add_measurable_outcomes_to_project_descriptions_explain_the_problem_your_contribution_and_the_result_using_numbers_such_as_conversion_improvement_time_saved_or_performance_gains":  "Add measurable outcomes to project descriptions. Explain the problem, your contribution and the result, using numbers such as conversion improvement, time saved or performance gains.",
     "talent_describe_the_technical_decisions_behind_each_project_include_the_tools_team_collaboration_challenges_and_trade_offs_so_hiring_managers_can_understand_your_contribution":  "Describe the technical decisions behind each project. Include the tools, team collaboration, challenges and trade-offs so hiring managers can understand your contribution.",
     "talent_connect_each_achievement_to_a_business_outcome_replace_broad_responsibilities_with_clear_examples_of_what_you_built_how_you_measured_success_and_what_you_learned":  "Connect each achievement to a business outcome. Replace broad responsibilities with clear examples of what you built, how you measured success and what you learned.",
-    "talent_expected_salary_recommendations":  "Expected Salary Recommendations"
+    "talent_expected_salary_recommendations":  "Expected Salary Recommendations",
+    "profile_preview_home": "Preview Home"
 }

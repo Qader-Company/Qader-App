@@ -40,8 +40,8 @@ class RestrictedProfileNotice extends StatelessWidget {
               ],
             ),
             style: const TextStyle(
-              fontSize: 12,
-              height: 1.8,
+              fontSize: 10,
+              height: 1.6,
               color: Color(0xFF525252),
             ),
           ),

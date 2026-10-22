@@ -244,6 +244,16 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   );
   Widget _confirmation(BuildContext context) => Stack(
     children: [
+      Positioned(
+        left: 16,
+        right: 16,
+        bottom: 24,
+        child: DefaultButton.compact(
+          text: pc(context, 'Preview Home'),
+          onPressed: () =>
+              context.go('${AppRouter.home}?preview=true&role=talent'),
+        ),
+      ),
       Padding(padding: const EdgeInsets.all(16), child: _header()),
       Center(
         child: Padding(

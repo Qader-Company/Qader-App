@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../profile_copy.dart';
 
@@ -13,7 +12,7 @@ Future<void> showProfilePreviews(BuildContext context) =>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              tc(context, 'Profile previews'),
+              tc(sheetContext, 'Profile previews'),
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             for (final item in [
@@ -35,10 +34,10 @@ Future<void> showProfilePreviews(BuildContext context) =>
             ])
               ListTile(
                 leading: Icon(item.$3),
-                title: Text(tc(context, item.$1)),
+                title: Text(tc(sheetContext, item.$1)),
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  context.push(item.$2);
+                  AppRouter.router.push(item.$2);
                 },
               ),
           ],

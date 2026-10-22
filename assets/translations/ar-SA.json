@@ -490,5 +490,6 @@
     "talent_add_measurable_outcomes_to_project_descriptions_explain_the_problem_your_contribution_and_the_result_using_numbers_such_as_conversion_improvement_time_saved_or_performance_gains":  "أضف نتائج قابلة للقياس إلى وصف المشاريع. وضّح المشكلة ومساهمتك والنتيجة، باستخدام أرقام مثل تحسين التحويل أو الوقت الذي تم توفيره أو زيادة الأداء.",
     "talent_describe_the_technical_decisions_behind_each_project_include_the_tools_team_collaboration_challenges_and_trade_offs_so_hiring_managers_can_understand_your_contribution":  "صف القرارات التقنية في كل مشروع. اذكر الأدوات والتعاون مع الفريق والتحديات والمفاضلات حتى يتمكن مديرو التوظيف من فهم مساهمتك.",
     "talent_connect_each_achievement_to_a_business_outcome_replace_broad_responsibilities_with_clear_examples_of_what_you_built_how_you_measured_success_and_what_you_learned":  "اربط كل إنجاز بنتيجة عملية. استبدل المسؤوليات العامة بأمثلة واضحة لما بنيته وكيف قست النجاح وما تعلمته.",
-    "talent_expected_salary_recommendations":  "توصيات الراتب المتوقع"
+    "talent_expected_salary_recommendations":  "توصيات الراتب المتوقع",
+    "profile_preview_home": "?????? ????????"
 }
