@@ -16,6 +16,12 @@ import '../../features/auth/domain/entities/password_recovery_request.dart';
 import '../../features/profile_setup/presentation/view/profile_setup_view.dart';
 import '../../features/profile_setup/presentation/profile_setup_controller.dart';
 
+import '../../features/talent_profile/presentation/view/talent_profile_view.dart';
+import '../../features/talent_profile/presentation/view/profile_review_view.dart';
+
+import '../../features/talent_profile/presentation/view/profile_evaluation_view.dart';
+import '../../features/talent_profile/domain/talent_profile.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -30,6 +36,9 @@ abstract class AppRouter {
   static const forgotPassword = '/forgot-password';
   static const otp = '/otp';
   static const profileSetup = '/profile-setup';
+  static const talentProfile = '/talent-profile';
+  static const profileReview = '/profile-review';
+  static const profileReport = '/profile-report';
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: root,
@@ -91,6 +100,34 @@ abstract class AppRouter {
               ? state.extra as ProfileSetupSeed
               : null,
         ),
+      ),
+      GoRoute(
+        path: talentProfile,
+        builder: (context, state) {
+          final status = switch (state.uri.queryParameters['status']) {
+            'rejected' => TalentProfileStatus.rejected,
+            'restricted' => TalentProfileStatus.restricted,
+            _ => TalentProfileStatus.accepted,
+          };
+          return TalentProfileView(
+            profile: TalentProfile(
+              status: status,
+              reviewAvailableAt: status == TalentProfileStatus.accepted
+                  ? null
+                  : DateTime.now().add(
+                      const Duration(days: 72, hours: 21, minutes: 1),
+                    ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: profileReview,
+        builder: (context, state) => const ProfileReviewView(),
+      ),
+      GoRoute(
+        path: profileReport,
+        builder: (context, state) => const ProfileEvaluationView(),
       ),
       GoRoute(path: home, builder: (context, state) => const HomeView()),
     ],

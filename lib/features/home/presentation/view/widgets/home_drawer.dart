@@ -4,6 +4,7 @@ import '../../../../../core/widgets/qader_design.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/router/app_router.dart';
 import '../../../../../core/widgets/language_toggle_button.dart';
+import '../../../../talent_profile/presentation/widgets/profile_previews_sheet.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key});
@@ -24,6 +25,22 @@ class HomeDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               context.push(AppRouter.profileSetup);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: Text('talent_my_profile'.tr(context: context)),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(AppRouter.talentProfile);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.preview_outlined),
+            title: Text('talent_profile_previews'.tr(context: context)),
+            onTap: () {
+              Navigator.pop(context);
+              showProfilePreviews(context);
             },
           ),
           const LanguageToggleButton(),
