@@ -18,6 +18,14 @@ class HomeDrawer extends StatelessWidget {
             title: Text('home'.tr(context: context)),
             onTap: () => Navigator.pop(context),
           ),
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: Text('profile_preview_talent_profile'.tr(context: context)),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(AppRouter.profileSetup);
+            },
+          ),
           const LanguageToggleButton(),
           const Spacer(),
           ListTile(

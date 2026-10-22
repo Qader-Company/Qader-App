@@ -18,6 +18,8 @@ class DefaultButton extends StatelessWidget {
   final Widget? icon;
   final TextStyle? textStyle;
   final Widget? child;
+  final bool expand;
+  final EdgeInsetsGeometry? padding;
 
   const DefaultButton({
     super.key,
@@ -34,6 +36,8 @@ class DefaultButton extends StatelessWidget {
     this.icon,
     this.textStyle,
     this.child,
+    this.expand = true,
+    this.padding,
   });
 
   /// Compact style for Qader's forms and dashboard cards.
@@ -52,6 +56,8 @@ class DefaultButton extends StatelessWidget {
     this.icon,
     this.textStyle = const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
     this.child,
+    this.expand = true,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12),
   });
 
   @override
@@ -61,11 +67,12 @@ class DefaultButton extends StatelessWidget {
 
     if (isOutlined) {
       return SizedBox(
-        width: width ?? double.infinity,
+        width: width ?? (expand ? double.infinity : null),
         height: height ?? 50.h,
         child: OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
+            padding: padding,
             side: BorderSide(color: buttonColor),
             shape: RoundedRectangleBorder(borderRadius: borderRadius),
           ),
@@ -75,11 +82,12 @@ class DefaultButton extends StatelessWidget {
     }
 
     return SizedBox(
-      width: width ?? double.infinity,
+      width: width ?? (expand ? double.infinity : null),
       height: height ?? 50.h,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
+          padding: padding,
           backgroundColor: buttonColor,
           foregroundColor: ColorManager.white,
           elevation: 0,

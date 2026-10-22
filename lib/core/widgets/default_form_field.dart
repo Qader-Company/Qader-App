@@ -30,6 +30,8 @@ class DefaultFormField extends StatelessWidget {
   final TextStyle? labelStyle;
   final double? labelSpacing;
   final bool compact;
+  final bool requiredIndicator;
+  final bool borderless;
 
   const DefaultFormField({
     super.key,
@@ -58,6 +60,8 @@ class DefaultFormField extends StatelessWidget {
     this.labelStyle,
     this.labelSpacing,
     this.compact = false,
+    this.requiredIndicator = false,
+    this.borderless = false,
   });
 
   @override
@@ -66,8 +70,17 @@ class DefaultFormField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
-          Text(
-            label!,
+          Text.rich(
+            TextSpan(
+              text: label!,
+              children: [
+                if (requiredIndicator)
+                  const TextSpan(
+                    text: '*',
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
+            ),
             style:
                 labelStyle ??
                 (compact
@@ -109,6 +122,13 @@ class DefaultFormField extends StatelessWidget {
                     )),
           decoration: InputDecoration(
             hintText: hint,
+            border: borderless ? InputBorder.none : null,
+            enabledBorder: borderless ? InputBorder.none : null,
+            focusedBorder: borderless ? InputBorder.none : null,
+            filled: compact || readOnly ? true : null,
+            fillColor: compact || readOnly
+                ? (readOnly ? const Color(0xFFFAFAFA) : Colors.white)
+                : null,
             prefix: prefix,
             suffix: suffix,
             prefixIcon: prefixIcon,

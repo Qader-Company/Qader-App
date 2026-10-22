@@ -1,0 +1,440 @@
+import 'package:flutter/material.dart';
+import '../../../../../core/widgets/qader_design.dart';
+import '../profile_setup_controller.dart';
+import '../profile_copy.dart';
+import 'profile_widgets.dart';
+import 'profile_upload.dart';
+import '../../../../../core/widgets/default_form_field.dart';
+
+class SkillsExperienceStep extends StatelessWidget {
+  const SkillsExperienceStep({super.key, required this.draft});
+  final ProfileSetupController draft;
+  @override
+  Widget build(BuildContext context) => ProfileColumn(
+    gap: 24,
+    children: [
+      ProfileSection(
+        'Professional Summary',
+        children: [
+          ProfileInput(
+            '',
+            controller: draft.text('summary'),
+            hint: 'Write a brief professional summary...',
+            lines: 5,
+          ),
+        ],
+      ),
+      ProfileSection(
+        'Technical Information',
+        children: [
+          ProfileSelect(
+            'Job Title',
+            required: true,
+            hint: 'Select job title',
+            value: draft.value('job'),
+            items: draft.field.jobs,
+            onChanged: (v) => draft.select('job', v),
+          ),
+          ProfileSelect(
+            'Level',
+            required: true,
+            hint: 'Select Level',
+            value: draft.value('level'),
+            items: const [
+              'Entry Level',
+              'Junior',
+              'Mid Level',
+              'Senior',
+              'Lead',
+              'Manager',
+            ],
+            onChanged: (v) => draft.select('level', v),
+          ),
+          ProfileInput(
+            'Years of Experience',
+            required: true,
+            controller: draft.text('years'),
+            hint: 'Enter years (e.g, 3)',
+            type: TextInputType.number,
+            validator: (v) {
+              final missing = requiredProfile(context, v);
+              if (missing != null) return missing;
+              final n = int.tryParse(v!.trim());
+              return n != null && n >= 0 && n <= 80
+                  ? null
+                  : pc(context, 'Enter years between 0 and 80');
+            },
+          ),
+          _SkillsInput(draft: draft),
+          ProfileSelect(
+            'Tools',
+            hint: 'Select tools you use',
+            value: draft.value('tools'),
+            items: const [
+              'VS Code',
+              'Android Studio',
+              'Figma',
+              'Adobe Photoshop',
+              'Excel',
+              'Salesforce',
+              'Other',
+            ],
+            onChanged: (v) => draft.select('tools', v),
+          ),
+        ],
+      ),
+      ProfileSection(
+        'Portfolio & Social Links',
+        large: true,
+        children: [
+          for (final name in ['LinkedIn', 'Behance', 'Portfolio', 'GitHub'])
+            ProfileInput(
+              name,
+              required: name == 'LinkedIn',
+              controller: draft.text(name),
+              hint: 'https://...',
+              type: TextInputType.url,
+              validator: (v) =>
+                  profileUrl(context, v, required: name == 'LinkedIn'),
+            ),
+        ],
+      ),
+      ProfileSection(
+        'Work Experience',
+        large: true,
+        onAdd: draft.addExperience,
+        addLabel: 'Add Experience',
+        children: [
+          for (var i = 0; i < draft.experiences.length; i++)
+            _ExperienceCard(
+              key: ValueKey(draft.experiences[i].id),
+              draft: draft,
+              entry: draft.experiences[i],
+              index: i,
+            ),
+        ],
+      ),
+      ProfileSection(
+        'Projects',
+        large: true,
+        onAdd: draft.addProject,
+        addLabel: 'Add Project',
+        children: [
+          for (var i = 0; i < draft.projects.length; i++)
+            _ProjectCard(
+              key: ValueKey(draft.projects[i].id),
+              draft: draft,
+              entry: draft.projects[i],
+              index: i,
+            ),
+        ],
+      ),
+    ],
+  );
+}
+
+class _SkillsInput extends StatelessWidget {
+  const _SkillsInput({required this.draft});
+  final ProfileSetupController draft;
+  @override
+  Widget build(BuildContext context) => FormField<List<String>>(
+    initialValue: draft.skills,
+    validator: (_) =>
+        draft.skills.isEmpty ? pc(context, 'Add at least one skill') : null,
+    builder: (field) => ProfileColumn(
+      gap: 6,
+      children: [
+        const ProfileLabel('Skills', required: true),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: field.hasError
+                  ? Theme.of(context).colorScheme.error
+                  : QaderDesign.border,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final skill in draft.skills)
+                Container(
+                  height: 24,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: QaderDesign.paleBlue,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        skill,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF1D52E5),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Tooltip(
+                        message: '${pc(context, 'Remove')} $skill',
+                        child: InkWell(
+                          onTap: () {
+                            draft.skills.remove(skill);
+                            field.didChange([...draft.skills]);
+                            draft.refresh();
+                          },
+                          child: const QaderAsset(
+                            'profile_close',
+                            width: 12,
+                            height: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              SizedBox(
+                width: 112,
+                child: DefaultFormField(
+                  compact: true,
+                  borderless: true,
+                  controller: draft.text('newSkill'),
+                  hint: pc(context, 'Add more skills'),
+                  textInputAction: TextInputAction.done,
+                  textStyle: const TextStyle(fontSize: 12, height: 1.5),
+                  contentPadding: EdgeInsets.zero,
+                  onSubmitted: (_) => _add(field),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (field.hasError)
+          Text(
+            field.errorText!,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+      ],
+    ),
+  );
+  void _add(FormFieldState<List<String>> field) {
+    final skill = draft.text('newSkill').text.trim();
+    if (skill.isEmpty) return;
+    if (!draft.skills.any((s) => s.toLowerCase() == skill.toLowerCase())) {
+      draft.skills.add(skill);
+    }
+    draft.text('newSkill').clear();
+    field.didChange([...draft.skills]);
+    draft.refresh();
+  }
+}
+
+class _ExperienceCard extends StatelessWidget {
+  const _ExperienceCard({
+    super.key,
+    required this.draft,
+    required this.entry,
+    required this.index,
+  });
+  final ProfileSetupController draft;
+  final ExperienceEntry entry;
+  final int index;
+  String get prefix => 'experience_${entry.id}_';
+  @override
+  Widget build(BuildContext context) => ProfileEntryCard(
+    title: '${pc(context, 'Experience')} ${index + 1}',
+    onRemove: () {
+      draft.experiences.remove(entry);
+      draft.refresh();
+    },
+    children: [
+      ProfileInput(
+        'Job Title',
+        required: true,
+        controller: draft.text('${prefix}job'),
+        hint: 'e.g UI/UX Designer',
+      ),
+      ProfileInput(
+        'Company Name',
+        required: true,
+        controller: draft.text('${prefix}company'),
+        hint: 'e.g QADER',
+      ),
+      ProfileInput(
+        'Company URL / LinkedIn',
+        controller: draft.text('${prefix}url'),
+        hint: 'https://linkedin.com',
+        type: TextInputType.url,
+        validator: (v) => profileUrl(context, v),
+      ),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ProfileDate(
+              'From',
+              controller: draft.text('${prefix}from'),
+              value: entry.from,
+              onChanged: (v) {
+                entry.from = v;
+                draft.refresh();
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ProfileDate(
+              'To',
+              controller: draft.text('${prefix}to'),
+              value: entry.to,
+              enabled: !entry.current,
+              onChanged: (v) {
+                entry.to = v;
+                draft.refresh();
+              },
+            ),
+          ),
+        ],
+      ),
+      FormField<bool>(
+        key: ValueKey(entry.from.toString() + entry.to.toString()),
+        validator: (_) =>
+            entry.from != null &&
+                entry.to != null &&
+                entry.to!.isBefore(entry.from!)
+            ? pc(context, 'End date must be after start date')
+            : null,
+        builder: (f) => ProfileColumn(
+          gap: 4,
+          children: [
+            Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: entry.current,
+                    onChanged: (v) {
+                      entry.current = v ?? false;
+                      if (entry.current) {
+                        entry.to = null;
+                        draft.text('${prefix}to').clear();
+                      }
+                      draft.refresh();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    pc(context, 'Currently working here'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: QaderDesign.muted,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (f.hasError)
+              Text(
+                f.errorText!,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+          ],
+        ),
+      ),
+      ProfileInput(
+        'What did you do?',
+        controller: draft.text('${prefix}description'),
+        hint: 'Describe your responsibilities and achievements...',
+        lines: 5,
+      ),
+    ],
+  );
+}
+
+class _ProjectCard extends StatelessWidget {
+  const _ProjectCard({
+    super.key,
+    required this.draft,
+    required this.entry,
+    required this.index,
+  });
+  final ProfileSetupController draft;
+  final ProjectEntry entry;
+  final int index;
+  String get prefix => 'project_${entry.id}_';
+  @override
+  Widget build(BuildContext context) => ProfileEntryCard(
+    title: '${pc(context, 'Project')} ${index + 1}',
+    onRemove: () {
+      draft.projects.remove(entry);
+      draft.refresh();
+    },
+    children: [
+      ProfileInput(
+        'Project Name',
+        controller: draft.text('${prefix}name'),
+        hint: 'e.g shelfspot',
+        validator: (v) {
+          final active =
+              draft.text('${prefix}description').text.trim().isNotEmpty ||
+              draft.text('${prefix}url').text.trim().isNotEmpty ||
+              entry.images.isNotEmpty;
+          return active ? requiredProfile(context, v) : null;
+        },
+      ),
+      ProfileInput(
+        'Project Description',
+        controller: draft.text('${prefix}description'),
+        hint: 'Describe your project...',
+        lines: 5,
+      ),
+      ProfileInput(
+        'Project Link',
+        controller: draft.text('${prefix}url'),
+        hint: 'https://...',
+        type: TextInputType.url,
+        validator: (v) => profileUrl(context, v),
+      ),
+      ProfileColumn(
+        gap: 4,
+        children: [
+          const ProfileLabel('Project Images'),
+          Text(
+            pc(
+              context,
+              'Upload screenshots or images of your work (max 5 images)',
+            ),
+            style: const TextStyle(
+              fontSize: 12,
+              height: 1.5,
+              color: Color(0xFF737373),
+            ),
+          ),
+        ],
+      ),
+      ProfileUpload(
+        images: true,
+        files: entry.images,
+        onChanged: (files) {
+          entry.images
+            ..clear()
+            ..addAll(files);
+          draft.refresh();
+        },
+      ),
+    ],
+  );
+}

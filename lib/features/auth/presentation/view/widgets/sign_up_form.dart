@@ -4,11 +4,16 @@ import '../../../../../core/helpers/feature_dialog.dart';
 import '../../../../../core/helpers/validators.dart';
 import '../../../../../core/widgets/default_button.dart';
 import '../../../../../core/widgets/qader_asset.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../../core/router/app_router.dart';
+import '../../../domain/entities/account_role.dart';
+import '../../../../profile_setup/presentation/profile_setup_controller.dart';
 import 'auth_form_field.dart';
 import 'auth_password_field.dart';
 
 class SignUpForm extends StatefulWidget {
-  const SignUpForm({super.key});
+  const SignUpForm({super.key, this.role = AccountRole.talent});
+  final AccountRole role;
   @override
   State<SignUpForm> createState() => _SignUpFormState();
 }
@@ -32,11 +37,40 @@ class _SignUpFormState extends State<SignUpForm> {
     if (!_form.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     // No account/session is created until the registration API is connected.
-    await showInfoDialog(
-      context,
-      titleKey: 'register_title',
-      messageKey: 'register_pending',
+    if (widget.role == AccountRole.client) {
+      await showInfoDialog(
+        context,
+        titleKey: 'register_title',
+        messageKey: 'register_pending',
+      );
+      return;
+    }
+    final preview = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('register_title'.tr(context: context)),
+        content: Text('register_pending'.tr(context: context)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('confirm'.tr(context: context)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text('profile_preview_talent_profile'.tr(context: context)),
+          ),
+        ],
+      ),
     );
+    if (preview == true && mounted) {
+      context.push(
+        AppRouter.profileSetup,
+        extra: ProfileSetupSeed(
+          name: _name.text.trim(),
+          email: _email.text.trim(),
+        ),
+      );
+    }
   }
 
   @override

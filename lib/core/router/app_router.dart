@@ -13,6 +13,9 @@ import '../../features/auth/presentation/view/otp_view.dart';
 import '../../features/onboarding/presentation/view/onboarding_view.dart';
 import '../../features/auth/domain/entities/password_recovery_request.dart';
 
+import '../../features/profile_setup/presentation/view/profile_setup_view.dart';
+import '../../features/profile_setup/presentation/profile_setup_controller.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -26,6 +29,7 @@ abstract class AppRouter {
   static const home = '/home';
   static const forgotPassword = '/forgot-password';
   static const otp = '/otp';
+  static const profileSetup = '/profile-setup';
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: root,
@@ -79,6 +83,14 @@ abstract class AppRouter {
               ).toString(),
         builder: (context, state) =>
             OtpView(request: state.extra! as PasswordRecoveryRequest),
+      ),
+      GoRoute(
+        path: profileSetup,
+        builder: (context, state) => ProfileSetupView(
+          seed: state.extra is ProfileSetupSeed
+              ? state.extra as ProfileSetupSeed
+              : null,
+        ),
       ),
       GoRoute(path: home, builder: (context, state) => const HomeView()),
     ],
