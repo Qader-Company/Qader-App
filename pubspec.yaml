@@ -48,6 +48,7 @@ dependencies:
   smooth_page_indicator: ^3.0.0
   pinput: ^6.0.2
   geocoding: ^4.0.0
+  flutter_secure_storage: ^10.3.4
 
 dev_dependencies:
   flutter_test:

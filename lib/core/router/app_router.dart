@@ -2,6 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/env/app_env.dart';
+import '../di/service_locator.dart';
+import '../storage/app_preferences.dart';
+import '../../features/auth/presentation/view/account_view.dart';
 import '../../features/home/presentation/view/home_view.dart';
 import '../../features/auth/presentation/view/splash_view.dart';
 import '../../features/auth/presentation/view/choose_role_view.dart';
@@ -33,6 +36,7 @@ abstract class AppRouter {
   static const signIn = '/sign-in';
   static const signUp = '/sign-up';
   static const home = '/home';
+  static const account = '/account';
   static const forgotPassword = '/forgot-password';
   static const otp = '/otp';
   static const profileSetup = '/profile-setup';
@@ -42,9 +46,17 @@ abstract class AppRouter {
   static final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: root,
+    refreshListenable: sl<AppPreferences>().sessionRevision,
+    redirect: (context, state) {
+      if (state.uri.path == account && !sl<AppPreferences>().isLoggedIn) {
+        return '$signIn?role=client';
+      }
+      return null;
+    },
     observers: [routeObserver],
     debugLogDiagnostics: !AppEnv.instance.isProd,
     routes: [
+      GoRoute(path: account, builder: (context, state) => const AccountView()),
       GoRoute(path: root, builder: (context, state) => const SplashView()),
       GoRoute(
         path: onboarding,

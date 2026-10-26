@@ -77,9 +77,9 @@ class DioConsumer implements ApiConsumer {
         PrettyDioLogger(
           requestHeader: false,
           requestBody: false,
-          responseHeader: true,
-          responseBody: true,
-          error: true,
+          responseHeader: false,
+          responseBody: false,
+          error: false,
         ),
       );
     }

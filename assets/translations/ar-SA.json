@@ -491,5 +491,13 @@
     "talent_describe_the_technical_decisions_behind_each_project_include_the_tools_team_collaboration_challenges_and_trade_offs_so_hiring_managers_can_understand_your_contribution":  "صف القرارات التقنية في كل مشروع. اذكر الأدوات والتعاون مع الفريق والتحديات والمفاضلات حتى يتمكن مديرو التوظيف من فهم مساهمتك.",
     "talent_connect_each_achievement_to_a_business_outcome_replace_broad_responsibilities_with_clear_examples_of_what_you_built_how_you_measured_success_and_what_you_learned":  "اربط كل إنجاز بنتيجة عملية. استبدل المسؤوليات العامة بأمثلة واضحة لما بنيته وكيف قست النجاح وما تعلمته.",
     "talent_expected_salary_recommendations":  "توصيات الراتب المتوقع",
-    "profile_preview_home": "?????? ????????"
+    "profile_preview_home": "?????? ????????",
+  "auth_my_account": "حسابي",
+  "auth_sign_out": "تسجيل الخروج",
+  "auth_retry": "إعادة المحاولة",
+  "auth_invalid_response": "تعذّر قراءة رد الخادم. حاول مرة أخرى.",
+  "auth_storage_error": "تعذّر حفظ الجلسة أو مسحها. حاول مرة أخرى.",
+  "auth_session_changed": "تغيّرت جلستك. سجّل الدخول مرة أخرى.",
+  "auth_email_unverified": "يرجى تفعيل بريدك الإلكتروني قبل تسجيل الدخول.",
+  "auth_account_inactive": "هذا الحساب غير نشط. يرجى التواصل مع الدعم."
 }

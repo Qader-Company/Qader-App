@@ -21,7 +21,9 @@ class _SplashViewState extends State<SplashView> {
     _timer = Timer(AppEnv.instance.splashDuration, () {
       if (!mounted) return;
       context.go(
-        sl<AppPreferences>().isOnBoardingViewed()
+        sl<AppPreferences>().isLoggedIn
+            ? AppRouter.account
+            : sl<AppPreferences>().isOnBoardingViewed()
             ? AppRouter.chooseRole
             : AppRouter.onboarding,
       );

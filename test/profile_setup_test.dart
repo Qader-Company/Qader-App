@@ -64,7 +64,11 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       AppEnv.init(Environment.dev, splashDuration: const Duration(seconds: 1));
       await EasyLocalization.ensureInitialized();
-      await initServiceLocator();
+      await initServiceLocator(
+        preferencesOverride: AppPreferencesImpl(
+          await SharedPreferences.getInstance(),
+        ),
+      );
       for (final family in ['Poppins', 'Rubik']) {
         final loader = FontLoader(family);
         for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {

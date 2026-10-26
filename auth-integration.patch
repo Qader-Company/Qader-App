@@ -1,0 +1,353 @@
+--- a/lib/core/di/service_locator.dart
++++ b/lib/core/di/service_locator.dart
+@@ -3,16 +3,26 @@
+ import '../network/api_consumer.dart';
+ import '../network/network_info.dart';
+ import '../storage/app_preferences.dart';
++import '../storage/secure_app_preferences.dart';
++import '../../features/auth/data/datasources/client_auth_remote_data_source.dart';
++import '../../features/auth/data/repositories/client_auth_repository.dart';
++import '../../features/auth/domain/repositories/auth_repository.dart';
++import '../../features/auth/presentation/cubit/auth_session_cubit.dart';
+ 
+ final GetIt sl = GetIt.instance;
+ 
+-Future<void> initServiceLocator() async {
++Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
+   final preferences = await SharedPreferences.getInstance();
+   sl.registerLazySingleton<SharedPreferences>(() => preferences);
+-  sl.registerLazySingleton<AppPreferences>(
+-    () => AppPreferencesImpl(sl<SharedPreferences>()),
++  sl.registerSingleton<AppPreferences>(
++    preferencesOverride ?? await SecureAppPreferences.create(preferences),
+   );
+   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
+   sl.registerLazySingleton<ApiConsumer>(() => DioConsumer());
+-  // Register Qader feature repositories and cubits here.
++  sl.registerLazySingleton<ClientAuthRemoteDataSource>(() => ClientAuthRemoteDataSource(sl<ApiConsumer>()));
++  sl.registerLazySingleton<AuthRepository>(() => ClientAuthRepository(sl<ClientAuthRemoteDataSource>(), sl<AppPreferences>()));
++  sl.registerLazySingleton<AuthSessionCubit>(
++    () => AuthSessionCubit(sl<AuthRepository>(), sl<AppPreferences>()),
++    dispose: (cubit) => cubit.close(),
++  );
+ }
+--- a/lib/core/network/end_points.dart
++++ b/lib/core/network/end_points.dart
+@@ -1,16 +1,16 @@
+ import '../../app/env/app_env.dart';
+ 
+-/// Placeholder auth paths. Adapt these and the refresh parser to Qader's API.
++/// Client routes; OTP purpose values still await confirmation.
+ class EndPoints {
+   static String get baseUrl => AppEnv.instance.baseUrl;
+-  static const login = '/auth/login';
+-  static const refreshToken = '/auth/refresh';
+-  static const register = '/auth/register';
+-  static const verifyOtp = '/auth/email-verification';
+-  static const resendOtp = '/auth/email-verification/send-otp';
+-  static const forgotPassword = '/auth/password-reset/send-otp';
+-  static const verifyResetPasswordOtp = '/auth/reset-password-verification';
+-  static const resetPassword = '/auth/reset-password';
++  static const login = '/auth/client/login';
++  static const refreshToken = '/auth/client/refresh';
++  static const register = '/auth/client/register';
++  static const verifyOtp = '/auth/client/email-verification';
++  static const resendOtp = '/auth/client/email-verification/send-otp';
++  static const forgotPassword = '/auth/client/password-reset/send-otp';
++  static const verifyResetPasswordOtp = '/auth/client/reset-password-verification';
++  static const resetPassword = '/auth/client/reset-password';
+   static const logout = '/auth/logout';
+-  static const googleLogin = '/auth/social/google/login';
++  static const googleLogin = '/auth/client/social/google/login';
+ }
+--- a/lib/core/network/api_consumer.dart
++++ b/lib/core/network/api_consumer.dart
+@@ -77,9 +77,9 @@
+         PrettyDioLogger(
+           requestHeader: false,
+           requestBody: false,
+-          responseHeader: true,
+-          responseBody: true,
+-          error: true,
++          responseHeader: false,
++          responseBody: false,
++          error: false,
+         ),
+       );
+     }
+--- a/lib/features/auth/presentation/view/widgets/sign_in_form.dart
++++ b/lib/features/auth/presentation/view/widgets/sign_in_form.dart
+@@ -7,6 +7,7 @@
+ import '../../../../../core/widgets/qader_asset.dart';
+ import '../../../domain/entities/account_role.dart';
+ import 'auth_form_field.dart';
++import 'client_sign_in_form.dart';
+ import 'auth_password_field.dart';
+ 
+ class SignInForm extends StatefulWidget {
+@@ -56,7 +57,9 @@
+   }
+ 
+   @override
+-  Widget build(BuildContext context) => Form(
++  Widget build(BuildContext context) => widget.role == AccountRole.client
++      ? const ClientSignInForm()
++      : Form(
+     key: _form,
+     child: Column(
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+--- a/lib/core/router/app_router.dart
++++ b/lib/core/router/app_router.dart
+@@ -2,6 +2,9 @@
+ import 'package:flutter/material.dart';
+ import 'package:go_router/go_router.dart';
+ import '../../app/env/app_env.dart';
++import '../di/service_locator.dart';
++import '../storage/app_preferences.dart';
++import '../../features/auth/presentation/view/account_view.dart';
+ import '../../features/home/presentation/view/home_view.dart';
+ import '../../features/auth/presentation/view/splash_view.dart';
+ import '../../features/auth/presentation/view/choose_role_view.dart';
+@@ -33,6 +36,7 @@
+   static const signIn = '/sign-in';
+   static const signUp = '/sign-up';
+   static const home = '/home';
++  static const account = '/account';
+   static const forgotPassword = '/forgot-password';
+   static const otp = '/otp';
+   static const profileSetup = '/profile-setup';
+@@ -42,9 +46,17 @@
+   static final GoRouter router = GoRouter(
+     navigatorKey: navigatorKey,
+     initialLocation: root,
++    refreshListenable: sl<AppPreferences>().sessionRevision,
++    redirect: (context, state) {
++      if (state.uri.path == account && !sl<AppPreferences>().isLoggedIn) {
++        return '$signIn?role=client';
++      }
++      return null;
++    },
+     observers: [routeObserver],
+     debugLogDiagnostics: !AppEnv.instance.isProd,
+     routes: [
++      GoRoute(path: account, builder: (context, state) => const AccountView()),
+       GoRoute(path: root, builder: (context, state) => const SplashView()),
+       GoRoute(
+         path: onboarding,
+--- a/lib/features/auth/presentation/view/splash_view.dart
++++ b/lib/features/auth/presentation/view/splash_view.dart
+@@ -21,9 +21,11 @@
+     _timer = Timer(AppEnv.instance.splashDuration, () {
+       if (!mounted) return;
+       context.go(
+-        sl<AppPreferences>().isOnBoardingViewed()
+-            ? AppRouter.chooseRole
+-            : AppRouter.onboarding,
++        sl<AppPreferences>().isLoggedIn
++            ? AppRouter.account
++            : sl<AppPreferences>().isOnBoardingViewed()
++                ? AppRouter.chooseRole
++                : AppRouter.onboarding,
+       );
+     });
+   }
+--- a/lib/core/network/app_interceptors.dart
++++ b/lib/core/network/app_interceptors.dart
+@@ -106,6 +106,10 @@
+ 
+     // Skip refresh logic for public auth endpoints — just pass the error through
+     // so the UI can display the server's error message (e.g. "unauthorized process").
++    final body = err.response?.data;
++    if (body is Map && body['message'] == 'api.unauthorized') {
++      return handler.next(err);
++    }
+     final requestPath = err.requestOptions.path;
+     final isPublicEndpoint = _publicAuthPaths.any(
+       (p) => requestPath.endsWith(p),
+@@ -227,7 +231,9 @@
+     await prefs.logout();
+     // Navigate to root — safe to call from any isolate via post-frame callback.
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+-      if (!prefs.isLoggedIn) navigatorKey.currentContext?.go(AppRouter.root);
++      if (!prefs.isLoggedIn) {
++        navigatorKey.currentContext?.go('${AppRouter.signIn}?role=client');
++      }
+     });
+   }
+ }
+--- a/android/app/src/main/AndroidManifest.xml
++++ b/android/app/src/main/AndroidManifest.xml
+@@ -1,5 +1,7 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android">
++    <uses-permission android:name="android.permission.INTERNET"/>
+     <application
++        android:allowBackup="false"
+         android:label="qader"
+         android:name="${applicationName}"
+         android:icon="@mipmap/ic_launcher">
+--- a/android/app/build.gradle.kts
++++ b/android/app/build.gradle.kts
+@@ -24,7 +24,7 @@
+         applicationId = "com.example.qader"
+         // You can update the following values to match your application needs.
+         // For more information, see: https://flutter.dev/to/review-gradle-config.
+-        minSdk = flutter.minSdkVersion
++        minSdk = maxOf(flutter.minSdkVersion, 23)
+         targetSdk = flutter.targetSdkVersion
+         versionCode = flutter.versionCode
+         versionName = flutter.versionName
+--- a/ios/Runner.xcodeproj/project.pbxproj
++++ b/ios/Runner.xcodeproj/project.pbxproj
+@@ -372,6 +372,7 @@
+ 					"$(inherited)",
+ 					"@executable_path/Frameworks",
+ 				);
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				PRODUCT_BUNDLE_IDENTIFIER = com.example.qader;
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+ 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+@@ -551,6 +552,7 @@
+ 					"$(inherited)",
+ 					"@executable_path/Frameworks",
+ 				);
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				PRODUCT_BUNDLE_IDENTIFIER = com.example.qader;
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+ 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+@@ -573,6 +575,7 @@
+ 					"$(inherited)",
+ 					"@executable_path/Frameworks",
+ 				);
++				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+ 				PRODUCT_BUNDLE_IDENTIFIER = com.example.qader;
+ 				PRODUCT_NAME = "$(TARGET_NAME)";
+ 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
+--- a/macos/Runner/DebugProfile.entitlements
++++ b/macos/Runner/DebugProfile.entitlements
+@@ -8,5 +8,9 @@
+ 	<true/>
+ 	<key>com.apple.security.network.server</key>
+ 	<true/>
++	<key>com.apple.security.network.client</key>
++	<true/>
++	<key>keychain-access-groups</key>
++	<array/>
+ </dict>
+ </plist>
+--- a/macos/Runner/Release.entitlements
++++ b/macos/Runner/Release.entitlements
+@@ -4,5 +4,9 @@
+ <dict>
+ 	<key>com.apple.security.app-sandbox</key>
+ 	<true/>
++	<key>com.apple.security.network.client</key>
++	<true/>
++	<key>keychain-access-groups</key>
++	<array/>
+ </dict>
+ </plist>
+--- /dev/null
++++ b/ios/Runner/Runner.entitlements
+@@ -0,0 +1,3 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0"><dict><key>keychain-access-groups</key><array/></dict></plist>
+--- a/test/profile_evaluation_test.dart
++++ b/test/profile_evaluation_test.dart
+@@ -1,3 +1,4 @@
++import 'package:qader/core/storage/app_preferences.dart';
+ import 'dart:convert';
+ import 'dart:io';
+ import 'dart:ui' as ui;
+@@ -42,7 +43,7 @@
+       SharedPreferences.setMockInitialValues({});
+       AppEnv.init(Environment.dev, splashDuration: const Duration(seconds: 1));
+       await EasyLocalization.ensureInitialized();
+-      await initServiceLocator();
++      await initServiceLocator(preferencesOverride: AppPreferencesImpl(await SharedPreferences.getInstance()));
+       for (final family in ['Poppins', 'Rubik']) {
+         final loader = FontLoader(family);
+         for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+--- a/test/profile_setup_test.dart
++++ b/test/profile_setup_test.dart
+@@ -64,7 +64,7 @@
+       SharedPreferences.setMockInitialValues({});
+       AppEnv.init(Environment.dev, splashDuration: const Duration(seconds: 1));
+       await EasyLocalization.ensureInitialized();
+-      await initServiceLocator();
++      await initServiceLocator(preferencesOverride: AppPreferencesImpl(await SharedPreferences.getInstance()));
+       for (final family in ['Poppins', 'Rubik']) {
+         final loader = FontLoader(family);
+         for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+--- a/test/talent_profile_test.dart
++++ b/test/talent_profile_test.dart
+@@ -1,3 +1,4 @@
++import 'package:qader/core/storage/app_preferences.dart';
+ import 'dart:convert';
+ import 'dart:io';
+ import 'dart:ui' as ui;
+@@ -39,7 +40,7 @@
+       SharedPreferences.setMockInitialValues({});
+       AppEnv.init(Environment.dev, splashDuration: const Duration(seconds: 1));
+       await EasyLocalization.ensureInitialized();
+-      await initServiceLocator();
++      await initServiceLocator(preferencesOverride: AppPreferencesImpl(await SharedPreferences.getInstance()));
+       for (final family in ['Poppins', 'Rubik']) {
+         final loader = FontLoader(family);
+         for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+--- a/test/talent_registration_flow_test.dart
++++ b/test/talent_registration_flow_test.dart
+@@ -40,7 +40,7 @@
+       SharedPreferences.setMockInitialValues({});
+       AppEnv.init(Environment.dev, splashDuration: const Duration(seconds: 1));
+       await EasyLocalization.ensureInitialized();
+-      await initServiceLocator();
++      await initServiceLocator(preferencesOverride: AppPreferencesImpl(await SharedPreferences.getInstance()));
+       for (final family in ['Poppins', 'Rubik']) {
+         final loader = FontLoader(family);
+         for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+--- a/test/widget_test.dart
++++ b/test/widget_test.dart
+@@ -56,7 +56,7 @@
+     SharedPreferences.setMockInitialValues({});
+     AppEnv.init(Environment.dev, splashDuration: const Duration(seconds: 1));
+     await EasyLocalization.ensureInitialized();
+-    await initServiceLocator();
++    await initServiceLocator(preferencesOverride: AppPreferencesImpl(await SharedPreferences.getInstance()));
+     for (final family in ['Poppins', 'Rubik']) {
+       final loader = FontLoader(family);
+       for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+--- a/assets/translations/en-US.json
++++ b/assets/translations/en-US.json
+@@ -491,5 +491,13 @@
+     "talent_describe_the_technical_decisions_behind_each_project_include_the_tools_team_collaboration_challenges_and_trade_offs_so_hiring_managers_can_understand_your_contribution":  "Describe the technical decisions behind each project. Include the tools, team collaboration, challenges and trade-offs so hiring managers can understand your contribution.",
+     "talent_connect_each_achievement_to_a_business_outcome_replace_broad_responsibilities_with_clear_examples_of_what_you_built_how_you_measured_success_and_what_you_learned":  "Connect each achievement to a business outcome. Replace broad responsibilities with clear examples of what you built, how you measured success and what you learned.",
+     "talent_expected_salary_recommendations":  "Expected Salary Recommendations",
+-    "profile_preview_home": "Preview Home"
++    "profile_preview_home": "Preview Home",
++  "auth_my_account": "My account",
++  "auth_sign_out": "Sign out",
++  "auth_retry": "Try again",
++  "auth_invalid_response": "We could not read the server response. Please try again.",
++  "auth_storage_error": "Unable to save or clear your session. Please try again.",
++  "auth_session_changed": "Your session changed. Please sign in again.",
++  "auth_email_unverified": "Please verify your email before signing in.",
++  "auth_account_inactive": "This account is inactive. Please contact support."
+ }
+--- a/assets/translations/ar-SA.json
++++ b/assets/translations/ar-SA.json
+@@ -491,5 +491,13 @@
+     "talent_describe_the_technical_decisions_behind_each_project_include_the_tools_team_collaboration_challenges_and_trade_offs_so_hiring_managers_can_understand_your_contribution":  "صف القرارات التقنية في كل مشروع. اذكر الأدوات والتعاون مع الفريق والتحديات والمفاضلات حتى يتمكن مديرو التوظيف من فهم مساهمتك.",
+     "talent_connect_each_achievement_to_a_business_outcome_replace_broad_responsibilities_with_clear_examples_of_what_you_built_how_you_measured_success_and_what_you_learned":  "اربط كل إنجاز بنتيجة عملية. استبدل المسؤوليات العامة بأمثلة واضحة لما بنيته وكيف قست النجاح وما تعلمته.",
+     "talent_expected_salary_recommendations":  "توصيات الراتب المتوقع",
+-    "profile_preview_home": "?????? ????????"
++    "profile_preview_home": "?????? ????????",
++  "auth_my_account": "حسابي",
++  "auth_sign_out": "تسجيل الخروج",
++  "auth_retry": "إعادة المحاولة",
++  "auth_invalid_response": "تعذّر قراءة رد الخادم. حاول مرة أخرى.",
++  "auth_storage_error": "تعذّر حفظ الجلسة أو مسحها. حاول مرة أخرى.",
++  "auth_session_changed": "تغيّرت جلستك. سجّل الدخول مرة أخرى.",
++  "auth_email_unverified": "يرجى تفعيل بريدك الإلكتروني قبل تسجيل الدخول.",
++  "auth_account_inactive": "هذا الحساب غير نشط. يرجى التواصل مع الدعم."
+ }

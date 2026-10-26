@@ -491,5 +491,13 @@
     "talent_describe_the_technical_decisions_behind_each_project_include_the_tools_team_collaboration_challenges_and_trade_offs_so_hiring_managers_can_understand_your_contribution":  "Describe the technical decisions behind each project. Include the tools, team collaboration, challenges and trade-offs so hiring managers can understand your contribution.",
     "talent_connect_each_achievement_to_a_business_outcome_replace_broad_responsibilities_with_clear_examples_of_what_you_built_how_you_measured_success_and_what_you_learned":  "Connect each achievement to a business outcome. Replace broad responsibilities with clear examples of what you built, how you measured success and what you learned.",
     "talent_expected_salary_recommendations":  "Expected Salary Recommendations",
-    "profile_preview_home": "Preview Home"
+    "profile_preview_home": "Preview Home",
+  "auth_my_account": "My account",
+  "auth_sign_out": "Sign out",
+  "auth_retry": "Try again",
+  "auth_invalid_response": "We could not read the server response. Please try again.",
+  "auth_storage_error": "Unable to save or clear your session. Please try again.",
+  "auth_session_changed": "Your session changed. Please sign in again.",
+  "auth_email_unverified": "Please verify your email before signing in.",
+  "auth_account_inactive": "This account is inactive. Please contact support."
 }

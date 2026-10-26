@@ -1,16 +1,17 @@
 import '../../app/env/app_env.dart';
 
-/// Placeholder auth paths. Adapt these and the refresh parser to Qader's API.
+/// Client routes; OTP purpose values still await confirmation.
 class EndPoints {
   static String get baseUrl => AppEnv.instance.baseUrl;
-  static const login = '/auth/login';
-  static const refreshToken = '/auth/refresh';
-  static const register = '/auth/register';
-  static const verifyOtp = '/auth/email-verification';
-  static const resendOtp = '/auth/email-verification/send-otp';
-  static const forgotPassword = '/auth/password-reset/send-otp';
-  static const verifyResetPasswordOtp = '/auth/reset-password-verification';
-  static const resetPassword = '/auth/reset-password';
+  static const login = '/auth/client/login';
+  static const refreshToken = '/auth/client/refresh';
+  static const register = '/auth/client/register';
+  static const verifyOtp = '/auth/client/email-verification';
+  static const resendOtp = '/auth/client/email-verification/send-otp';
+  static const forgotPassword = '/auth/client/password-reset/send-otp';
+  static const verifyResetPasswordOtp =
+      '/auth/client/reset-password-verification';
+  static const resetPassword = '/auth/client/reset-password';
   static const logout = '/auth/logout';
-  static const googleLogin = '/auth/social/google/login';
+  static const googleLogin = '/auth/client/social/google/login';
 }

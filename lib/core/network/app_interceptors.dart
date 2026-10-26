@@ -106,6 +106,10 @@ class AppInterceptors extends Interceptor {
 
     // Skip refresh logic for public auth endpoints — just pass the error through
     // so the UI can display the server's error message (e.g. "unauthorized process").
+    final body = err.response?.data;
+    if (body is Map && body['message'] == 'api.unauthorized') {
+      return handler.next(err);
+    }
     final requestPath = err.requestOptions.path;
     final isPublicEndpoint = _publicAuthPaths.any(
       (p) => requestPath.endsWith(p),
@@ -227,7 +231,9 @@ class AppInterceptors extends Interceptor {
     await prefs.logout();
     // Navigate to root — safe to call from any isolate via post-frame callback.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!prefs.isLoggedIn) navigatorKey.currentContext?.go(AppRouter.root);
+      if (!prefs.isLoggedIn) {
+        navigatorKey.currentContext?.go('${AppRouter.signIn}?role=client');
+      }
     });
   }
 }
