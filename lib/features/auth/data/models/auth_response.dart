@@ -1,3 +1,4 @@
+import '../../domain/entities/account_role.dart';
 import '../../domain/entities/auth_user.dart';
 
 class AuthResponse {
@@ -23,6 +24,11 @@ class AuthResponse {
     }
     return AuthUser(
       id: raw['id'] as int,
+      role: switch (raw['type']) {
+        'talent' => AccountRole.talent,
+        'client' => AccountRole.client,
+        _ => throw const FormatException('Unsupported account type'),
+      },
       firstName: raw['first_name'] as String,
       lastName: raw['last_name'] as String,
       email: raw['email'] as String,

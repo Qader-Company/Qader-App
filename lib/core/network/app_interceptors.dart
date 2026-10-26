@@ -232,7 +232,7 @@ class AppInterceptors extends Interceptor {
     // Navigate to root — safe to call from any isolate via post-frame callback.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!prefs.isLoggedIn) {
-        navigatorKey.currentContext?.go('${AppRouter.signIn}?role=client');
+        navigatorKey.currentContext?.go('${AppRouter.signIn}?role=talent');
       }
     });
   }

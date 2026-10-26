@@ -4,16 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import '../../../../../core/resources/qader_design.dart';
 
-/// Reusable five-digit input, including paste, autofill and Arabic numerals.
+/// Reusable code input, including paste, autofill and Arabic numerals.
 class OtpCodeField extends StatelessWidget {
   const OtpCodeField({
     super.key,
     required this.controller,
     this.errorText,
+    this.codeLength = length,
     this.onChanged,
     this.onSubmitted,
   });
   static const length = 5;
+  final int codeLength;
   final TextEditingController controller;
   final String? errorText;
   final ValueChanged<String>? onChanged;
@@ -25,7 +27,7 @@ class OtpCodeField extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final theme = PinTheme(
-          width: (constraints.maxWidth - 40) / length,
+          width: (constraints.maxWidth - (codeLength - 1) * 10) / codeLength,
           height: 50,
           textStyle: const TextStyle(
             fontSize: 20,
@@ -52,7 +54,7 @@ class OtpCodeField extends StatelessWidget {
             // A code retains its digit order in both Arabic and English layouts.
             textDirection: TextDirection.ltr,
             child: Pinput(
-              length: length,
+              length: codeLength,
               controller: controller,
               defaultPinTheme: theme,
               focusedPinTheme: theme.copyDecorationWith(

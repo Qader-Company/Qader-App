@@ -308,6 +308,9 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Sign in'));
     await settle();
     expect(find.byType(SignInView), findsOneWidget);
+    // Real Talent login is tested separately; continue the client preview here.
+    AppRouter.router.go('${AppRouter.signIn}?role=client');
+    await settle();
     await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
     await settle();
     expect(find.text('Email is required'), findsOneWidget);

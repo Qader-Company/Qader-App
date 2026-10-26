@@ -16,7 +16,7 @@ Independent Flutter project using the shared foundation from ShelfSpot.
 ## Run and verify
 
     flutter pub get
-    flutter run
+    flutter run --dart-define-from-file=tool/flutter.dev.json
     flutter analyze
     flutter test
 
@@ -30,12 +30,17 @@ screens use local Figma SVGs and Poppins (with Rubik for Arabic); the Poppins
 license is in assets/fonts/Poppins-OFL.txt. Android/iOS render their own status
 and navigation bars.
 
-Authentication is not connected: submitting valid fields offers a clearly
-labelled preview with sample Talent data and never saves a session/token.
-Account creation opens from the sign-up link, validates name/email, an eight-character
-minimum password and matching confirmation, and supports separate visibility toggles.
-Submitting valid details explains that registration is not connected; nothing is sent
-or saved. The sign-in link returns to the previous form, retaining the selected role.
+Talent login is connected to the real API, with secure token storage, automatic
+refresh, session restoration and logout. Successful login opens the account
+screen with server user data and requires the returned user type to be talent.
+Client sign-in retains the labelled preview and does not call Talent endpoints.
+
+Talent registration now submits first_name, last_name, email, password and
+password_confirmation to /auth/talent/register. The UI validates both names,
+an eight-character minimum password and matching confirmation, displays server
+errors, and parses the observed user + verification_token response. The token is
+stored securely, separately from access/refresh tokens, and registration opens a
+six-digit email verification screen. Client registration remains a local preview.
 Both role choices are retained on the authentication routes; the available dashboard
 preview is the Talent Under Review design. Social sign-in,
 notifications display an unavailable-service message until
@@ -54,14 +59,36 @@ lib/core/di/service_locator.dart and routes in lib/core/router/app_router.dart.
 
 ## API configuration
 
-Startup does not call an API. api.example.com and auth paths are placeholders.
-Set Qader's URL with --dart-define=API_BASE_URL=https://your-api.example/api/v1
-and environment with --dart-define=APP_ENV=prod (also dev or staging).
-Supply API_KEY only if the new backend requires it. .env.example documents
-these values; Flutter does not load .env automatically.
-Adapt end_points.dart, the token refresh request/response contract and the
-session-expired destination in app_interceptors.dart when adding authentication.
-GoLoginWidget takes an onLogin callback for the future authentication feature.
+Local configuration lives in the Git-ignored tool/flutter.dev.json file:
+
+    {
+      "APP_ENV": "dev",
+      "API_BASE_URL": "https://test.api.qadereg.com/api/v1",
+      "API_KEY": "<your-testing-api-key>"
+    }
+
+Run with flutter run --dart-define-from-file=tool/flutter.dev.json and select Talent.
+X-Authorization is required. The base URL includes /api/v1. Flutter does not load
+.env automatically. Never commit populated configuration or tokens.
+
+Implemented: Talent login, registration submission, GET /auth/me, token refresh
+and logout. Login/refresh/me/logout contracts were verified against the test API.
+A prior Client session is rejected and cleared when /auth/me reports type client.
+
+Registration requires a valid Talent user and verification_token before opening
+/verify-email. PATCH /auth/talent/email-verification sends otp using that token.
+A success acknowledgement clears the verification token and offers Talent sign-in;
+it does not assume a login session. Verification is covered by mocked tests;
+the Talent verification request/response still needs confirmation and a live OTP
+test. Resend purpose is not confirmed, so resend is not connected.
+The route challenge stays in memory and is not resumable after app restart.
+Password recovery retains its separate preview flow.
+
+Auth follows data (source, response models, repository implementation), domain
+(user entity, repository contract), and presentation (session Cubit and views).
+Production DI uses SecureAppPreferences. Tests inject isolated preferences or mock
+the secure-storage platform. HTTP debug logs omit headers and response bodies.
+Android minimum API is 23 with backups disabled; Apple targets use Keychain.
 
 Firebase, Google sign-in SDK, push notifications, old business features,
 branding and platform credentials were not copied. Configure services separately

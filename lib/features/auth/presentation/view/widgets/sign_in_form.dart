@@ -7,7 +7,7 @@ import '../../../../../core/widgets/default_button.dart';
 import '../../../../../core/widgets/qader_asset.dart';
 import '../../../domain/entities/account_role.dart';
 import 'auth_form_field.dart';
-import 'client_sign_in_form.dart';
+import 'talent_sign_in_form.dart';
 import 'auth_password_field.dart';
 
 class SignInForm extends StatefulWidget {
@@ -57,8 +57,8 @@ class _SignInFormState extends State<SignInForm> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.role == AccountRole.client
-      ? const ClientSignInForm()
+  Widget build(BuildContext context) => widget.role == AccountRole.talent
+      ? const TalentSignInForm()
       : Form(
           key: _form,
           child: Column(

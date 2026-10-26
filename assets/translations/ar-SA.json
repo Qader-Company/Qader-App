@@ -499,5 +499,16 @@
   "auth_storage_error": "تعذّر حفظ الجلسة أو مسحها. حاول مرة أخرى.",
   "auth_session_changed": "تغيّرت جلستك. سجّل الدخول مرة أخرى.",
   "auth_email_unverified": "يرجى تفعيل بريدك الإلكتروني قبل تسجيل الدخول.",
-  "auth_account_inactive": "هذا الحساب غير نشط. يرجى التواصل مع الدعم."
+  "auth_account_inactive": "هذا الحساب غير نشط. يرجى التواصل مع الدعم.",
+  "auth_first_name": "الاسم الأول",
+  "auth_last_name": "اسم العائلة",
+  "auth_name_too_long": "الحد الأقصى للاسم 100 حرف.",
+  "auth_registration_success": "تم إنشاء الحساب بنجاح.",
+  "auth_registration_error": "تعذّر إنشاء الحساب. حاول مرة أخرى.",
+  "auth_wrong_role": "يرجى تسجيل الدخول بحساب موهبة.",
+    "auth_verify_email_hint": "أدخل كود التفعيل المكوّن من 6 أرقام المرسل لبريدك الإلكتروني.",
+    "auth_otp_invalid": "أدخل كود مكوّن من 6 أرقام.",
+    "auth_verification_missing": "جلسة التفعيل غير متاحة. سجّل الدخول للمتابعة.",
+    "auth_verification_error": "تعذّر تفعيل البريد الإلكتروني. حاول مرة أخرى.",
+    "auth_email_verified": "تم تفعيل البريد الإلكتروني. سجّل الدخول للمتابعة."
 }

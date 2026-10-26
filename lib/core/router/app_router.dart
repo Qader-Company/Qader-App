@@ -1,4 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../features/auth/domain/entities/email_verification_challenge.dart';
+import '../../features/auth/presentation/view/email_verification_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/env/app_env.dart';
@@ -39,6 +41,7 @@ abstract class AppRouter {
   static const account = '/account';
   static const forgotPassword = '/forgot-password';
   static const otp = '/otp';
+  static const verifyEmail = '/verify-email';
   static const profileSetup = '/profile-setup';
   static const talentProfile = '/talent-profile';
   static const profileReview = '/profile-review';
@@ -49,13 +52,22 @@ abstract class AppRouter {
     refreshListenable: sl<AppPreferences>().sessionRevision,
     redirect: (context, state) {
       if (state.uri.path == account && !sl<AppPreferences>().isLoggedIn) {
-        return '$signIn?role=client';
+        return '$signIn?role=talent';
       }
       return null;
     },
     observers: [routeObserver],
     debugLogDiagnostics: !AppEnv.instance.isProd,
     routes: [
+      GoRoute(
+        path: verifyEmail,
+        redirect: (context, state) => state.extra is EmailVerificationChallenge
+            ? null
+            : '/sign-in?role=talent',
+        builder: (context, state) => EmailVerificationView(
+          challenge: state.extra! as EmailVerificationChallenge,
+        ),
+      ),
       GoRoute(path: account, builder: (context, state) => const AccountView()),
       GoRoute(path: root, builder: (context, state) => const SplashView()),
       GoRoute(

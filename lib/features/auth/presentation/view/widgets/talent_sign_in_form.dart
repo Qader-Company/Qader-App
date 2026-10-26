@@ -11,13 +11,13 @@ import '../../cubit/auth_session_cubit.dart';
 import 'auth_form_field.dart';
 import 'auth_password_field.dart';
 
-class ClientSignInForm extends StatefulWidget {
-  const ClientSignInForm({super.key});
+class TalentSignInForm extends StatefulWidget {
+  const TalentSignInForm({super.key});
   @override
-  State<ClientSignInForm> createState() => _ClientSignInFormState();
+  State<TalentSignInForm> createState() => _TalentSignInFormState();
 }
 
-class _ClientSignInFormState extends State<ClientSignInForm> {
+class _TalentSignInFormState extends State<TalentSignInForm> {
   final _form = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
@@ -45,7 +45,7 @@ class _ClientSignInFormState extends State<ClientSignInForm> {
     bloc: _session,
     listener: (context, state) {
       if (state.status == AuthStatus.authenticated) {
-        context.go('/account');
+        context.go(AppRouter.account);
       }
     },
     builder: (context, state) => Form(
@@ -75,7 +75,7 @@ class _ClientSignInFormState extends State<ClientSignInForm> {
               onPressed: state.status == AuthStatus.loading
                   ? null
                   : () =>
-                        context.push('${AppRouter.forgotPassword}?role=client'),
+                        context.push('${AppRouter.forgotPassword}?role=talent'),
               child: Text('forgot_password'.tr(context: context)),
             ),
           ),

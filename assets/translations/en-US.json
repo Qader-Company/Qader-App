@@ -499,5 +499,16 @@
   "auth_storage_error": "Unable to save or clear your session. Please try again.",
   "auth_session_changed": "Your session changed. Please sign in again.",
   "auth_email_unverified": "Please verify your email before signing in.",
-  "auth_account_inactive": "This account is inactive. Please contact support."
+  "auth_account_inactive": "This account is inactive. Please contact support.",
+  "auth_first_name": "First name",
+  "auth_last_name": "Last name",
+  "auth_name_too_long": "Use 100 characters or fewer.",
+  "auth_registration_success": "Account created successfully.",
+  "auth_registration_error": "Unable to register. Please try again.",
+  "auth_wrong_role": "Please sign in with a Talent account.",
+    "auth_verify_email_hint": "Enter the 6-digit code sent to your email.",
+    "auth_otp_invalid": "Enter a 6-digit code.",
+    "auth_verification_missing": "Your verification session is unavailable. Please sign in to continue.",
+    "auth_verification_error": "Could not verify your email. Please try again.",
+    "auth_email_verified": "Email verified. Sign in to continue."
 }

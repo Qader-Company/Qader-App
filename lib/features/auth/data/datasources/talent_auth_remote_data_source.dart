@@ -2,12 +2,12 @@ import '../../../../core/network/api_consumer.dart';
 import '../../../../core/network/either.dart';
 import '../../../../core/network/failure.dart';
 
-/// Postman request transport only; response schemas are not supplied yet.
+/// Authentication request transport; repositories validate response schemas.
 /// API_BASE_URL includes /api/v1. This source never creates a local session.
-class ClientAuthRemoteDataSource {
-  const ClientAuthRemoteDataSource(this._api);
+class TalentAuthRemoteDataSource {
+  const TalentAuthRemoteDataSource(this._api);
   final ApiConsumer _api;
-  static const _prefix = '/auth/client';
+  static const _prefix = '/auth/talent';
 
   Future<Either<Failure, Object?>> login({
     required String email,

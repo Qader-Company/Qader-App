@@ -32,7 +32,7 @@ class _Translations extends AssetLoader {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
-    'client form authenticates, restores and logs out through real wiring',
+    'talent form authenticates, restores and logs out through real wiring',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
       FlutterSecureStorage.setMockInitialValues({});
@@ -64,7 +64,7 @@ void main() {
       );
       await tester.enterText(
         find.byType(TextFormField).at(0),
-        'client@example.test',
+        'talent@example.test',
       );
       await tester.enterText(find.byType(TextFormField).at(1), 'password123');
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
@@ -77,7 +77,7 @@ void main() {
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
       expect(find.text('My account'), findsOneWidget);
-      expect(find.text('Test Client'), findsOneWidget);
+      expect(find.text('Test Talent'), findsOneWidget);
       expect(prefs.isLoggedIn, isTrue);
       expect(sl<SharedPreferences>().getString('PREFS_KEY_TOKEN'), isNull);
 
@@ -96,7 +96,7 @@ void main() {
       AppRouter.router.go(AppRouter.root);
       await tester.pumpAndSettle();
       expect(find.text('My account'), findsOneWidget);
-      expect(find.text('client@example.test'), findsOneWidget);
+      expect(find.text('talent@example.test'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign out'));
       await tester.pumpAndSettle();
