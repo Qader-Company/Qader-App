@@ -51,6 +51,24 @@ The widget test checks the complete flow, form validation, password visibility,
 FAQ expansion, locale switching, and 320-pixel Arabic layouts. It also writes
 review screenshots to build/design_review/.
 
+## Mobile launcher icon
+
+The mobile launcher uses the original Qader circular mark and dot in white on
+the brand blue background. Source artwork is in assets/branding/launcher_icon.svg
+with a 1024px PNG preview beside it. Android includes legacy density PNGs, adaptive
+icons and a monochrome layer for themed launchers. iOS uses opaque icons for all
+sizes in its existing AppIcon catalog; the OS applies the corner mask.
+
+Regenerate from the original logo with:
+
+    flutter test --no-pub tool/generate_launcher_icons.dart
+
+Launcher resources require a fresh build/install; hot reload or restart does not
+update them. If the launcher caches the old icon, restart the launcher or device.
+Native startup screens stay white without an icon; Android 12+ explicitly uses
+a transparent splash drawable in light and dark mode. The Flutter splash screen
+and the home-screen launcher icon remain separate from this native startup screen.
+
 ## Add a feature
 
 Copy lib/features/_feature_template, rename its files/classes, add models,
@@ -68,6 +86,9 @@ Local configuration lives in the Git-ignored tool/flutter.dev.json file:
     }
 
 Run with flutter run --dart-define-from-file=tool/flutter.dev.json and select Talent.
+In VS Code, select Qader (Dev API) in Run and Debug and press F5; this launch
+configuration loads the same local file. Stop and relaunch after changing build
+defines; hot reload and hot restart do not load new build-time values.
 X-Authorization is required. The base URL includes /api/v1. Flutter does not load
 .env automatically. Never commit populated configuration or tokens.
 
@@ -80,14 +101,21 @@ Registration requires a valid Talent user and verification_token before opening
 A success acknowledgement clears the verification token and offers Talent sign-in;
 it does not assume a login session. Verification is covered by mocked tests;
 the Talent verification request/response still needs confirmation and a live OTP
-test. Resend purpose is not confirmed, so resend is not connected.
+test. Resend is connected to POST /auth/talent/email-verification/send-otp
+with the registration email and the configured API key (no session Bearer).
+It requires a success acknowledgement, retains the verification credential unless
+the response provides a replacement, and prevents overlapping resend/verify requests.
+The resend headers and response schema still need live API confirmation.
 The route challenge stays in memory and is not resumable after app restart.
-Password recovery retains its separate preview flow.
+Talent password recovery now has a separate API flow; Client recovery retains its preview.
 
 Auth follows data (source, response models, repository implementation), domain
 (user entity, repository contract), and presentation (session Cubit and views).
 Production DI uses SecureAppPreferences. Tests inject isolated preferences or mock
-the secure-storage platform. HTTP debug logs omit headers and response bodies.
+the secure-storage platform. HTTP debug logs show response status, redacted JSON
+bodies and network error types. Request bodies, headers and URL queries are omitted;
+token, password, OTP and other credential fields are redacted recursively.
+Non-JSON text bodies are omitted. HTTP logging is disabled outside debug builds.
 Android minimum API is 23 with backups disabled; Apple targets use Keychain.
 
 Firebase, Google sign-in SDK, push notifications, old business features,
@@ -113,7 +141,26 @@ qader_design.dart in core/widgets is a small compatibility export file.
 Import individual components when only one is needed. Keep feature-specific
 widgets inside the feature; use core/widgets for components shared across features.
 
-## Password recovery and OTP preview
+## Password recovery
+
+Talent recovery sends the email to POST /auth/talent/password-reset/send-otp
+(the existing password-reset purpose still needs live confirmation), then sends
+email and a six-digit otp to POST /auth/talent/reset-password-verification.
+Both requests use X-Authorization and Accept with no session Bearer.
+The verification parser expects success: true and data.reset_password_token,
+as a nonempty string or an object containing token. This response shape is
+inferred from the reset_password_token variable and the existing auth responses;
+it still needs confirmation against a live response. Missing tokens block reset.
+The reset credential is stored separately in secure storage and sent as Bearer
+to POST /auth/talent/reset-password with password and password_confirmation.
+Successful acknowledgement clears the reset credential and offers sign-in;
+it never creates a login session. The UI validates eight-character passwords and
+matching confirmation, displays server errors, supports resend, and prevents
+overlapping requests. Recovery progress stays in memory and restarts after closing
+the screen or restarting the app. Tests mock the backend; live OTP delivery and
+password change have not been tested.
+
+### Client recovery preview
 
 Forget Password opens the email form, validates the address, and offers an
 explicit preview of the five-digit OTP screen. The email and role stay in a
@@ -137,7 +184,9 @@ opening role selection. Later launches skip onboarding. Direct navigation to
 
 Artwork uses the local Figma images and individual portrait/connector assets.
 DefaultImage.asset reuses the project's image fitting and clipping component.
-The team illustration preserves the original coordinates and portrait crops
-inside a proportionally scaled artboard. Content scrolls on shorter screens.
+The team illustration uses the original Connected Team Network image from Figma
+node 4731:77358 in its 382 × 303 slot at (4, 25) within the illustration artboard.
+The dashboard image matches the original asset in Figma node 4707:77303.
+Content scrolls on shorter screens.
 The widget test checks all pages, swiping, persistence, repeat launch, and Arabic
 at 320 pixels, and saves screenshots under build/design_review/.

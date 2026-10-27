@@ -49,7 +49,8 @@ class OtpCodeField extends StatelessWidget {
           ),
         );
         return Semantics(
-          label: 'otp_code_label'.tr(context: context),
+          label: (codeLength == 6 ? 'auth_otp_code_label' : 'otp_code_label')
+              .tr(context: context),
           child: Directionality(
             // A code retains its digit order in both Arabic and English layouts.
             textDirection: TextDirection.ltr,

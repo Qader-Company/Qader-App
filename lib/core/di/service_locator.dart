@@ -6,6 +6,7 @@ import '../storage/app_preferences.dart';
 import '../storage/secure_app_preferences.dart';
 import '../../features/auth/data/datasources/talent_auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/talent_auth_repository.dart';
+import '../../features/auth/data/repositories/password_recovery_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_session_cubit.dart';
 import '../../features/auth/presentation/cubit/registration_cubit.dart';
@@ -25,6 +26,12 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<AuthRepository>(
     () => TalentAuthRepository(
+      sl<TalentAuthRemoteDataSource>(),
+      sl<AppPreferences>(),
+    ),
+  );
+  sl.registerLazySingleton<PasswordRecoveryRepository>(
+    () => PasswordRecoveryRepository(
       sl<TalentAuthRemoteDataSource>(),
       sl<AppPreferences>(),
     ),

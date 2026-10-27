@@ -81,8 +81,23 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
             DefaultButton.compact(
               text: 'otp_done'.tr(),
               isLoading: state.status == EmailVerificationStatus.loading,
-              onPressed: _submit,
+              onPressed: state.status == EmailVerificationStatus.resending
+                  ? null
+                  : _submit,
             ),
+            const SizedBox(height: 12),
+            DefaultButton.compact(
+              text: 'otp_resend'.tr(),
+              isOutlined: true,
+              isLoading: state.status == EmailVerificationStatus.resending,
+              onPressed: state.status == EmailVerificationStatus.loading
+                  ? null
+                  : _cubit.resend,
+            ),
+            if (state.status == EmailVerificationStatus.resent) ...[
+              const SizedBox(height: 12),
+              Text('auth_otp_resent'.tr(), textAlign: TextAlign.center),
+            ],
           ],
         );
       },

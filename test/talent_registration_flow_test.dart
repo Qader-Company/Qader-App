@@ -104,6 +104,22 @@ void main() {
       expect(sl<AppPreferences>().getVerificationToken(), 'verification-only');
       expect(sl<AppPreferences>().isLoggedIn, isFalse);
       expect(sl<AppPreferences>().getRefreshToken(), isEmpty);
+      final resend = find.widgetWithText(OutlinedButton, 'Resend');
+      api.failure = const ServerFailure(message: 'Please wait before retrying');
+      await tester.ensureVisible(resend);
+      await tester.tap(resend);
+      await tester.pumpAndSettle();
+      expect(find.text('Please wait before retrying'), findsOneWidget);
+      api.failure = null;
+      api.response = {'success': true};
+      await tester.tap(resend);
+      await tester.pumpAndSettle();
+      expect(api.path, '/auth/talent/email-verification/send-otp');
+      expect(api.body, {'email': 'talent@example.test'});
+      expect(
+        find.text('A new verification code has been sent to your email.'),
+        findsOneWidget,
+      );
       await tester.enterText(find.byType(EditableText), '12345');
       await tester.tap(find.widgetWithText(ElevatedButton, 'Done'));
       await tester.pumpAndSettle();

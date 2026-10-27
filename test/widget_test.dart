@@ -385,7 +385,8 @@ void main() {
     await capture('10_create_account_arabic_bottom');
     expect(tester.takeException(), isNull);
 
-    AppRouter.router.go(AppRouter.forgotPassword);
+    // Client recovery retains the five-digit preview; Talent uses the API flow.
+    AppRouter.router.go('${AppRouter.forgotPassword}?role=client');
     await settle();
     await capture('13_forgot_password_arabic_small');
     await tester.enterText(find.byType(TextFormField), 'arabic@example.com');

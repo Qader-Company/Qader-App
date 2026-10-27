@@ -101,6 +101,47 @@ class TalentAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> resendVerificationEmail(
+    EmailVerificationChallenge challenge,
+  ) async {
+    final revision = _preferences.sessionRevision.value;
+    if (!identical(challenge, _challenge) ||
+        _preferences.getVerificationToken().isEmpty) {
+      return const Left(ServerFailure(message: 'auth_verification_missing'));
+    }
+    final result = await _remote.sendOtp(
+      purpose: 'email-verification',
+      email: challenge.email,
+      credential: '',
+    );
+    if (!identical(challenge, _challenge) ||
+        revision != _preferences.sessionRevision.value) {
+      return const Left(ServerFailure(message: 'auth_session_changed'));
+    }
+    if (result.isError) return Left(result.getErrorOrThrow());
+    final raw = result.getOrThrow();
+    if (raw is! Map || raw['success'] != true) {
+      return const Left(ServerFailure(message: 'auth_invalid_response'));
+    }
+    // Some responses rotate the verification credential; acknowledgements keep it.
+    final data = raw['data'];
+    if (data is Map && data.containsKey('verification_token')) {
+      try {
+        final token = AuthResponse.token(
+          Map<String, dynamic>.from(data),
+          'verification_token',
+        );
+        await _preferences.saveVerificationToken(token);
+      } on FormatException {
+        return const Left(ServerFailure(message: 'auth_invalid_response'));
+      } on Object {
+        return const Left(CacheFailure(message: 'auth_storage_error'));
+      }
+    }
+    return const Right(null);
+  }
+
+  @override
   Future<Either<Failure, void>> verifyEmail(
     EmailVerificationChallenge challenge,
     String otp,

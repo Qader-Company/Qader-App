@@ -4,6 +4,7 @@ abstract class ImageAssets {
   static const onboardingPath = '$path/onboarding';
   static const introOpportunities = '$onboardingPath/opportunities.png';
   static const introDashboard = '$onboardingPath/dashboard.png';
+  static const introTeam = '$onboardingPath/team.png';
   static const introAvatars = [
     '$onboardingPath/avatar_0.png',
     '$onboardingPath/avatar_1.png',
@@ -16,6 +17,7 @@ abstract class ImageAssets {
   static const onboardingImages = [
     introOpportunities,
     introDashboard,
+    introTeam,
     ...introAvatars,
   ];
 }

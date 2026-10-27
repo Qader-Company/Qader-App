@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../../app/env/app_env.dart';
 import '../di/service_locator.dart';
 import '../storage/app_preferences.dart';
 import 'app_interceptors.dart';
+import 'debug_network_logger.dart';
 import 'either.dart';
 
 import 'failure.dart';
@@ -73,15 +73,7 @@ class DioConsumer implements ApiConsumer {
 
     _dio.interceptors.add(AppInterceptors());
     if (kDebugMode) {
-      _dio.interceptors.add(
-        PrettyDioLogger(
-          requestHeader: false,
-          requestBody: false,
-          responseHeader: false,
-          responseBody: false,
-          error: false,
-        ),
-      );
+      _dio.interceptors.add(DebugNetworkLogger());
     }
   }
 

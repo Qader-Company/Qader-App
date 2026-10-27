@@ -5,6 +5,9 @@ import '../entities/email_verification_challenge.dart';
 import '../entities/registration_request.dart';
 
 abstract class AuthRepository {
+  Future<Either<Failure, void>> resendVerificationEmail(
+    EmailVerificationChallenge challenge,
+  );
   Future<Either<Failure, EmailVerificationChallenge>> register(
     RegistrationRequest request,
   );

@@ -1,6 +1,7 @@
 import 'package:qader/features/auth/domain/entities/registration_request.dart';
 import 'package:qader/features/auth/presentation/cubit/registration_cubit.dart';
 import 'dart:async';
+import 'package:qader/features/auth/presentation/cubit/email_verification_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/core/network/api_consumer.dart';
@@ -308,4 +309,104 @@ void main() {
     expect((await pending).isError, isTrue);
     expect(prefs.getVerificationToken(), isEmpty);
   });
+
+  test(
+    'resend sends registration email without a session credential',
+    () async {
+      api.response = registrationResponse();
+      final challenge = (await repository.register(
+        registrationRequest,
+      )).getOrThrow();
+      api.response = {'success': true};
+      expect(
+        (await repository.resendVerificationEmail(challenge)).isSuccess,
+        isTrue,
+      );
+      expect(api.path, '/auth/talent/email-verification/send-otp');
+      expect(api.body, {'email': 'talent@example.test'});
+      expect(api.credential, '');
+      expect(prefs.getVerificationToken(), 'verification-only');
+      expect(prefs.isLoggedIn, isFalse);
+
+      api.failure = const NetworkFailure(message: 'offline');
+      expect(
+        (await repository.resendVerificationEmail(challenge)).isError,
+        isTrue,
+      );
+      expect(prefs.getVerificationToken(), 'verification-only');
+      api.failure = null;
+      api.response = {'success': false};
+      expect(
+        (await repository.resendVerificationEmail(challenge)).isError,
+        isTrue,
+      );
+
+      api.response = {
+        'success': true,
+        'data': {
+          'verification_token': {'token': 'rotated', 'ttl': 60},
+        },
+      };
+      expect(
+        (await repository.resendVerificationEmail(challenge)).isSuccess,
+        isTrue,
+      );
+      expect(prefs.getVerificationToken(), 'rotated');
+      api.response = {'success': true};
+      await repository.verifyEmail(challenge, '123456');
+      expect(api.credential, 'rotated');
+    },
+  );
+
+  test(
+    'resend rejects old challenges and late responses after logout',
+    () async {
+      api.response = registrationResponse();
+      final old = (await repository.register(registrationRequest)).getOrThrow();
+      final current = (await repository.register(
+        registrationRequest,
+      )).getOrThrow();
+      expect((await repository.resendVerificationEmail(old)).isError, isTrue);
+      expect(api.calls, 2);
+      api.gate = Completer<void>();
+      api.response = {
+        'success': true,
+        'data': {
+          'verification_token': {'token': 'late'},
+        },
+      };
+      final pending = repository.resendVerificationEmail(current);
+      await prefs.logout();
+      api.gate!.complete();
+      expect((await pending).isError, isTrue);
+      expect(prefs.getVerificationToken(), isEmpty);
+    },
+  );
+
+  test(
+    'resend and verification cannot overlap and errors allow retry',
+    () async {
+      api.response = registrationResponse();
+      final challenge = (await repository.register(
+        registrationRequest,
+      )).getOrThrow();
+      final cubit = EmailVerificationCubit(repository, challenge);
+      api.gate = Completer<void>();
+      api.failure = const NetworkFailure(message: 'offline');
+      final pending = cubit.resend();
+      await cubit.resend();
+      await cubit.submit('123456');
+      expect(api.calls, 2);
+      expect(cubit.state.status, EmailVerificationStatus.resending);
+      api.gate!.complete();
+      await pending;
+      expect(cubit.state.status, EmailVerificationStatus.failure);
+      api.failure = null;
+      api.response = {'success': true};
+      await cubit.resend();
+      expect(cubit.state.status, EmailVerificationStatus.resent);
+      expect(prefs.isLoggedIn, isFalse);
+      await cubit.close();
+    },
+  );
 }
