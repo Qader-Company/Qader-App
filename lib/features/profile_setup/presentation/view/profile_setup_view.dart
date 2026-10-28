@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:go_router/go_router.dart';
 import '../../../../../core/router/app_router.dart';
 import '../../../../../core/widgets/qader_design.dart';
@@ -10,6 +11,11 @@ import '../widgets/professional_field_step.dart';
 import '../widgets/basic_info_step.dart';
 import '../widgets/skills_experience_step.dart';
 import '../widgets/work_preferences_step.dart';
+import '../../../../../core/di/service_locator.dart';
+import '../../../../../core/storage/app_preferences.dart';
+import '../../domain/repositories/professional_fields_repository.dart';
+import '../../domain/repositories/profile_lookups_repository.dart';
+import '../../domain/repositories/onboarding_steps_repository.dart';
 
 class ProfileSetupView extends StatefulWidget {
   const ProfileSetupView({super.key, this.seed});
@@ -19,9 +25,26 @@ class ProfileSetupView extends StatefulWidget {
 }
 
 class _ProfileSetupViewState extends State<ProfileSetupView> {
-  late final draft = ProfileSetupController(seed: widget.seed);
+  late final draft = ProfileSetupController(
+    seed: widget.seed,
+    fieldsRepository: sl<AppPreferences>().isLoggedIn
+        ? sl<ProfessionalFieldsRepository>()
+        : null,
+    lookupsRepository: sl<AppPreferences>().isLoggedIn
+        ? sl<ProfileLookupsRepository>()
+        : null,
+    stepsRepository: sl<AppPreferences>().isLoggedIn
+        ? sl<OnboardingStepsRepository>()
+        : null,
+  );
   final _scroll = ScrollController();
   final _forms = List.generate(4, (_) => GlobalKey<FormState>());
+  @override
+  void initState() {
+    super.initState();
+    draft.loadFields();
+  }
+
   @override
   void dispose() {
     draft.dispose();
@@ -36,6 +59,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   }
 
   void _back() {
+    if (draft.busy) return;
     if (draft.step > 0) {
       _move(draft.step - 1);
     } else if (context.canPop()) {
@@ -46,6 +70,15 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   }
 
   Future<void> _next() async {
+    if (draft.fieldsLoading || draft.busy) return;
+    if (draft.step == 0) {
+      final saved = await draft.saveProfessionalField();
+      if (saved && mounted) {
+        _move(1);
+        draft.loadRelevantLookups();
+      }
+      return;
+    }
     final invalid = _forms[draft.step].currentState!.validateGranularly();
     if (invalid.isNotEmpty) {
       await Scrollable.ensureVisible(
@@ -53,6 +86,16 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
         duration: const Duration(milliseconds: 250),
         alignment: .15,
       );
+      return;
+    }
+    if (draft.isConnected && draft.step == 1) {
+      final saved = await draft.savePersonalInformation();
+      if (saved && mounted) _move(2);
+      return;
+    }
+    if (draft.isConnected && draft.step >= 2) {
+      final saved = await draft.saveDetails(work: draft.step == 3);
+      if (saved && mounted) _move(draft.step + 1);
       return;
     }
     if (draft.step < 3) {
@@ -129,7 +172,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     child: AnimatedBuilder(
       animation: draft,
       builder: (context, _) => PopScope(
-        canPop: draft.step == 0,
+        canPop: draft.step == 0 && !draft.busy,
         onPopInvokedWithResult: (didPop, result) {
           if (!didPop) _back();
         },
@@ -194,12 +237,35 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                                         ),
                                       ],
                                     ),
-                                  switch (draft.step) {
-                                    0 => ProfessionalFieldStep(draft: draft),
-                                    1 => BasicInfoStep(draft: draft),
-                                    2 => SkillsExperienceStep(draft: draft),
-                                    _ => WorkPreferencesStep(draft: draft),
-                                  },
+                                  AbsorbPointer(
+                                    absorbing: draft.busy,
+                                    child: switch (draft.step) {
+                                      0 => ProfessionalFieldStep(draft: draft),
+                                      1 => BasicInfoStep(draft: draft),
+                                      2 => SkillsExperienceStep(draft: draft),
+                                      _ => WorkPreferencesStep(draft: draft),
+                                    },
+                                  ),
+                                  if (draft.step == 1 &&
+                                      draft.personalFailure != null)
+                                    Text(
+                                      draft.personalFailure!.message.tr(),
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                    ),
+                                  if (draft.step >= 2 &&
+                                      draft.stepFailure != null)
+                                    Text(
+                                      draft.stepFailure!.message.tr(),
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                    ),
                                   Row(
                                     children: [
                                       if (draft.step >= 2) ...[
@@ -221,10 +287,19 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                                             draft.step == 0
                                                 ? 'Continue'
                                                 : draft.step == 3
-                                                ? 'Submit'
+                                                ? draft.isConnected
+                                                      ? 'Save Profile'
+                                                      : 'Submit'
                                                 : 'Next',
                                           ),
-                                          onPressed: _next,
+                                          isLoading: draft.busy,
+                                          onPressed:
+                                              draft.step == 0 &&
+                                                  (draft.fieldsLoading ||
+                                                      draft.selectedField ==
+                                                          null)
+                                              ? null
+                                              : _next,
                                         ),
                                       ),
                                     ],
@@ -249,9 +324,13 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
         right: 16,
         bottom: 24,
         child: DefaultButton.compact(
-          text: pc(context, 'Preview Home'),
-          onPressed: () =>
-              context.go('${AppRouter.home}?preview=true&role=talent'),
+          text: pc(
+            context,
+            draft.isConnected ? 'Back to Account' : 'Preview Home',
+          ),
+          onPressed: () => draft.isConnected
+              ? context.go(AppRouter.account)
+              : context.go('${AppRouter.home}?preview=true&role=talent'),
         ),
       ),
       Padding(padding: const EdgeInsets.all(16), child: _header()),
@@ -278,7 +357,10 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
               ),
               const SizedBox(height: 16),
               Text(
-                pc(context, 'Profile Submitted!'),
+                pc(
+                  context,
+                  draft.isConnected ? 'Profile Saved!' : 'Profile Submitted!',
+                ),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 24,
@@ -290,7 +372,9 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
               Text(
                 pc(
                   context,
-                  "Your talent profile has been submitted successfully, We'll review it and get back to you shortly.",
+                  draft.isConnected
+                      ? 'Your profile information has been saved successfully.'
+                      : "Your talent profile has been submitted successfully, We'll review it and get back to you shortly.",
                 ),
                 textAlign: TextAlign.center,
                 style: const TextStyle(

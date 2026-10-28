@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../../core/widgets/qader_design.dart';
 import '../profile_setup_controller.dart';
 import '../profile_copy.dart';
@@ -43,25 +44,39 @@ class ProfessionalFieldStep extends StatelessWidget {
           ),
         ],
       ),
+      if (draft.fieldsLoading) const Center(child: CircularProgressIndicator()),
+      if (draft.fieldFailure case final failure?) ...[
+        Text(
+          failure.message.startsWith('profile_')
+              ? failure.message.tr(context: context)
+              : failure.message,
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+        if (draft.fields.isEmpty)
+          TextButton(
+            onPressed: draft.fieldsLoading ? null : draft.loadFields,
+            child: Text('auth_retry'.tr(context: context)),
+          ),
+      ],
+      if (!draft.fieldsLoading &&
+          draft.fieldFailure == null &&
+          draft.fields.isEmpty)
+        Text('profile_fields_empty'.tr(context: context)),
       ProfileColumn(
         children: [
-          for (var i = 0; i < ProfessionalField.values.length; i += 2)
+          for (var i = 0; i < draft.fields.length; i += 2)
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
-                    child: _FieldCard(
-                      field: ProfessionalField.values[i],
-                      draft: draft,
-                    ),
+                    child: _FieldCard(field: draft.fields[i], draft: draft),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _FieldCard(
-                      field: ProfessionalField.values[i + 1],
-                      draft: draft,
-                    ),
+                    child: i + 1 < draft.fields.length
+                        ? _FieldCard(field: draft.fields[i + 1], draft: draft)
+                        : const SizedBox.shrink(),
                   ),
                 ],
               ),
@@ -86,7 +101,7 @@ class _FieldCard extends StatelessWidget {
   final ProfileSetupController draft;
   @override
   Widget build(BuildContext context) {
-    final selected = draft.field == field;
+    final selected = draft.selectedField == field;
     return Semantics(
       selected: selected,
       button: true,
@@ -101,7 +116,9 @@ class _FieldCard extends StatelessWidget {
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          onTap: () => draft.chooseField(field),
+          onTap: draft.savingField || draft.fieldsLoading
+              ? null
+              : () => draft.chooseField(field),
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
@@ -112,7 +129,7 @@ class _FieldCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        pc(context, field.name),
+                        field.id == null ? pc(context, field.name) : field.name,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -136,7 +153,9 @@ class _FieldCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  pc(context, field.description),
+                  field.id == null
+                      ? pc(context, field.description)
+                      : field.description,
                   style: const TextStyle(
                     fontSize: 10,
                     height: 1.8,

@@ -182,9 +182,13 @@ class ProfileSelect extends StatelessWidget {
     this.hint = 'Select',
     this.required = false,
     this.validator,
+    this.itemLabel,
+    this.enabled = true,
   });
   final String label;
   final List<String> items;
+  final String Function(String)? itemLabel;
+  final bool enabled;
   final ValueChanged<String?> onChanged;
   final String? value;
   final String hint;
@@ -199,8 +203,8 @@ class ProfileSelect extends StatelessWidget {
     label: label.isEmpty ? null : pc(context, label),
     requiredIndicator: required,
     hint: pc(context, hint),
-    itemLabel: (v) => pc(context, v),
-    onChanged: onChanged,
+    itemLabel: itemLabel ?? ((v) => pc(context, v)),
+    onChanged: enabled ? onChanged : null,
     validator:
         validator ?? (required ? (v) => requiredProfile(context, v) : null),
     icon: const Padding(
@@ -337,12 +341,14 @@ class ProfileDate extends StatelessWidget {
     this.value,
     this.birthday = false,
     this.enabled = true,
+    this.required = false,
   });
   final String label;
   final TextEditingController controller;
   final ValueChanged<DateTime> onChanged;
   final DateTime? value;
   final bool birthday;
+  final bool required;
   final bool enabled;
   @override
   Widget build(BuildContext context) => ProfileInput(
@@ -350,6 +356,7 @@ class ProfileDate extends StatelessWidget {
     controller: controller,
     hint: 'mm/dd/yyyy',
     readOnly: true,
+    required: required,
     enabled: enabled,
     onTap: () async {
       final now = DateTime.now();

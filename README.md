@@ -77,6 +77,59 @@ lib/core/di/service_locator.dart and routes in lib/core/router/app_router.dart.
 
 ## API configuration
 
+### Talent professional field
+
+Signed-in users can open Complete talent profile from the account screen. The
+first setup step loads active fields from GET /talent/master-data/professional-fields
+and preserves server IDs, names, descriptions and ordering. Continue is disabled
+until a field is selected, then PATCH /talent/onboarding/professional-field sends
+professional_field_id using the current access token and existing API-key headers.
+After the selection acknowledgement, GET /talent/onboarding/form-fields receives
+the selected professional_field_id as a query parameter. Both requests must succeed
+before Basic Info opens; failures keep the selected card available for retry.
+Basic Info, Skills & Experience and Work Preferences only render keys returned
+by this endpoint. Entire sections and their validators are omitted when no
+corresponding key is returned; projects and experiences use their parent array keys.
+Changing the professional field invalidates the previous field set.
+There is no preset field in the connected flow. Names and
+descriptions are shown as supplied by the backend, including new/untranslated fields.
+The signed-out drawer preview retains its local sample fields and job titles.
+Basic Info Next validates the visible fields and POSTs multipart data to
+/talent/onboarding/personal-information. Phone and WhatsApp country codes are
+entered separately. Selected lookup IDs/codes are used directly, languages use
+languages[index][language_id] and languages[index][proficiency_level], and CV
+is uploaded from file bytes or its device path. Email is not submitted. The
+request uses the existing access-token/API-key headers and a generated multipart
+boundary. Only success:true opens Skills & Experience; errors preserve the draft
+for retry. Duplicate submits and navigation/editing while saving are blocked.
+Live genders and religions load value/label options; countries and languages
+load id/name options; currencies retain their server IDs while displaying codes
+and names. Nationality and residence share the country list. City requests include
+country_id and clear the previous selection on a country change; stale responses
+cannot overwrite the new country results. Lists load only when their form fields
+are visible, with loading, empty and retry states. All use the current access token.
+Language proficiencies load value/label options from GET
+/talent/master-data/language-proficiencies when languages are visible, retaining
+lowercase API codes such as b1 and native. Jobs, skills and tools send the selected
+professional_field_id; changing professions clears their cached options/selections
+and invalidates pending requests. Industries use their own master-data list.
+Seniority, work types and work modes use API value/label options. Skills, tools,
+industries, work types and modes support multiple selections.
+Skills & Experience Next POSTs multipart data to
+/talent/onboarding/skills-and-experiences, including indexed experience/project
+records and projects[index][images][index] file uploads (up to 5 MB per image).
+Work Preferences saves JSON to /talent/onboarding/work-preferences with API enum
+arrays, boolean relocation, notice days (0–365), numeric salary ranges and currency
+IDs. Both whitelist visible step keys, await success:true, preserve failed drafts
+for retry and block duplicate requests. The final connected screen confirms saving
+and returns to Account; it does not claim an application review status.
+The signed-out wizard remains a local preview. The exported OpenAPI describes
+GET /talent/onboarding progress but omits its response schema, so automatic routing
+and resumption still need real response evidence. These flows are covered by mocked
+tests and still need live verification with a signed-in Talent account.
+
+### Local environment
+
 Local configuration lives in the Git-ignored tool/flutter.dev.json file:
 
     {

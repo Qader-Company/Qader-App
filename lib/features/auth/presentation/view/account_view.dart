@@ -6,6 +6,9 @@ import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/language_toggle_button.dart';
 import '../cubit/auth_session_cubit.dart';
 import 'widgets/auth_layout.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../profile_setup/presentation/profile_setup_controller.dart';
 
 class AccountView extends StatefulWidget {
   const AccountView({super.key});
@@ -41,6 +44,19 @@ class _AccountViewState extends State<AccountView> {
             Text(user.fullName, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(user.email),
+            const SizedBox(height: 16),
+            DefaultButton.compact(
+              text: 'auth_complete_profile'.tr(context: context),
+              onPressed: state.status == AuthStatus.loading
+                  ? null
+                  : () => context.push(
+                      AppRouter.profileSetup,
+                      extra: ProfileSetupSeed(
+                        name: user.fullName,
+                        email: user.email,
+                      ),
+                    ),
+            ),
           ],
           if (state.failure case final failure?) ...[
             Text(

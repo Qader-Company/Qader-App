@@ -10,6 +10,12 @@ import '../../features/auth/data/repositories/password_recovery_repository.dart'
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_session_cubit.dart';
 import '../../features/auth/presentation/cubit/registration_cubit.dart';
+import '../../features/profile_setup/domain/repositories/professional_fields_repository.dart';
+import '../../features/profile_setup/data/repositories/api_professional_fields_repository.dart';
+import '../../features/profile_setup/domain/repositories/onboarding_steps_repository.dart';
+import '../../features/profile_setup/data/repositories/api_onboarding_steps_repository.dart';
+import '../../features/profile_setup/domain/repositories/profile_lookups_repository.dart';
+import '../../features/profile_setup/data/repositories/api_profile_lookups_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -21,6 +27,15 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
   sl.registerLazySingleton<ApiConsumer>(() => DioConsumer());
+  sl.registerLazySingleton<ProfessionalFieldsRepository>(
+    () => ApiProfessionalFieldsRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<OnboardingStepsRepository>(
+    () => ApiOnboardingStepsRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<ProfileLookupsRepository>(
+    () => ApiProfileLookupsRepository(sl<ApiConsumer>()),
+  );
   sl.registerLazySingleton<TalentAuthRemoteDataSource>(
     () => TalentAuthRemoteDataSource(sl<ApiConsumer>()),
   );
