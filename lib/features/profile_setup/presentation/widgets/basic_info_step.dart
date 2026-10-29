@@ -68,6 +68,7 @@ class BasicInfoStep extends StatelessWidget {
               if (draft.showsField('cv')) ...[
                 const ProfileLabel('CV', required: true),
                 ProfileUpload(
+                  savedFileName: draft.savedCv?['file_name']?.toString(),
                   files: [if (draft.cv != null) draft.cv!],
                   onChanged: (files) {
                     draft.cv = files.isEmpty ? null : files.first;

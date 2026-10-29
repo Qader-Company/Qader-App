@@ -8,8 +8,11 @@ import '../domain/repositories/profile_lookups_repository.dart';
 import '../domain/entities/profile_lookup.dart';
 import '../domain/entities/profile_cv.dart';
 import '../domain/repositories/onboarding_steps_repository.dart';
+import '../domain/repositories/onboarding_progress_repository.dart';
+import '../domain/entities/onboarding_progress.dart';
 export '../domain/entities/profile_lookup.dart';
 export '../domain/entities/professional_field.dart';
+part 'profile_progress_restore.dart';
 
 class ProfileSetupSeed {
   const ProfileSetupSeed({required this.name, required this.email});
@@ -27,6 +30,7 @@ class LanguageEntry {
 class ExperienceEntry {
   ExperienceEntry(this.id);
   final int id;
+  int? serverId;
   bool current = false;
   DateTime? from;
   DateTime? to;
@@ -35,6 +39,8 @@ class ExperienceEntry {
 class ProjectEntry {
   ProjectEntry(this.id);
   final int id;
+  int? serverId;
+  final savedImages = <Map<String, dynamic>>[];
   final images = <PlatformFile>[];
 }
 
@@ -45,9 +51,11 @@ class ProfileSetupController extends ChangeNotifier {
     ProfessionalFieldsRepository? fieldsRepository,
     ProfileLookupsRepository? lookupsRepository,
     OnboardingStepsRepository? stepsRepository,
+    OnboardingProgressRepository? progressRepository,
   }) : _fieldsRepository = fieldsRepository,
        _lookupsRepository = lookupsRepository,
        _stepsRepository = stepsRepository {
+    _progressRepository = progressRepository;
     text('name').text =
         seed?.name ?? (fieldsRepository == null ? 'Olivia Rhye' : '');
     text('email').text =
@@ -67,9 +75,17 @@ class ProfileSetupController extends ChangeNotifier {
   final ProfessionalFieldsRepository? _fieldsRepository;
   final ProfileLookupsRepository? _lookupsRepository;
   final OnboardingStepsRepository? _stepsRepository;
+  OnboardingProgressRepository? _progressRepository;
+  bool progressLoading = false;
+  Failure? progressFailure;
+  bool progressPending = false;
+  Map<String, dynamic>? savedCv;
+  final requiredFields = <String>{};
+  bool requiresField(String key) => requiredFields.contains(key);
   bool savingPersonalInfo = false;
   bool savingDetails = false;
-  bool get busy => savingField || savingPersonalInfo || savingDetails;
+  bool get busy =>
+      progressLoading || savingField || savingPersonalInfo || savingDetails;
   Failure? stepFailure;
   final multiSelections = <String, Set<String>>{};
   Set<String> selectedValues(String key) => multiSelections[key] ?? const {};
@@ -163,7 +179,8 @@ class ProfileSetupController extends ChangeNotifier {
       final file = cv;
       final result = await repository.savePersonalInformation(
         values,
-        visibleFields: formFields!,
+        visibleFields: {...formFields!}
+          ..removeAll(file == null && savedCv != null ? {'cv'} : <String>{}),
         cv: file == null
             ? null
             : ProfileCv(name: file.name, path: file.path, bytes: file.bytes),
@@ -268,6 +285,9 @@ class ProfileSetupController extends ChangeNotifier {
           'industry_ids': ProfileLookup.industries,
         }.entries) {
           if (showsField(entry.key)) {
+            check(
+              !requiresField(entry.key) || selectedValues(entry.key).isNotEmpty,
+            );
             values[entry.key] = selectedValues(
               entry.key,
             ).map((key) => id(entry.value, key)).toList();
@@ -284,6 +304,7 @@ class ProfileSetupController extends ChangeNotifier {
           if (link.isNotEmpty) values[entry.key] = link;
         }
         if (showsField('experiences')) {
+          check(!requiresField('experiences') || experiences.isNotEmpty);
           values['experiences'] = [
             for (var i = 0; i < experiences.length; i++)
               (() {
@@ -296,6 +317,7 @@ class ProfileSetupController extends ChangeNotifier {
                           !entry.to!.isBefore(entry.from!)),
                 );
                 return {
+                  if (entry.serverId != null) 'id': entry.serverId,
                   'job_title': content('${prefix}job', required: true),
                   'company_name': content('${prefix}company', required: true),
                   'company_url': url('${prefix}url'),
@@ -327,6 +349,7 @@ class ProfileSetupController extends ChangeNotifier {
                     ),
                 ];
                 return {
+                  if (entry.serverId != null) 'id': entry.serverId,
                   'name': content('${prefix}name', required: true),
                   'description': content('${prefix}description', max: 5000),
                   'url': url('${prefix}url'),
@@ -558,6 +581,7 @@ class ProfileSetupController extends ChangeNotifier {
         return false;
       }
       formFields = Set.unmodifiable(schema.getOrThrow());
+      requiredFields.clear();
       return true;
     } on Object {
       if (!_disposed) {
@@ -607,6 +631,7 @@ class ProfileSetupController extends ChangeNotifier {
     if (_field != value) {
       selections.remove('job');
       formFields = null;
+      requiredFields.clear();
       for (final lookup in ProfileLookup.values.where(
         (item) => item.isFieldScoped,
       )) {

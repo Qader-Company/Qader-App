@@ -22,7 +22,7 @@ class _SplashViewState extends State<SplashView> {
       if (!mounted) return;
       context.go(
         sl<AppPreferences>().isLoggedIn
-            ? AppRouter.account
+            ? AppRouter.profileSetup
             : sl<AppPreferences>().isOnBoardingViewed()
             ? AppRouter.chooseRole
             : AppRouter.onboarding,

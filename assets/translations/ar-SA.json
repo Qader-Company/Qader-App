@@ -1,4 +1,5 @@
 {
+  "profile_progress_failed": "تعذّر تحميل تقدمك المحفوظ. حاول مرة أخرى للمتابعة.",
   "profile_project_file_failed": "تعذر قراءة صورة مشروع. اختر الملف مرة أخرى (حتى 5 ميجابايت).",
   "profile_details_invalid": "راجع الحقول المطلوبة والاختيارات والتواريخ والقيم الرقمية.",
   "profile_enter_notice_days_between_0_and_365": "أدخل مدة إشعار بين 0 و365 يومًا.",

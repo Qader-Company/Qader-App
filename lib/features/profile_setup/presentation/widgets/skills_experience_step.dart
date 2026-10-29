@@ -105,6 +105,7 @@ class SkillsExperienceStep extends StatelessWidget {
                   draft: draft,
                   lookup: ProfileLookup.skills,
                   selectionKey: 'skill_ids',
+                  required: draft.requiresField('skill_ids'),
                 )
               else
                 _SkillsInput(draft: draft),
@@ -138,6 +139,7 @@ class SkillsExperienceStep extends StatelessWidget {
                 draft: draft,
                 lookup: ProfileLookup.industries,
                 selectionKey: 'industry_ids',
+                required: draft.requiresField('industry_ids'),
               ),
           ],
         ),
@@ -508,6 +510,12 @@ class _ProjectCard extends StatelessWidget {
           draft.refresh();
         },
       ),
+      for (final image in entry.savedImages)
+        Text(
+          image['file_name']?.toString() ??
+              image['name']?.toString() ??
+              'Image ${image['id']}',
+        ),
     ],
   );
 }

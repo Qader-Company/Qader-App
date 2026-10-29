@@ -10,6 +10,7 @@ import '../../../../../core/widgets/qader_asset.dart';
 import '../../cubit/auth_session_cubit.dart';
 import 'auth_form_field.dart';
 import 'auth_password_field.dart';
+import '../../../../profile_setup/presentation/profile_setup_controller.dart';
 
 class TalentSignInForm extends StatefulWidget {
   const TalentSignInForm({super.key});
@@ -45,7 +46,13 @@ class _TalentSignInFormState extends State<TalentSignInForm> {
     bloc: _session,
     listener: (context, state) {
       if (state.status == AuthStatus.authenticated) {
-        context.go(AppRouter.account);
+        context.go(
+          AppRouter.profileSetup,
+          extra: ProfileSetupSeed(
+            name: state.user!.fullName,
+            email: state.user!.email,
+          ),
+        );
       }
     },
     builder: (context, state) => Form(

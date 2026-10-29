@@ -16,6 +16,35 @@ import 'package:qader/core/storage/app_preferences.dart';
 import 'package:qader/core/storage/secure_app_preferences.dart';
 import 'package:qader/features/auth/presentation/cubit/auth_session_cubit.dart';
 import 'auth_repository_test.dart' show AuthApi, loginResponse;
+import 'fixtures/onboarding_progress_fixture.dart';
+import 'package:qader/core/network/either.dart';
+
+class _AuthWithProgress extends AuthApi {
+  int progressReads = 0;
+  Object progress = progressResponse(completed: true);
+  Failure? progressFailure;
+  @override
+  Future<Either<Failure, T>> get<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    required T Function(dynamic) fromJson,
+  }) async {
+    if (path == '/talent/onboarding') {
+      progressReads++;
+      return progressFailure == null
+          ? Right(fromJson(progress))
+          : Left(progressFailure!);
+    }
+    if (path.startsWith('/talent/master-data/')) {
+      return Right(fromJson({'success': true, 'data': <Object>[]}));
+    }
+    return super.get(
+      path,
+      queryParameters: queryParameters,
+      fromJson: fromJson,
+    );
+  }
+}
 
 class _Translations extends AssetLoader {
   const _Translations();
@@ -39,7 +68,7 @@ void main() {
       AppEnv.init(Environment.dev);
       await EasyLocalization.ensureInitialized();
       await initServiceLocator();
-      final api = AuthApi()
+      final api = _AuthWithProgress()
         ..failure = const UnauthorizedFailure(message: 'Wrong credentials');
       await sl.unregister<ApiConsumer>();
       sl.registerSingleton<ApiConsumer>(api);
@@ -97,6 +126,30 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('My account'), findsOneWidget);
       expect(find.text('talent@example.test'), findsOneWidget);
+      expect(api.progressReads, 2);
+
+      // Reopening an unfinished account resumes the server's step, not Account.
+      api.progress = progressResponse();
+      api.progressFailure = const NetworkFailure(message: 'offline');
+      AppRouter.router.go(AppRouter.root);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Could not load your saved progress. Please retry to continue.',
+        ),
+        findsOneWidget,
+      );
+      api.progressFailure = null;
+      await tester.tap(find.widgetWithText(TextButton, 'auth_retry'.tr()));
+      await tester.pumpAndSettle();
+      expect(find.text('Skills & Experience'), findsOneWidget);
+      expect(
+        find.widgetWithText(TextFormField, 'Backend engineer'),
+        findsOneWidget,
+      );
+      expect(api.progressReads, 4);
+      AppRouter.router.go(AppRouter.account);
+      await tester.pumpAndSettle();
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign out'));
       await tester.pumpAndSettle();

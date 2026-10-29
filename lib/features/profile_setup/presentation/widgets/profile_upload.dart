@@ -9,10 +9,12 @@ class ProfileUpload extends StatefulWidget {
     required this.files,
     required this.onChanged,
     this.images = false,
+    this.savedFileName,
   });
   final List<PlatformFile> files;
   final ValueChanged<List<PlatformFile>> onChanged;
   final bool images;
+  final String? savedFileName;
   @override
   State<ProfileUpload> createState() => _ProfileUploadState();
 }
@@ -73,12 +75,14 @@ class _ProfileUploadState extends State<ProfileUpload> {
     initialValue: widget.files,
     validator: widget.images
         ? null
-        : (v) => v == null || v.isEmpty
+        : (v) => (v == null || v.isEmpty) && widget.savedFileName == null
               ? pc(context, 'Please select your CV')
               : null,
     builder: (field) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (widget.savedFileName != null && widget.files.isEmpty)
+          Text(widget.savedFileName!, style: const TextStyle(fontSize: 12)),
         Material(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),

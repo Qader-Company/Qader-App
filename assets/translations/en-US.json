@@ -1,4 +1,5 @@
 {
+  "profile_progress_failed": "Could not load your saved progress. Please retry to continue.",
   "profile_project_file_failed": "Could not read a project image. Select the file again (up to 5 MB).",
   "profile_details_invalid": "Check the required fields, selected options, dates and numeric values.",
   "profile_enter_notice_days_between_0_and_365": "Enter notice days between 0 and 365.",

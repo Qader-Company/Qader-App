@@ -108,6 +108,8 @@ and names. Nationality and residence share the country list. City requests inclu
 country_id and clear the previous selection on a country change; stale responses
 cannot overwrite the new country results. Lists load only when their form fields
 are visible, with loading, empty and retry states. All use the current access token.
+Entering a connected setup step also retries missing or failed lists while reusing
+successful cached options and in-flight requests.
 Language proficiencies load value/label options from GET
 /talent/master-data/language-proficiencies when languages are visible, retaining
 lowercase API codes such as b1 and native. Jobs, skills and tools send the selected
@@ -123,10 +125,19 @@ arrays, boolean relocation, notice days (0–365), numeric salary ranges and cur
 IDs. Both whitelist visible step keys, await success:true, preserve failed drafts
 for retry and block duplicate requests. The final connected screen confirms saving
 and returns to Account; it does not claim an application review status.
-The signed-out wizard remains a local preview. The exported OpenAPI describes
-GET /talent/onboarding progress but omits its response schema, so automatic routing
-and resumption still need real response evidence. These flows are covered by mocked
-tests and still need live verification with a signed-in Talent account.
+The signed-out wizard remains a local preview. Talent sign-in and authenticated
+Splash launches now GET /talent/onboarding using the supplied progress contract.
+The server's current_step chooses the resumed screen; required_steps_completed
+routes returning completed accounts to Account. Missing professional fields open
+field selection. All three steps restore their saved values, nested IDs, dates,
+languages, CV metadata and project media metadata. Existing CVs are retained by
+omitting the upload unless replaced; project/experience updates include server IDs.
+Every successful save re-reads progress, so completed later steps can be skipped.
+A failed progress read blocks editing with retry, preserving the draft without
+repeating a successful POST. Session expiry exits the connected wizard.
+Only server-saved data survives restarting; unsaved typing is not auto-saved.
+These flows are covered by mocked tests and still need live verification,
+including retaining an existing CV when the upload is omitted on an update.
 
 ### Local environment
 

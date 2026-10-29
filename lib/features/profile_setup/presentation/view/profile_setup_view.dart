@@ -16,6 +16,7 @@ import '../../../../../core/storage/app_preferences.dart';
 import '../../domain/repositories/professional_fields_repository.dart';
 import '../../domain/repositories/profile_lookups_repository.dart';
 import '../../domain/repositories/onboarding_steps_repository.dart';
+import '../../domain/repositories/onboarding_progress_repository.dart';
 
 class ProfileSetupView extends StatefulWidget {
   const ProfileSetupView({super.key, this.seed});
@@ -36,17 +37,52 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     stepsRepository: sl<AppPreferences>().isLoggedIn
         ? sl<OnboardingStepsRepository>()
         : null,
+    progressRepository:
+        sl<AppPreferences>().isLoggedIn &&
+            sl.isRegistered<OnboardingProgressRepository>()
+        ? sl<OnboardingProgressRepository>()
+        : null,
   );
   final _scroll = ScrollController();
   final _forms = List.generate(4, (_) => GlobalKey<FormState>());
+  bool _initialProgress = true;
   @override
   void initState() {
     super.initState();
-    draft.loadFields();
+    sl<AppPreferences>().sessionRevision.addListener(_sessionChanged);
+    if (draft.hasProgressRepository) {
+      _resume();
+    } else {
+      draft.loadFields();
+    }
+  }
+
+  void _sessionChanged() {
+    if (mounted && draft.isConnected && !sl<AppPreferences>().isLoggedIn) {
+      context.go('${AppRouter.signIn}?role=talent');
+    }
+  }
+
+  Future<void> _resume() async {
+    final loaded = await draft.restoreProgress();
+    if (!mounted || !loaded) return;
+    if (_initialProgress && draft.step == 4) {
+      context.go(AppRouter.account);
+      return;
+    }
+    _initialProgress = false;
+    if (_scroll.hasClients) _scroll.jumpTo(0);
+    if (draft.step == 0) {
+      await draft.loadFields();
+    } else if (draft.step < 4) {
+      await draft.loadRelevantLookups();
+      if (mounted) await draft.loadLookup(ProfileLookup.cities);
+    }
   }
 
   @override
   void dispose() {
+    sl<AppPreferences>().sessionRevision.removeListener(_sessionChanged);
     draft.dispose();
     _scroll.dispose();
     super.dispose();
@@ -55,11 +91,19 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   void _move(int step) {
     FocusScope.of(context).unfocus();
     draft.go(step);
+    if (draft.isConnected && step == 0) draft.loadFields();
     if (_scroll.hasClients) _scroll.jumpTo(0);
+    if (draft.isConnected && step >= 1 && step <= 3) {
+      draft.loadRelevantLookups();
+    }
   }
 
   void _back() {
     if (draft.busy) return;
+    if (draft.isConnected && (draft.step == 4 || draft.progressPending)) {
+      context.go(AppRouter.account);
+      return;
+    }
     if (draft.step > 0) {
       _move(draft.step - 1);
     } else if (context.canPop()) {
@@ -74,8 +118,11 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     if (draft.step == 0) {
       final saved = await draft.saveProfessionalField();
       if (saved && mounted) {
-        _move(1);
-        draft.loadRelevantLookups();
+        if (draft.hasProgressRepository) {
+          await _resume();
+        } else {
+          _move(1);
+        }
       }
       return;
     }
@@ -90,12 +137,24 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     }
     if (draft.isConnected && draft.step == 1) {
       final saved = await draft.savePersonalInformation();
-      if (saved && mounted) _move(2);
+      if (saved && mounted) {
+        if (draft.hasProgressRepository) {
+          await _resume();
+        } else {
+          _move(2);
+        }
+      }
       return;
     }
     if (draft.isConnected && draft.step >= 2) {
       final saved = await draft.saveDetails(work: draft.step == 3);
-      if (saved && mounted) _move(draft.step + 1);
+      if (saved && mounted) {
+        if (draft.hasProgressRepository) {
+          await _resume();
+        } else {
+          _move(draft.step + 1);
+        }
+      }
       return;
     }
     if (draft.step < 3) {
@@ -182,7 +241,28 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 430),
-                child: draft.step == 4
+                child: draft.progressPending
+                    ? Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (draft.progressLoading)
+                              const CircularProgressIndicator(),
+                            if (draft.progressFailure != null) ...[
+                              Text(
+                                'profile_progress_failed'.tr(),
+                                textAlign: TextAlign.center,
+                              ),
+                              TextButton(
+                                onPressed: _resume,
+                                child: Text('auth_retry'.tr()),
+                              ),
+                            ],
+                          ],
+                        ),
+                      )
+                    : draft.step == 4
                     ? _confirmation(context)
                     : SingleChildScrollView(
                         controller: _scroll,

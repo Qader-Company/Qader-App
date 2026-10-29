@@ -16,6 +16,8 @@ import '../../features/profile_setup/domain/repositories/onboarding_steps_reposi
 import '../../features/profile_setup/data/repositories/api_onboarding_steps_repository.dart';
 import '../../features/profile_setup/domain/repositories/profile_lookups_repository.dart';
 import '../../features/profile_setup/data/repositories/api_profile_lookups_repository.dart';
+import '../../features/profile_setup/domain/repositories/onboarding_progress_repository.dart';
+import '../../features/profile_setup/data/repositories/api_onboarding_progress_repository.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -29,6 +31,9 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   sl.registerLazySingleton<ApiConsumer>(() => DioConsumer());
   sl.registerLazySingleton<ProfessionalFieldsRepository>(
     () => ApiProfessionalFieldsRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<OnboardingProgressRepository>(
+    () => ApiOnboardingProgressRepository(sl<ApiConsumer>()),
   );
   sl.registerLazySingleton<OnboardingStepsRepository>(
     () => ApiOnboardingStepsRepository(sl<ApiConsumer>()),

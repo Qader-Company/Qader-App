@@ -24,6 +24,7 @@ import 'package:qader/features/profile_setup/presentation/widgets/profile_lookup
 import 'package:qader/features/profile_setup/presentation/widgets/skills_experience_step.dart';
 import 'package:qader/features/profile_setup/data/repositories/api_onboarding_steps_repository.dart';
 import 'package:qader/features/profile_setup/data/repositories/api_profile_lookups_repository.dart';
+import 'package:qader/features/profile_setup/domain/repositories/onboarding_progress_repository.dart';
 
 Map<String, Object?> field(int id, String name, {bool active = true}) => {
   'id': id,
@@ -65,6 +66,7 @@ class _Api extends Fake implements ApiConsumer {
   FormData? skillsBody;
   Map<String, dynamic>? workBody;
   Failure? detailsFailure;
+  Failure? jobTitlesFailure;
   @override
   Future<Either<Failure, T>> post<T>(
     String path, {
@@ -110,6 +112,9 @@ class _Api extends Fake implements ApiConsumer {
     if (path.startsWith('/talent/master-data/') &&
         path != ApiProfessionalFieldsRepository.fieldsPath) {
       final key = path.split('/').last;
+      if (key == 'job-titles' && jobTitlesFailure != null) {
+        return Left(jobTitlesFailure!);
+      }
       final data = switch (key) {
         'genders' => [
           {'value': 'male', 'label': 'Male'},
@@ -383,6 +388,8 @@ void main() {
       await prefs.saveToken('access');
       await EasyLocalization.ensureInitialized();
       await initServiceLocator(preferencesOverride: prefs);
+      // This test isolates the existing step/save flow; resume is tested separately.
+      await sl.unregister<OnboardingProgressRepository>();
       await sl.unregister<ApiConsumer>();
       sl.registerSingleton<ApiConsumer>(api);
       api.loadFailure = const NetworkFailure(message: 'offline');
@@ -459,7 +466,10 @@ void main() {
         'residence_city_id',
         'languages',
         'expected_salary',
+        'job_title_id',
+        'seniority_level',
       };
+      api.jobTitlesFailure = const NetworkFailure(message: 'offline');
       await step.draft.loadRelevantLookups();
       await tester.pumpAndSettle();
       Future<void> chooseLookup(String label, String option) async {
@@ -538,9 +548,16 @@ void main() {
       expect(await step.draft.savePersonalInformation(), isFalse);
       expect(api.personalSaves, 2);
       api.personalGate!.complete();
+      api.jobTitlesFailure = null;
       await tester.pumpAndSettle();
       expect(find.byType(SkillsExperienceStep), findsOneWidget);
       expect(step.draft.savingPersonalInfo, isFalse);
+      expect(step.draft.lookupFailures[ProfileLookup.jobTitles], isNull);
+      expect(step.draft.options(ProfileLookup.jobTitles).single.id, 52);
+      expect(
+        step.draft.options(ProfileLookup.seniorityLevels).single.key,
+        'mid_level',
+      );
       List<String> sections() => tester
           .widgetList<ProfileSection>(find.byType(ProfileSection))
           .map((section) => section.title)
@@ -670,6 +687,7 @@ void main() {
       await savePersonal();
       final skills = Map.fromEntries(api.skillsBody!.fields);
       expect(skills['job_title_id'], '52');
+      expect(skills['seniority_level'], 'mid_level');
       expect(skills['skill_ids[0]'], '8');
       expect(skills['skill_ids[1]'], '3');
       expect(skills['industry_ids[0]'], '20');
