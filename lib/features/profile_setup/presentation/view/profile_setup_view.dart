@@ -408,10 +408,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
         right: 16,
         bottom: 24,
         child: DefaultButton.compact(
-          text: pc(
-            context,
-            draft.isConnected ? 'Go to Home' : 'Preview Home',
-          ),
+          text: pc(context, draft.isConnected ? 'Go to Home' : 'Preview Home'),
           onPressed: () => draft.isConnected
               ? context.go(AppRouter.home)
               : context.go('${AppRouter.home}?preview=true&role=talent'),

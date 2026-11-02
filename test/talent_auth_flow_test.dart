@@ -131,7 +131,10 @@ void main() {
       api.response = loginResponse();
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
-      expect(AppRouter.router.routeInformationProvider.value.uri.path, AppRouter.home);
+      expect(
+        AppRouter.router.routeInformationProvider.value.uri.path,
+        AppRouter.home,
+      );
       expect(find.text('My account'), findsNothing);
       expect(find.text('auth_complete_profile'.tr()), findsNothing);
       expect(find.text('Olivia Rhye'), findsNothing);
@@ -153,7 +156,10 @@ void main() {
       );
       AppRouter.router.go(AppRouter.root);
       await tester.pumpAndSettle();
-      expect(AppRouter.router.routeInformationProvider.value.uri.path, AppRouter.home);
+      expect(
+        AppRouter.router.routeInformationProvider.value.uri.path,
+        AppRouter.home,
+      );
       expect(find.text('auth_complete_profile'.tr()), findsNothing);
       expect(find.text('talent@example.test'), findsOneWidget);
       expect(api.progressReads, 2);
@@ -182,12 +188,21 @@ void main() {
       // A first-time account goes straight from login to Professional Field.
       await prefs.logout();
       await tester.pumpAndSettle();
-      api.progress = progressResponse(hasField: false, current: 'personal-information');
-      await tester.enterText(find.byType(TextFormField).at(0), 'talent@example.test');
+      api.progress = progressResponse(
+        hasField: false,
+        current: 'personal-information',
+      );
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'talent@example.test',
+      );
       await tester.enterText(find.byType(TextFormField).at(1), 'password123');
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
-      expect(AppRouter.router.routeInformationProvider.value.uri.path, AppRouter.profileSetup);
+      expect(
+        AppRouter.router.routeInformationProvider.value.uri.path,
+        AppRouter.profileSetup,
+      );
       expect(find.byType(ProfessionalFieldStep), findsOneWidget);
       expect(find.text('auth_complete_profile'.tr()), findsNothing);
       AppRouter.router.go(AppRouter.account);

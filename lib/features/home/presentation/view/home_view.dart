@@ -37,31 +37,48 @@ class HomeView extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: preview ? const [
-                            ApplicationReviewBanner(),
-                            SizedBox(height: 24),
-                            ReviewSteps(),
-                            SizedBox(height: 24),
-                            ApplicationSubmittedNotice(),
-                            SizedBox(height: 24),
-                            HomeProfileCard(),
-                            SizedBox(height: 24),
-                            ReviewFaq(),
-                          ] : [
-                            Card(child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('home'.tr(context: context), style: Theme.of(context).textTheme.headlineSmall),
-                                  const SizedBox(height: 16),
-                                  Text(sl<AppPreferences>().getUserName(), style: Theme.of(context).textTheme.titleLarge),
-                                  const SizedBox(height: 8),
-                                  Text(sl<AppPreferences>().getUserEmail()),
+                          children: preview
+                              ? const [
+                                  ApplicationReviewBanner(),
+                                  SizedBox(height: 24),
+                                  ReviewSteps(),
+                                  SizedBox(height: 24),
+                                  ApplicationSubmittedNotice(),
+                                  SizedBox(height: 24),
+                                  HomeProfileCard(),
+                                  SizedBox(height: 24),
+                                  ReviewFaq(),
+                                ]
+                              : [
+                                  Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'home'.tr(context: context),
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.headlineSmall,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            sl<AppPreferences>().getUserName(),
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleLarge,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            sl<AppPreferences>().getUserEmail(),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ],
-                              ),
-                            )),
-                          ],
                         ),
                       ),
                     ),

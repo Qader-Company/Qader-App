@@ -153,9 +153,14 @@ abstract class AppRouter {
         path: profileReport,
         builder: (context, state) => const ProfileEvaluationView(),
       ),
-      GoRoute(path: home, builder: (context, state) => HomeView(
-        preview: !sl<AppPreferences>().isLoggedIn || state.uri.queryParameters['preview'] == 'true',
-      )),
+      GoRoute(
+        path: home,
+        builder: (context, state) => HomeView(
+          preview:
+              !sl<AppPreferences>().isLoggedIn ||
+              state.uri.queryParameters['preview'] == 'true',
+        ),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       appBar: AppBar(title: Text('page_not_found'.tr(context: context))),

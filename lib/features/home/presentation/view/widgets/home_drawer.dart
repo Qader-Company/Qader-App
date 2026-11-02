@@ -20,38 +20,44 @@ class HomeDrawer extends StatelessWidget {
             title: Text('home'.tr(context: context)),
             onTap: () => Navigator.pop(context),
           ),
-          if (!preview) ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: Text('auth_my_account'.tr(context: context)),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRouter.account);
-            },
-          ),
-          if (preview) ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: Text('profile_preview_talent_profile'.tr(context: context)),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRouter.profileSetup);
-            },
-          ),
-          if (preview) ListTile(
-            leading: const Icon(Icons.badge_outlined),
-            title: Text('talent_my_profile'.tr(context: context)),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRouter.talentProfile);
-            },
-          ),
-          if (preview) ListTile(
-            leading: const Icon(Icons.preview_outlined),
-            title: Text('talent_profile_previews'.tr(context: context)),
-            onTap: () {
-              Navigator.pop(context);
-              showProfilePreviews(context);
-            },
-          ),
+          if (!preview)
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: Text('auth_my_account'.tr(context: context)),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRouter.account);
+              },
+            ),
+          if (preview)
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: Text(
+                'profile_preview_talent_profile'.tr(context: context),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRouter.profileSetup);
+              },
+            ),
+          if (preview)
+            ListTile(
+              leading: const Icon(Icons.badge_outlined),
+              title: Text('talent_my_profile'.tr(context: context)),
+              onTap: () {
+                Navigator.pop(context);
+                context.push(AppRouter.talentProfile);
+              },
+            ),
+          if (preview)
+            ListTile(
+              leading: const Icon(Icons.preview_outlined),
+              title: Text('talent_profile_previews'.tr(context: context)),
+              onTap: () {
+                Navigator.pop(context);
+                showProfilePreviews(context);
+              },
+            ),
           const LanguageToggleButton(),
           const Spacer(),
           ListTile(
