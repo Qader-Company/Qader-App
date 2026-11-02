@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-/// Installed only in debug builds. Never logs request bodies or headers.
+/// Installed only in debug builds. Logs safe login diagnostics, never raw
+/// request bodies, passwords, tokens, or header values.
 class DebugNetworkLogger extends Interceptor {
   DebugNetworkLogger({void Function(String)? log})
     : _log = log ?? ((message) => debugPrint(message));
@@ -14,7 +15,35 @@ class DebugNetworkLogger extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     _log('[HTTP] Request ${_request(options)}');
+    if (options.method == 'POST' &&
+        options.uri.path.endsWith('/auth/talent/login')) {
+      _loginDiagnostics(options);
+    }
     handler.next(options);
+  }
+
+  void _loginDiagnostics(RequestOptions options) {
+    final data = options.data;
+    final email = data is Map && data['email'] is String
+        ? data['email'] as String
+        : '';
+    final password = data is Map && data['password'] is String
+        ? data['password'] as String
+        : '';
+    final at = email.lastIndexOf('@');
+    final maskedEmail = at > 0
+        ? '${email.substring(0, at > 2 ? 2 : 1)}***${email.substring(at)}'
+        : '[invalid email]';
+    final headers = {
+      for (final entry in options.headers.entries)
+        entry.key.toLowerCase(): entry.value,
+    };
+    final invisible = RegExp(
+      r'[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]',
+    );
+    _log(
+      '[AuthLogin] ${jsonEncode({'emailMasked': maskedEmail, 'emailLength': email.runes.length, 'emailHasInvisibleCharacters': invisible.hasMatch(email), 'passwordLength': password.runes.length, 'passwordHasEdgeWhitespace': password != password.trim(), 'passwordHasInvisibleCharacters': invisible.hasMatch(password), 'passwordHasNonAscii': password.runes.any((rune) => rune > 127), 'jsonContentType': options.contentType?.contains('application/json') == true, 'apiKeyPresent': headers['x-authorization']?.toString().trim().isNotEmpty == true, 'bearerPresent': headers.containsKey('authorization')})}',
+    );
   }
 
   @override

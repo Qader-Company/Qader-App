@@ -67,7 +67,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     final loaded = await draft.restoreProgress();
     if (!mounted || !loaded) return;
     if (_initialProgress && draft.step == 4) {
-      context.go(AppRouter.account);
+      context.go(AppRouter.home);
       return;
     }
     _initialProgress = false;
@@ -100,8 +100,12 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
 
   void _back() {
     if (draft.busy) return;
-    if (draft.isConnected && (draft.step == 4 || draft.progressPending)) {
-      context.go(AppRouter.account);
+    if (draft.isConnected && draft.step == 4) {
+      context.go(AppRouter.home);
+      return;
+    }
+    if (draft.isConnected && draft.progressPending) {
+      context.go(AppRouter.chooseRole);
       return;
     }
     if (draft.step > 0) {
@@ -406,10 +410,10 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
         child: DefaultButton.compact(
           text: pc(
             context,
-            draft.isConnected ? 'Back to Account' : 'Preview Home',
+            draft.isConnected ? 'Go to Home' : 'Preview Home',
           ),
           onPressed: () => draft.isConnected
-              ? context.go(AppRouter.account)
+              ? context.go(AppRouter.home)
               : context.go('${AppRouter.home}?preview=true&role=talent'),
         ),
       ),

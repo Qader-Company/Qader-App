@@ -23,41 +23,48 @@ class TalentAuthRepository implements AuthRepository {
     if (revision != _preferences.sessionRevision.value) {
       return const Left(ServerFailure(message: 'auth_session_changed'));
     }
-    return result.fold((failure) async => Left(failure), (raw) async {
-      try {
-        final data = AuthResponse.data(raw);
-        final user = AuthResponse.user(data);
-        if (user.role != AccountRole.talent) {
-          return const Left(ServerFailure(message: 'auth_wrong_role'));
+    return result.fold(
+      (failure) async => Left(
+        failure.message == 'auth.credentials_mismatch'
+            ? const UnauthorizedFailure(message: 'auth_credentials_mismatch')
+            : failure,
+      ),
+      (raw) async {
+        try {
+          final data = AuthResponse.data(raw);
+          final user = AuthResponse.user(data);
+          if (user.role != AccountRole.talent) {
+            return const Left(ServerFailure(message: 'auth_wrong_role'));
+          }
+          final access = AuthResponse.token(data, 'access_token');
+          final refresh = AuthResponse.token(data, 'refresh_token');
+          if (!user.isActive || !user.isEmailVerified) {
+            return Left(
+              ServerFailure(
+                message: !user.isActive
+                    ? 'auth_account_inactive'
+                    : 'auth_email_unverified',
+              ),
+            );
+          }
+          await _preferences.saveUserName(user.fullName);
+          await _preferences.setUserEmail(user.email);
+          await _preferences.setUserId(user.id);
+          await _preferences.saveRefreshToken(refresh);
+          if (revision != _preferences.sessionRevision.value) {
+            return const Left(ServerFailure(message: 'auth_session_changed'));
+          }
+          // Access is written last, so routing never sees a half-created session.
+          await _preferences.saveToken(access);
+          return Right(user);
+        } on FormatException {
+          return const Left(ServerFailure(message: 'auth_invalid_response'));
+        } on Object {
+          await _preferences.logout();
+          return const Left(CacheFailure(message: 'auth_storage_error'));
         }
-        final access = AuthResponse.token(data, 'access_token');
-        final refresh = AuthResponse.token(data, 'refresh_token');
-        if (!user.isActive || !user.isEmailVerified) {
-          return Left(
-            ServerFailure(
-              message: !user.isActive
-                  ? 'auth_account_inactive'
-                  : 'auth_email_unverified',
-            ),
-          );
-        }
-        await _preferences.saveUserName(user.fullName);
-        await _preferences.setUserEmail(user.email);
-        await _preferences.setUserId(user.id);
-        await _preferences.saveRefreshToken(refresh);
-        if (revision != _preferences.sessionRevision.value) {
-          return const Left(ServerFailure(message: 'auth_session_changed'));
-        }
-        // Access is written last, so routing never sees a half-created session.
-        await _preferences.saveToken(access);
-        return Right(user);
-      } on FormatException {
-        return const Left(ServerFailure(message: 'auth_invalid_response'));
-      } on Object {
-        await _preferences.logout();
-        return const Left(CacheFailure(message: 'auth_storage_error'));
-      }
-    });
+      },
+    );
   }
 
   @override

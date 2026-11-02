@@ -18,6 +18,7 @@ import 'package:qader/features/auth/presentation/cubit/auth_session_cubit.dart';
 import 'auth_repository_test.dart' show AuthApi, loginResponse;
 import 'fixtures/onboarding_progress_fixture.dart';
 import 'package:qader/core/network/either.dart';
+import 'package:qader/features/profile_setup/presentation/widgets/professional_field_step.dart';
 
 class _AuthWithProgress extends AuthApi {
   int progressReads = 0;
@@ -96,8 +97,33 @@ void main() {
         'talent@example.test',
       );
       await tester.enterText(find.byType(TextFormField).at(1), 'password123');
+      final passwordInput = find.byType(TextField).at(1);
+      expect(tester.widget<TextField>(passwordInput).autocorrect, isFalse);
+      expect(
+        tester.widget<TextField>(passwordInput).enableSuggestions,
+        isFalse,
+      );
+      expect(
+        tester.widget<TextField>(passwordInput).keyboardType,
+        TextInputType.visiblePassword,
+      );
+      await tester.tap(find.byTooltip('show_password'.tr()));
+      await tester.pump();
+      expect(tester.widget<TextField>(passwordInput).obscureText, isFalse);
+      expect(tester.widget<TextField>(passwordInput).autocorrect, isFalse);
+      expect(
+        tester.widget<TextField>(passwordInput).enableSuggestions,
+        isFalse,
+      );
+      // Visibility and keyboard configuration must never rewrite a password.
+      await tester.enterText(
+        find.byType(TextFormField).at(1),
+        ' MixedCase42! ',
+      );
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
+      expect(api.body?['password'], ' MixedCase42! ');
+      expect(api.body?['email'], 'talent@example.test');
       expect(find.text('Wrong credentials'), findsOneWidget);
       expect(prefs.isLoggedIn, isFalse);
 
@@ -105,7 +131,10 @@ void main() {
       api.response = loginResponse();
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
-      expect(find.text('My account'), findsOneWidget);
+      expect(AppRouter.router.routeInformationProvider.value.uri.path, AppRouter.home);
+      expect(find.text('My account'), findsNothing);
+      expect(find.text('auth_complete_profile'.tr()), findsNothing);
+      expect(find.text('Olivia Rhye'), findsNothing);
       expect(find.text('Test Talent'), findsOneWidget);
       expect(prefs.isLoggedIn, isTrue);
       expect(sl<SharedPreferences>().getString('PREFS_KEY_TOKEN'), isNull);
@@ -124,7 +153,8 @@ void main() {
       );
       AppRouter.router.go(AppRouter.root);
       await tester.pumpAndSettle();
-      expect(find.text('My account'), findsOneWidget);
+      expect(AppRouter.router.routeInformationProvider.value.uri.path, AppRouter.home);
+      expect(find.text('auth_complete_profile'.tr()), findsNothing);
       expect(find.text('talent@example.test'), findsOneWidget);
       expect(api.progressReads, 2);
 
@@ -148,6 +178,18 @@ void main() {
         findsOneWidget,
       );
       expect(api.progressReads, 4);
+
+      // A first-time account goes straight from login to Professional Field.
+      await prefs.logout();
+      await tester.pumpAndSettle();
+      api.progress = progressResponse(hasField: false, current: 'personal-information');
+      await tester.enterText(find.byType(TextFormField).at(0), 'talent@example.test');
+      await tester.enterText(find.byType(TextFormField).at(1), 'password123');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+      await tester.pumpAndSettle();
+      expect(AppRouter.router.routeInformationProvider.value.uri.path, AppRouter.profileSetup);
+      expect(find.byType(ProfessionalFieldStep), findsOneWidget);
+      expect(find.text('auth_complete_profile'.tr()), findsNothing);
       AppRouter.router.go(AppRouter.account);
       await tester.pumpAndSettle();
 

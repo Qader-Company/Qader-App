@@ -14,6 +14,8 @@ class DefaultFormField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final bool obscure;
+  final bool autocorrect;
+  final bool enableSuggestions;
   final bool readOnly;
   final bool enabled;
   final int? maxLines;
@@ -44,6 +46,8 @@ class DefaultFormField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.obscure = false,
+    this.autocorrect = true,
+    this.enableSuggestions = true,
     this.readOnly = false,
     this.enabled = true,
     this.maxLines = 1,
@@ -105,6 +109,8 @@ class DefaultFormField extends StatelessWidget {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           obscureText: obscure,
+          autocorrect: autocorrect,
+          enableSuggestions: enableSuggestions,
           readOnly: readOnly,
           enabled: enabled,
           maxLines: maxLines,

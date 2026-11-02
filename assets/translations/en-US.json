@@ -1,4 +1,6 @@
 {
+  "profile_go_to_home": "Go to Home",
+  "auth_credentials_mismatch": "The email or password is incorrect. Check capital letters, symbols, and spaces.",
   "profile_progress_failed": "Could not load your saved progress. Please retry to continue.",
   "profile_project_file_failed": "Could not read a project image. Select the file again (up to 5 MB).",
   "profile_details_invalid": "Check the required fields, selected options, dates and numeric values.",

@@ -124,11 +124,13 @@ Work Preferences saves JSON to /talent/onboarding/work-preferences with API enum
 arrays, boolean relocation, notice days (0–365), numeric salary ranges and currency
 IDs. Both whitelist visible step keys, await success:true, preserve failed drafts
 for retry and block duplicate requests. The final connected screen confirms saving
-and returns to Account; it does not claim an application review status.
+and opens Home; it does not claim an application review status.
 The signed-out wizard remains a local preview. Talent sign-in and authenticated
 Splash launches now GET /talent/onboarding using the supplied progress contract.
 The server's current_step chooses the resumed screen; required_steps_completed
-routes returning completed accounts to Account. Missing professional fields open
+routes returning completed accounts to Home without the Complete Profile account
+screen. The authenticated Home shows stored account identity; sample review status
+and example profile data remain preview-only. Missing professional fields open
 field selection. All three steps restore their saved values, nested IDs, dates,
 languages, CV metadata and project media metadata. Existing CVs are retained by
 omitting the upload unless replaced; project/experience updates include server IDs.

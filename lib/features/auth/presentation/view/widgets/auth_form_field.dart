@@ -36,6 +36,8 @@ class AuthFormField extends StatelessWidget {
     prefixIcon: Center(widthFactor: 1, heightFactor: 1, child: icon),
     suffixIcon: suffix,
     obscure: obscure,
+    autocorrect: false,
+    enableSuggestions: false,
     keyboardType: keyboardType,
     validator: validator,
     textInputAction: textInputAction,

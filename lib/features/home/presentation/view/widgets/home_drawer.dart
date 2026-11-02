@@ -7,7 +7,8 @@ import '../../../../../core/widgets/language_toggle_button.dart';
 import '../../../../talent_profile/presentation/widgets/profile_previews_sheet.dart';
 
 class HomeDrawer extends StatelessWidget {
-  const HomeDrawer({super.key});
+  const HomeDrawer({super.key, this.preview = true});
+  final bool preview;
   @override
   Widget build(BuildContext context) => Drawer(
     child: SafeArea(
@@ -19,7 +20,15 @@ class HomeDrawer extends StatelessWidget {
             title: Text('home'.tr(context: context)),
             onTap: () => Navigator.pop(context),
           ),
-          ListTile(
+          if (!preview) ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: Text('auth_my_account'.tr(context: context)),
+            onTap: () {
+              Navigator.pop(context);
+              context.push(AppRouter.account);
+            },
+          ),
+          if (preview) ListTile(
             leading: const Icon(Icons.person_outline),
             title: Text('profile_preview_talent_profile'.tr(context: context)),
             onTap: () {
@@ -27,7 +36,7 @@ class HomeDrawer extends StatelessWidget {
               context.push(AppRouter.profileSetup);
             },
           ),
-          ListTile(
+          if (preview) ListTile(
             leading: const Icon(Icons.badge_outlined),
             title: Text('talent_my_profile'.tr(context: context)),
             onTap: () {
@@ -35,7 +44,7 @@ class HomeDrawer extends StatelessWidget {
               context.push(AppRouter.talentProfile);
             },
           ),
-          ListTile(
+          if (preview) ListTile(
             leading: const Icon(Icons.preview_outlined),
             title: Text('talent_profile_previews'.tr(context: context)),
             onTap: () {

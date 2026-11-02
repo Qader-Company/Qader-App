@@ -37,6 +37,7 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
       hintKey: 'password_hint',
       icon: const QaderAsset('lock', width: 14.6, height: 18),
       obscure: _hidden,
+      keyboardType: TextInputType.visiblePassword,
       validator: widget.validator,
       textInputAction: widget.textInputAction,
       onSubmitted: widget.onSubmitted,

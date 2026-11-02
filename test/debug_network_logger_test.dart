@@ -5,6 +5,50 @@ import 'network_session_test.dart' show CallbackAdapter, jsonResponse;
 
 void main() {
   test(
+    'login diagnostics identify input anomalies without exposing credentials',
+    () async {
+      final logs = <String>[];
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+      addTearDown(dio.close);
+      dio.interceptors.add(DebugNetworkLogger(log: logs.add));
+      dio.httpClientAdapter = CallbackAdapter(
+        (_) async => jsonResponse({'success': true}, 200),
+      );
+      const password = ' Secret\u200b١! ';
+      await dio.post<dynamic>(
+        '/api/v1/auth/talent/login',
+        data: {'email': 'tester@example.test', 'password': password},
+        options: Options(
+          contentType: 'application/json',
+          headers: {'X-Authorization': 'private-key'},
+        ),
+      );
+      final output = logs.join('\n');
+      expect(output, contains('[AuthLogin]'));
+      expect(output, contains('"emailMasked":"te***@example.test"'));
+      expect(output, contains('"passwordLength":11'));
+      expect(output, contains('"passwordHasEdgeWhitespace":true'));
+      expect(output, contains('"passwordHasInvisibleCharacters":true'));
+      expect(output, contains('"passwordHasNonAscii":true'));
+      expect(output, contains('"apiKeyPresent":true'));
+      expect(output, contains('"bearerPresent":false'));
+      for (final secret in [
+        password,
+        'Secret',
+        'tester@example.test',
+        'private-key',
+      ]) {
+        expect(output, isNot(contains(secret)));
+      }
+      logs.clear();
+      await dio.post<dynamic>(
+        '/api/v1/auth/talent/register',
+        data: {'email': 'tester@example.test', 'password': password},
+      );
+      expect(logs.join('\n'), isNot(contains('[AuthLogin]')));
+    },
+  );
+  test(
     'response logging redacts nested credentials without changing the response',
     () async {
       final logs = <String>[];
