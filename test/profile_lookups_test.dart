@@ -54,6 +54,75 @@ class _Lookups extends Fake implements ProfileLookupsRepository {
 }
 
 void main() {
+  test('job title string IDs normalize to selectable integer IDs', () async {
+    final api = _Api()
+      ..response = {
+        'success': true,
+        'data': [
+          {
+            'id': '12',
+            'name': 'Call Center Agent',
+            'professional_fields': [
+              {'id': '5', 'name': 'Customer Service'},
+            ],
+            'is_active': true,
+          },
+          {'id': '11', 'name': 'Customer Service Representative'},
+          {'id': 13, 'name': 'Support Specialist'},
+          {'id': '14', 'name': 'Inactive', 'is_active': false},
+        ],
+      };
+    final draft = ProfileSetupController(
+      fieldsRepository: _Fields(),
+      lookupsRepository: ApiProfileLookupsRepository(api),
+    );
+    addTearDown(draft.dispose);
+    draft.fields = [
+      const ProfessionalField('Customer Service', '', [], id: 5),
+    ];
+    draft.chooseField(draft.fields.single);
+    draft.formFields = {'job_title_id'};
+    await draft.loadRelevantLookups();
+    expect(api.query, {'professional_field_id': 5});
+    expect(draft.lookupFailures, isEmpty);
+    final options = draft.options(ProfileLookup.jobTitles);
+    expect(options.map((option) => option.id), [12, 11, 13]);
+    expect(options.first.label, 'Call Center Agent');
+    draft.select('job', options.first.key);
+    expect(draft.lookupId(ProfileLookup.jobTitles, draft.value('job')), 12);
+  });
+
+  test('invalid IDs and duplicates after normalization are rejected', () async {
+    final api = _Api();
+    final repo = ApiProfileLookupsRepository(api);
+    for (final value in [
+      'abc',
+      '',
+      '0',
+      '-1',
+      '12.5',
+      '0x12',
+      12.5,
+      null,
+      true,
+    ]) {
+      api.response = {
+        'success': true,
+        'data': [
+          {'id': value, 'name': 'Invalid'},
+        ],
+      };
+      expect((await repo.load(ProfileLookup.jobTitles)).isError, isTrue);
+    }
+    api.response = {
+      'success': true,
+      'data': [
+        {'id': 12, 'name': 'One'},
+        {'id': '12', 'name': 'Duplicate'},
+      ],
+    };
+    expect((await repo.load(ProfileLookup.jobTitles)).isError, isTrue);
+  });
   test(
     'profession filters and enum endpoint names match the exported API',
     () async {
@@ -259,7 +328,7 @@ void main() {
       {
         'success': true,
         'data': [
-          {'id': '1', 'name': 'Egypt'},
+          {'id': 'invalid', 'name': 'Egypt'},
         ],
       },
       {

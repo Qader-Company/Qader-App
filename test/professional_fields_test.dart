@@ -121,7 +121,7 @@ class _Api extends Fake implements ApiConsumer {
           {'value': 'female', 'label': 'Female'},
         ],
         'job-titles' => [
-          {'id': 52, 'name': 'Backend Engineer', 'is_active': true},
+          {'id': '52', 'name': 'Backend Engineer', 'is_active': true},
         ],
         'skills' => [
           {'id': 8, 'name': 'Dart'},

@@ -46,7 +46,14 @@ class ApiProfileLookupsRepository implements ProfileLookupsRepository {
     final keys = <String>{};
     for (final item in raw['data'] as List) {
       if (item is! Map) return const Left(invalid);
-      final value = item[enums ? 'value' : 'id'];
+      final rawValue = item[enums ? 'value' : 'id'];
+      // Master data can encode the same ID as either 12 or "12".
+      // Normalize before validation/deduplication and keep enum codes intact.
+      final value = !enums && rawValue is String
+          ? (RegExp(r'^[0-9]+$').hasMatch(rawValue)
+                ? int.tryParse(rawValue)
+                : null)
+          : rawValue;
       final label = item[enums ? 'label' : 'name'];
       if ((enums
               ? value is! String || value.trim().isEmpty

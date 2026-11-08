@@ -1,3 +1,31 @@
+/// Actual new-account response before a professional field has been selected.
+Map<String, dynamic> newAccountProgressResponse() => {
+  'success': true,
+  'data': {
+    'talent_id': 12,
+    'current_step': null,
+    'required_steps_completed': true,
+    'completion_percentage': 100,
+    'steps': [
+      for (final key in [
+        'personal-information',
+        'skills-and-experiences',
+        'work-preferences',
+      ])
+        {
+          'key': key,
+          'route_name': key,
+          'required': true,
+          'status': 'completed',
+          'visible_fields': <String>[],
+          'required_fields': <String>[],
+          'missing_fields': <String>[],
+          'data': <Object>[],
+        },
+    ],
+  },
+};
+
 Map<String, dynamic> progressResponse({
   String current = 'skills-and-experiences',
   bool completed = false,

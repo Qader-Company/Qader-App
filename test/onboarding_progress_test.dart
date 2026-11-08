@@ -50,6 +50,55 @@ class _Api extends Fake implements ApiConsumer {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
+    'empty new-account steps start field selection despite reported 100%',
+    () async {
+      final api = _Api()..response = newAccountProgressResponse();
+      final progress = OnboardingProgress.fromJson(api.response);
+      expect(progress.completed, isFalse);
+      expect(progress.step, 0);
+      expect(progress.steps.values.every((step) => step.data.isEmpty), isTrue);
+      final draft = ProfileSetupController(
+        fieldsRepository: _Fields(),
+        progressRepository: ApiOnboardingProgressRepository(api),
+      );
+      addTearDown(draft.dispose);
+      draft.text('name').text = 'New Talent';
+      draft.text('email').text = 'new@example.test';
+      expect(await draft.restoreProgress(), isTrue);
+      expect(draft.progressPending, isFalse);
+      expect(draft.progressFailure, isNull);
+      expect(draft.step, 0);
+      expect(draft.selectedField, isNull);
+      expect(draft.text('name').text, 'New Talent');
+      expect(draft.text('email').text, 'new@example.test');
+      // Once selected, normal server-directed resumption still applies.
+      api.response = progressResponse(current: 'personal-information');
+      expect(await draft.restoreProgress(), isTrue);
+      expect(draft.step, 1);
+      expect(draft.selectedField!.id, 1);
+    },
+  );
+  test('only empty arrays are accepted as empty step objects', () {
+    for (final invalidData in [
+      <Object>[1],
+      'invalid',
+      42,
+    ]) {
+      final response = newAccountProgressResponse();
+      final data = response['data'] as Map<String, dynamic>;
+      (data['steps'] as List).first['data'] = invalidData;
+      expect(
+        () => OnboardingProgress.fromJson(response),
+        throwsFormatException,
+      );
+    }
+    final progress = OnboardingProgress.fromJson(
+      progressResponse(completed: true, hasField: false),
+    );
+    expect(progress.step, 0);
+    expect(progress.completed, isFalse);
+  });
+  test(
     'server current step wins over completed later steps; no field starts selection',
     () {
       expect(OnboardingProgress.fromJson(progressResponse()).step, 2);

@@ -1,4 +1,6 @@
 {
+  "profile_select_country": "اختر الدولة",
+  "profile_search_country_or_code": "ابحث باسم الدولة أو كود الاتصال",
   "profile_go_to_home": "الذهاب للرئيسية",
   "auth_credentials_mismatch": "البريد الإلكتروني أو كلمة المرور غير صحيحة. راجع الحروف الكبيرة والرموز والمسافات.",
   "profile_progress_failed": "تعذّر تحميل تقدمك المحفوظ. حاول مرة أخرى للمتابعة.",

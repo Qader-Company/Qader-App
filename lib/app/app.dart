@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:country_picker/country_picker.dart';
 
 import '../core/resources/theme_manager.dart';
 import '../core/router/app_router.dart';
@@ -20,7 +21,10 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return MaterialApp.router(
           title: AppEnv.instance.appName,
-          localizationsDelegates: context.localizationDelegates,
+          localizationsDelegates: [
+            ...context.localizationDelegates,
+            CountryLocalizations.delegate,
+          ],
           supportedLocales: context.supportedLocales,
           locale: context.locale,
           debugShowCheckedModeBanner: false,

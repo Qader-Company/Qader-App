@@ -37,21 +37,26 @@ class OnboardingProgress {
         return Set<String>.from(value);
       }
 
-      if (item['data'] != null && item['data'] is! Map) {
+      final stepData = item['data'];
+      // The API serializes an empty step object as [] for a new talent.
+      final emptyArray = stepData is List && stepData.isEmpty;
+      if (stepData != null && stepData is! Map && !emptyArray) {
         throw const FormatException('Invalid onboarding step data');
       }
       steps[item['key'] as String] = OnboardingProgressStep(
         visible: fields('visible_fields'),
         required: fields('required_fields'),
-        data: Map<String, dynamic>.from(item['data'] as Map? ?? {}),
+        data: stepData is Map ? Map<String, dynamic>.from(stepData) : {},
       );
     }
     if (!keys.every(steps.containsKey)) {
       throw const FormatException('Missing onboarding steps');
     }
-    final completed = data['required_steps_completed'] as bool;
     final field = steps[keys.first]!.data['professional_field'];
     final hasField = field is Map && field['id'] is int && field['id'] > 0;
+    // Before field selection the API can report 100% with no required fields.
+    // Choosing a professional field is still a prerequisite for completion.
+    final completed = hasField && data['required_steps_completed'] == true;
     final current = data['current_step'];
     final index = keys.indexOf(current is String ? current : '');
     if (!completed &&

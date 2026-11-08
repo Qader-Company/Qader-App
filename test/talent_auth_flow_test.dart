@@ -188,10 +188,7 @@ void main() {
       // A first-time account goes straight from login to Professional Field.
       await prefs.logout();
       await tester.pumpAndSettle();
-      api.progress = progressResponse(
-        hasField: false,
-        current: 'personal-information',
-      );
+      api.progress = newAccountProgressResponse();
       await tester.enterText(
         find.byType(TextFormField).at(0),
         'talent@example.test',
@@ -205,6 +202,14 @@ void main() {
       );
       expect(find.byType(ProfessionalFieldStep), findsOneWidget);
       expect(find.text('auth_complete_profile'.tr()), findsNothing);
+      // Restarting this same new account must not skip field selection either.
+      AppRouter.router.go(AppRouter.root);
+      await tester.pumpAndSettle();
+      expect(find.byType(ProfessionalFieldStep), findsOneWidget);
+      expect(
+        AppRouter.router.routeInformationProvider.value.uri.path,
+        AppRouter.profileSetup,
+      );
       AppRouter.router.go(AppRouter.account);
       await tester.pumpAndSettle();
 

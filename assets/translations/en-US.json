@@ -1,4 +1,6 @@
 {
+  "profile_select_country": "Select country",
+  "profile_search_country_or_code": "Search country or calling code",
   "profile_go_to_home": "Go to Home",
   "auth_credentials_mismatch": "The email or password is incorrect. Check capital letters, symbols, and spaces.",
   "profile_progress_failed": "Could not load your saved progress. Please retry to continue.",

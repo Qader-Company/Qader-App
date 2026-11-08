@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../profile_setup_controller.dart';
 import '../profile_copy.dart';
 import 'profile_widgets.dart';
 import 'profile_upload.dart';
 import 'profile_lookup_select.dart';
+import 'profile_phone_input.dart';
 
 class BasicInfoStep extends StatelessWidget {
   const BasicInfoStep({super.key, required this.draft});
@@ -91,52 +91,44 @@ class BasicInfoStep extends StatelessWidget {
                 ),
               if (draft.showsField('phone_number'))
                 if (draft.isConnected)
+                  ProfilePhoneInput(
+                    key: const ValueKey('phone-input'),
+                    label: 'Phone Number',
+                    codeController: draft.text('phoneCountryCode'),
+                    numberController: draft.text('phone'),
+                    validator: phone,
+                  )
+                else
                   ProfileInput(
-                    'Phone Country Code',
-                    controller: draft.text('phoneCountryCode'),
-                    hint: 'Country Code',
+                    'Phone Number',
+                    controller: draft.text('phone'),
+                    hint: draft.isConnected
+                        ? 'Enter phone number'
+                        : '+966000000000',
                     required: true,
                     type: TextInputType.phone,
-                    validator: (v) =>
-                        RegExp(r'^\+[1-9][0-9]{0,3}$').hasMatch(v?.trim() ?? '')
-                        ? null
-                        : 'profile_phone_code_invalid'.tr(),
+                    validator: phone,
                   ),
-              if (draft.showsField('phone_number'))
-                ProfileInput(
-                  'Phone Number',
-                  controller: draft.text('phone'),
-                  hint: draft.isConnected
-                      ? 'Enter phone number'
-                      : '+966000000000',
-                  required: true,
-                  type: TextInputType.phone,
-                  validator: phone,
-                ),
               if (draft.showsField('whatsapp_number'))
                 if (draft.isConnected)
+                  ProfilePhoneInput(
+                    key: const ValueKey('whatsapp-input'),
+                    label: 'WhatsApp Number',
+                    codeController: draft.text('whatsappCountryCode'),
+                    numberController: draft.text('whatsapp'),
+                    validator: phone,
+                  )
+                else
                   ProfileInput(
-                    'WhatsApp Country Code',
-                    controller: draft.text('whatsappCountryCode'),
-                    hint: 'Country Code',
+                    'WhatsApp Number',
+                    controller: draft.text('whatsapp'),
+                    hint: draft.isConnected
+                        ? 'Enter phone number'
+                        : '+966000000000',
                     required: true,
                     type: TextInputType.phone,
-                    validator: (v) =>
-                        RegExp(r'^\+[1-9][0-9]{0,3}$').hasMatch(v?.trim() ?? '')
-                        ? null
-                        : 'profile_phone_code_invalid'.tr(),
+                    validator: phone,
                   ),
-              if (draft.showsField('whatsapp_number'))
-                ProfileInput(
-                  'WhatsApp Number',
-                  controller: draft.text('whatsapp'),
-                  hint: draft.isConnected
-                      ? 'Enter phone number'
-                      : '+966000000000',
-                  required: true,
-                  type: TextInputType.phone,
-                  validator: phone,
-                ),
               if (draft.showsField('gender') ||
                   draft.showsField('date_of_birth'))
                 Row(
