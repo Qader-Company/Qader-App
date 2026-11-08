@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/router/app_router.dart';
 import '../../../../../core/widgets/language_toggle_button.dart';
 import '../../../../talent_profile/presentation/widgets/profile_previews_sheet.dart';
+import '../../status_copy.dart';
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({super.key, this.preview = true});
@@ -59,6 +60,43 @@ class HomeDrawer extends StatelessWidget {
               },
             ),
           const LanguageToggleButton(),
+          if (preview)
+            ListTile(
+              leading: const Icon(Icons.event_available_outlined),
+              title: Text(
+                sc(
+                  context,
+                  'Application status previews',
+                  'معاينة حالات الطلب',
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (sheetContext) => SafeArea(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final status in ApplicationStatus.values)
+                            ListTile(
+                              title: Text(status.label(sheetContext)),
+                              onTap: () {
+                                Navigator.pop(sheetContext);
+                                context.push(
+                                  '${AppRouter.statusPreview}?status=${status.name}',
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           const Spacer(),
           ListTile(
             leading: const Icon(Icons.arrow_back),

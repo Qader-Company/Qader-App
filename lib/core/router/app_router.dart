@@ -8,6 +8,8 @@ import '../di/service_locator.dart';
 import '../storage/app_preferences.dart';
 import '../../features/auth/presentation/view/account_view.dart';
 import '../../features/home/presentation/view/home_view.dart';
+import '../../features/home/presentation/view/application_status_view.dart';
+import '../../features/home/presentation/status_copy.dart';
 import '../../features/auth/presentation/view/splash_view.dart';
 import '../../features/auth/presentation/view/choose_role_view.dart';
 import '../../features/auth/domain/entities/account_role.dart';
@@ -38,6 +40,7 @@ abstract class AppRouter {
   static const signIn = '/sign-in';
   static const signUp = '/sign-up';
   static const home = '/home';
+  static const statusPreview = '/status-preview';
   static const account = '/account';
   static const forgotPassword = '/forgot-password';
   static const otp = '/otp';
@@ -59,6 +62,15 @@ abstract class AppRouter {
     observers: [routeObserver],
     debugLogDiagnostics: !AppEnv.instance.isProd,
     routes: [
+      GoRoute(
+        path: statusPreview,
+        builder: (context, state) => ApplicationStatusView(
+          initialStatus: ApplicationStatus.values.firstWhere(
+            (value) => value.name == state.uri.queryParameters['status'],
+            orElse: () => ApplicationStatus.slots,
+          ),
+        ),
+      ),
       GoRoute(
         path: verifyEmail,
         redirect: (context, state) => state.extra is EmailVerificationChallenge

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../../core/widgets/qader_design.dart';
 
 class ReviewFaq extends StatefulWidget {
-  const ReviewFaq({super.key});
+  const ReviewFaq({super.key, this.items});
+  final List<({String question, String answer})>? items;
   @override
   State<ReviewFaq> createState() => _ReviewFaqState();
 }
@@ -29,7 +30,7 @@ class _ReviewFaqState extends State<ReviewFaq> {
           ),
         ),
         const SizedBox(height: 16),
-        for (var i = 0; i < 4; i++) ...[
+        for (var i = 0; i < (widget.items?.length ?? 4); i++) ...[
           if (i > 0) const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
@@ -53,7 +54,8 @@ class _ReviewFaqState extends State<ReviewFaq> {
                         children: [
                           Expanded(
                             child: Text(
-                              'faq_q$i'.tr(context: context),
+                              widget.items?[i].question ??
+                                  'faq_q$i'.tr(context: context),
                               style: TextStyle(
                                 fontSize: 14,
                                 height: 20 / 14,
@@ -80,7 +82,7 @@ class _ReviewFaqState extends State<ReviewFaq> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
                     child: Text(
-                      'faq_a$i'.tr(context: context),
+                      widget.items?[i].answer ?? 'faq_a$i'.tr(context: context),
                       style: const TextStyle(
                         fontSize: 12,
                         height: 1.5,
