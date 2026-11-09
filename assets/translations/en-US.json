@@ -555,5 +555,9 @@
     "auth_otp_invalid": "Enter a 6-digit code.",
     "auth_verification_missing": "Your verification session is unavailable. Please sign in to continue.",
     "auth_verification_error": "Could not verify your email. Please try again.",
-    "auth_email_verified": "Email verified. Sign in to continue."
+    "auth_email_verified": "Email verified. Sign in to continue.",
+    "profile_reading_your_cv_to_fill_in_your_details":  "Reading your CV to fill in your details…",
+    "profile_we_couldn_t_read_your_cv_automatically_please_fill_in_your_details":  "We couldn't read your CV automatically. Please fill in your details.",
+    "profile_we_filled_in_your_details_from_your_cv_please_review_them_before_continuing":  "We filled in your details from your CV. Please review them before continuing.",
+    "profile_cv_parse_failed":  "We couldn't read your CV automatically."
 }

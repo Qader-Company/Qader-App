@@ -83,6 +83,8 @@ void main() {
     expect(map('under_review'), isNull);
     expect(map('awaiting_new_interview_slots'), ApplicationStatus.cancelled);
     expect(map('interview_confirmed'), ApplicationStatus.confirmed);
+    expect(map('interview_in_progress'), ApplicationStatus.confirmed);
+    expect(map('interview_cancelled'), ApplicationStatus.cancelled);
     expect(map('interview_completed'), ApplicationStatus.completed);
     expect(map('accepted'), ApplicationStatus.accepted);
     expect(map('rejected'), ApplicationStatus.rejected);

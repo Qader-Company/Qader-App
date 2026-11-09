@@ -13,6 +13,7 @@ import '../domain/entities/onboarding_progress.dart';
 export '../domain/entities/profile_lookup.dart';
 export '../domain/entities/professional_field.dart';
 part 'profile_progress_restore.dart';
+part 'profile_resume_autofill.dart';
 
 class ProfileSetupSeed {
   const ProfileSetupSeed({required this.name, required this.email});
@@ -84,8 +85,20 @@ class ProfileSetupController extends ChangeNotifier {
   bool requiresField(String key) => requiredFields.contains(key);
   bool savingPersonalInfo = false;
   bool savingDetails = false;
+
+  /// CV is being parsed for autocomplete (`POST onboarding/resume/parse`).
+  bool parsingCv = false;
+  Failure? cvParseFailure;
+
+  /// Fields were filled from the last parsed CV.
+  bool cvAutofilled = false;
+  int _parseRequest = 0;
   bool get busy =>
-      progressLoading || savingField || savingPersonalInfo || savingDetails;
+      progressLoading ||
+      savingField ||
+      savingPersonalInfo ||
+      savingDetails ||
+      parsingCv;
   Failure? stepFailure;
   final multiSelections = <String, Set<String>>{};
   Set<String> selectedValues(String key) => multiSelections[key] ?? const {};

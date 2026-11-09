@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -61,11 +62,20 @@ class ApplicationStatusView extends StatefulWidget {
     this.application,
     this.userName,
     this.onRefresh,
+    this.onSelectSlot,
+    this.onRejectSlots,
+    this.onCancelInterview,
   });
   final ApplicationStatus initialStatus;
   final TalentApplication? application;
   final String? userName;
   final Future<void> Function()? onRefresh;
+
+  /// Live actions. Each returns an error message, or `null` on success; the
+  /// caller reloads the application afterwards.
+  final Future<String?> Function(int slotId)? onSelectSlot;
+  final Future<String?> Function(String reason)? onRejectSlots;
+  final Future<String?> Function()? onCancelInterview;
   @override
   State<ApplicationStatusView> createState() => _ApplicationStatusViewState();
 }
@@ -137,6 +147,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
   @override
   void didUpdateWidget(covariant ApplicationStatusView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.application != widget.application) _scheduleJoinRefresh();
     if (oldWidget.initialStatus != widget.initialStatus) {
       status = widget.initialStatus;
       selected = 0;
@@ -180,8 +191,31 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
     ),
   );
 
+  bool _busy = false;
+
+  /// Runs a live action with a progress bar and reports a failure.
+  Future<void> _runAction(Future<String?> Function()? action) async {
+    if (action == null) return notConnected();
+    if (_busy) return;
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final error = await action();
+    if (mounted) setState(() => _busy = false);
+    if (error != null) {
+      messenger
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(error)));
+    }
+  }
+
   void confirmSlot() {
-    if (live) return notConnected();
+    if (live) {
+      if (_slots.isEmpty) return;
+      final slot = _slots[selected.clamp(0, _slots.length - 1)];
+      final select = widget.onSelectSlot;
+      _runAction(select == null ? null : () => select(slot.id));
+      return;
+    }
     setState(() => status = ApplicationStatus.confirmed);
   }
 
@@ -209,7 +243,10 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       builder: (_) => const _RejectSlotsDialog(),
     );
     if (!mounted || result == null) return;
-    if (live) return notConnected();
+    if (live) {
+      final reject = widget.onRejectSlots;
+      return _runAction(reject == null ? null : () => reject(result));
+    }
     setState(() => status = ApplicationStatus.cancelled);
   }
 
@@ -261,7 +298,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       ),
     );
     if (!mounted || result != true) return;
-    if (live) return notConnected();
+    if (live) return _runAction(widget.onCancelInterview);
     setState(() {
       rescheduled = true;
       status = ApplicationStatus.slots;
@@ -277,6 +314,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
         child: Column(
           children: [
             const HomeHeader(),
+            if (_busy) const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: ColoredBox(
                 color: const Color(0xFFF7F7F7),
@@ -288,7 +326,10 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
                         constraints: const BoxConstraints(maxWidth: 430),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                          child: ProfileStack(gap: 12, children: _sections()),
+                          child: AbsorbPointer(
+                            absorbing: _busy,
+                            child: ProfileStack(gap: 12, children: _sections()),
+                          ),
                         ),
                       ),
                     ),
@@ -301,6 +342,17 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       ),
     ),
   );
+
+  /// Banner badge: the application's `status_label`, except on the
+  /// completed screen where the application is still "Scheduled" and the
+  /// interview's own label ("Completed") matches the design.
+  String _badgeLabel(String fallback) {
+    if (!live) return fallback;
+    if (status == ApplicationStatus.completed) {
+      return app!.interview?.statusLabel ?? fallback;
+    }
+    return app!.statusLabel ?? fallback;
+  }
 
   Widget _refreshable(Widget child) => widget.onRefresh == null
       ? child
@@ -557,11 +609,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
                 ),
               ),
               const SizedBox(width: 12),
-              _Badge(
-                app?.statusLabel ?? badge,
-                color: _body,
-                fill: Colors.white,
-              ),
+              _Badge(_badgeLabel(badge), color: _body, fill: Colors.white),
             ],
           ),
           Text(
@@ -681,7 +729,50 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       ? _actions?.canCancelAndReschedule ??
             !(app!.interview?.rescheduleUsed ?? false)
       : !rescheduled;
-  bool get _canJoin => !live || (_actions?.canJoin ?? true);
+  bool get _canJoin {
+    if (!live) return true;
+    final interview = app!.interview;
+    if (interview == null) return false;
+    if (interview.actions.canJoin == null &&
+        interview.joinWindowStart == null) {
+      return true;
+    }
+    return interview.canJoinAt(DateTime.now());
+  }
+
+  /// Rebuilds when the join window opens or closes while the screen is open.
+  Timer? _joinTimer;
+  void _scheduleJoinRefresh() {
+    _joinTimer?.cancel();
+    final interview = app?.interview;
+    final now = DateTime.now();
+    final next = [interview?.joinWindowStart, interview?.joinWindowEnd]
+        .whereType<DateTime>()
+        .where((at) => at.isAfter(now))
+        .fold<DateTime?>(
+          null,
+          (soonest, at) =>
+              soonest == null || at.isBefore(soonest) ? at : soonest,
+        );
+    if (next == null) return;
+    _joinTimer = Timer(next.difference(now) + const Duration(seconds: 1), () {
+      if (!mounted) return;
+      setState(() {});
+      _scheduleJoinRefresh();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleJoinRefresh();
+  }
+
+  @override
+  void dispose() {
+    _joinTimer?.cancel();
+    super.dispose();
+  }
 
   Widget _slot(int i) {
     final slot = _slots[i];
@@ -714,9 +805,17 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      _month(slot.start),
-                      style: const TextStyle(fontSize: 12, color: _ink),
+                    // Long names ("November") shrink instead of wrapping.
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _month(slot.start),
+                          maxLines: 1,
+                          style: const TextStyle(fontSize: 12, color: _ink),
+                        ),
+                      ),
                     ),
                     Text(
                       _digits('${slot.start.day}'),
@@ -1173,7 +1272,24 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
   /// Backend says the reapplication period is over (`can_reapply`).
   bool get _canReapply => live && app!.canReapply;
 
-  List<Widget> _rejection() => [
+  bool get _blacklisted => live && app!.isBlacklisted;
+
+  List<Widget> _rejection() => _blacklisted
+      ? [
+          _card([
+            _heading(t('We Appreciate Your Effort', 'نقدّر مجهودك')),
+            Text(
+              t(
+                "Unfortunately, your application wasn't successful, and you can't submit a new application. Thank you for your interest in Qader.",
+                'للأسف لم يُقبل طلبك، ولا يمكنك تقديم طلب جديد. نشكرك على اهتمامك بقادر.',
+              ),
+              style: const TextStyle(fontSize: 14, height: 20 / 14),
+            ),
+          ]),
+        ]
+      : _rejectionOptions();
+
+  List<Widget> _rejectionOptions() => [
     _card([
       _heading(t('We Appreciate Your Effort', 'نقدّر مجهودك')),
       Text(
@@ -1963,7 +2079,7 @@ class _RejectSlotsDialogState extends State<_RejectSlotsDialog> {
           DefaultButton.compact(
             height: 44,
             text: t('Submit Rejection', 'تأكيد الرفض'),
-            onPressed: () => Navigator.pop(context, reason),
+            onPressed: () => Navigator.pop(context, reason.trim()),
           ),
         DefaultButton.compact(
           height: 44,

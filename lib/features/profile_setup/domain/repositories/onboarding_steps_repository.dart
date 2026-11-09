@@ -16,6 +16,10 @@ abstract class OnboardingStepsRepository {
     Map<int, List<ProfileCv>> projectImages = const {},
   });
 
+  /// Parse Resume for Autocomplete: returns `data.suggestions`
+  /// (`personal_information`, `skills_and_experiences`). Nothing is saved.
+  Future<Either<Failure, Map<String, dynamic>>> parseResume(ProfileCv cv);
+
   Future<Either<Failure, void>> saveWorkPreferences(
     Map<String, dynamic> values, {
     required Set<String> visibleFields,

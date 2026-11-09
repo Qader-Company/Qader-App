@@ -11,6 +11,7 @@ class ApiOnboardingStepsRepository implements OnboardingStepsRepository {
   static const skillsPath = '/talent/onboarding/skills-and-experiences';
   static const personalPath = '/talent/onboarding/personal-information';
   static const workPath = '/talent/onboarding/work-preferences';
+  static const resumeParsePath = '/talent/onboarding/resume/parse';
   static const _skillsKeys = {
     'professional_summary',
     'job_title_id',
@@ -168,6 +169,51 @@ class ApiOnboardingStepsRepository implements OnboardingStepsRepository {
       fromJson: (raw) => raw,
     );
     return _acknowledge(result);
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> parseResume(
+    ProfileCv cv,
+  ) async {
+    // Parsing saves nothing, so a dropped connection (the server closing a
+    // reused keep-alive socket: "Connection closed before full header was
+    // received") is retried. A multipart file can be sent only once, so each
+    // attempt builds a new one.
+    Either<Failure, Object?>? result;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) {
+        await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
+      }
+      final MultipartFile? file;
+      try {
+        file = cv.bytes != null && cv.bytes!.isNotEmpty
+            ? MultipartFile.fromBytes(cv.bytes!, filename: cv.name)
+            : cv.path != null && cv.path!.isNotEmpty
+            ? await MultipartFile.fromFile(cv.path!, filename: cv.name)
+            : null;
+      } on Object {
+        return const Left(ServerFailure(message: 'profile_cv_read_failed'));
+      }
+      if (file == null) {
+        return const Left(ServerFailure(message: 'profile_cv_read_failed'));
+      }
+      result = await _api.post<Object?>(
+        resumeParsePath,
+        data: FormData()..files.add(MapEntry('cv', file)),
+        fromJson: (raw) => raw,
+      );
+      if (!result.isError || result.getErrorOrThrow() is! NetworkFailure) {
+        break;
+      }
+    }
+    if (result!.isError) return Left(result.getErrorOrThrow());
+    final raw = result.getOrThrow();
+    final data = raw is Map ? raw['data'] : null;
+    final suggestions = data is Map ? data['suggestions'] : null;
+    if (raw is! Map || raw['success'] != true || suggestions is! Map) {
+      return const Left(ServerFailure(message: 'profile_cv_parse_failed'));
+    }
+    return Right(Map<String, dynamic>.from(suggestions));
   }
 
   void _addMultipart(FormData form, String key, dynamic value) {

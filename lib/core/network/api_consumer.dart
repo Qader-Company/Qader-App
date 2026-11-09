@@ -143,6 +143,9 @@ class DioConsumer implements ApiConsumer {
             contentType: effectiveContentType,
           ),
           contentType: effectiveContentType,
+          // File uploads are processed server side (e.g. CV parsing takes
+          // ~10s), so they get longer than the default 15s to respond.
+          receiveTimeout: isFormData ? const Duration(seconds: 90) : null,
         ),
       );
       return Right(fromJson(response.data));
@@ -205,6 +208,9 @@ class DioConsumer implements ApiConsumer {
             contentType: effectiveContentType,
           ),
           contentType: effectiveContentType,
+          // File uploads are processed server side (CV parsing takes ~10s),
+          // so they get longer than the default 15s to respond.
+          receiveTimeout: isFormData ? const Duration(seconds: 90) : null,
         ),
       );
       return Right(fromJson(response.data));

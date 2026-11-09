@@ -555,5 +555,9 @@
     "auth_otp_invalid": "أدخل كود مكوّن من 6 أرقام.",
     "auth_verification_missing": "جلسة التفعيل غير متاحة. سجّل الدخول للمتابعة.",
     "auth_verification_error": "تعذّر تفعيل البريد الإلكتروني. حاول مرة أخرى.",
-    "auth_email_verified": "تم تفعيل البريد الإلكتروني. سجّل الدخول للمتابعة."
+    "auth_email_verified": "تم تفعيل البريد الإلكتروني. سجّل الدخول للمتابعة.",
+    "profile_reading_your_cv_to_fill_in_your_details":  "جارٍ قراءة سيرتك الذاتية لملء بياناتك…",
+    "profile_we_couldn_t_read_your_cv_automatically_please_fill_in_your_details":  "تعذّرت قراءة سيرتك الذاتية تلقائيًا. يرجى إدخال بياناتك يدويًا.",
+    "profile_we_filled_in_your_details_from_your_cv_please_review_them_before_continuing":  "ملأنا بياناتك من سيرتك الذاتية. يرجى مراجعتها قبل المتابعة.",
+    "profile_cv_parse_failed":  "تعذّرت قراءة سيرتك الذاتية تلقائيًا."
 }

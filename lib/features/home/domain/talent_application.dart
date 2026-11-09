@@ -11,6 +11,7 @@ class TalentApplication {
     this.reviewDecidedAt,
     this.reapplyAt,
     this.canReapply = false,
+    this.isBlacklisted = false,
     this.faqs = const [],
     this.interview,
     this.history = const [],
@@ -30,6 +31,9 @@ class TalentApplication {
   final DateTime? reviewDecidedAt;
   final DateTime? reapplyAt;
   final bool canReapply;
+
+  /// `is_blacklisted` / `screen_state: blacklisted`: rejected for good.
+  final bool isBlacklisted;
   final List<ApplicationFaq> faqs;
 
   /// `current_interview`, falling back to `interview`.
@@ -49,14 +53,24 @@ class TalentApplication {
         history.any((entry) => entry.cancelled)
             ? ApplicationStatus.newSlots
             : ApplicationStatus.slots,
-      'awaiting_new_interview_slots' => ApplicationStatus.cancelled,
+      // Interview cancelled and no new slots yet: same "cancelled slots"
+      // screen (empty slots card, new slots are being prepared).
+      'awaiting_new_interview_slots' ||
+      'interview_cancelled' => ApplicationStatus.cancelled,
+      // In progress uses the confirmed screen; Join is open (`can_join`).
       'interview_confirmed' ||
-      'interview_scheduled' => ApplicationStatus.confirmed,
+      'interview_scheduled' ||
+      'interview_in_progress' => ApplicationStatus.confirmed,
       'interview_completed' => ApplicationStatus.completed,
       'accepted' ||
       'talent_accepted' ||
       'approved' => ApplicationStatus.accepted,
       'rejected_after_interview' => ApplicationStatus.rejectedAfterInterview,
+      // No dedicated design: the rejected screen without reapply options.
+      'blacklisted' =>
+        hadInterview
+            ? ApplicationStatus.rejectedAfterInterview
+            : ApplicationStatus.rejected,
       'rejected' =>
         hadInterview
             ? ApplicationStatus.rejectedAfterInterview
@@ -96,6 +110,9 @@ class TalentApplication {
       reviewDecidedAt: _date(json['review_decided_at']),
       reapplyAt: _date(json['reapply_at']),
       canReapply: json['can_reapply'] == true,
+      isBlacklisted:
+          json['is_blacklisted'] == true ||
+          _string(json['screen_state']) == 'blacklisted',
       faqs: [
         for (final item in _list(json['faqs']) ?? const [])
           if (_map(item) case final faq?)
@@ -228,6 +245,7 @@ class ApplicationInterview {
     this.type,
     this.title,
     this.status = '',
+    this.statusLabel,
     this.start,
     this.end,
     this.online = true,
@@ -241,6 +259,8 @@ class ApplicationInterview {
     this.rejectionsMaximum,
     this.rescheduleUsed = false,
     this.completedAt,
+    this.joinWindowStart,
+    this.joinWindowEnd,
   });
   final int id;
   final int round;
@@ -253,6 +273,9 @@ class ApplicationInterview {
 
   /// e.g. `awaiting_slot_selection`, `confirmed`, `completed`, `cancelled`.
   final String status;
+
+  /// Backend label for [status], e.g. "Completed".
+  final String? statusLabel;
   final DateTime? start;
   final DateTime? end;
   final bool online;
@@ -270,6 +293,19 @@ class ApplicationInterview {
   /// `talent_reschedule_used_at` is set: the one reschedule chance is used.
   final bool rescheduleUsed;
   final DateTime? completedAt;
+
+  /// `join_window_starts_at` / `join_window_ends_at`.
+  final DateTime? joinWindowStart;
+  final DateTime? joinWindowEnd;
+
+  /// Join is open now: backend `can_join`, or the join window has opened
+  /// since the response was fetched.
+  bool canJoinAt(DateTime now) {
+    if (actions.canJoin == true) return true;
+    final start = joinWindowStart;
+    if (start == null || now.isBefore(start)) return false;
+    return joinWindowEnd == null || now.isBefore(joinWindowEnd!);
+  }
 
   bool get completed =>
       completedAt != null || status.contains('complete') || status == 'done';
@@ -295,6 +331,7 @@ class ApplicationInterview {
       type: _string(json['type']),
       title: _string(json['type_label']) ?? _string(json['title']),
       status: _string(json['status']) ?? '',
+      statusLabel: _string(json['status_label']),
       start: start,
       end: start == null ? null : _end(json, start) ?? selected?.end,
       online: selected?.online ?? _online(json),
@@ -311,6 +348,8 @@ class ApplicationInterview {
       rejectionsMaximum: _int(_map(json['slot_rejections'])?['maximum']),
       rescheduleUsed: json['talent_reschedule_used_at'] != null,
       completedAt: _date(json['completed_at']),
+      joinWindowStart: _date(json['join_window_starts_at']),
+      joinWindowEnd: _date(json['join_window_ends_at']),
     );
   }
 }

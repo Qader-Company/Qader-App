@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../domain/entities/email_verification_challenge.dart';
@@ -38,21 +39,21 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
 
   @override
   Widget build(BuildContext context) => AuthLayout(
-    child: BlocBuilder<EmailVerificationCubit, EmailVerificationState>(
+    child: BlocConsumer<EmailVerificationCubit, EmailVerificationState>(
       bloc: _cubit,
+      // Verified: go straight to sign in, no intermediate page.
+      listenWhen: (previous, current) =>
+          previous.status != current.status &&
+          current.status == EmailVerificationStatus.success,
+      listener: (context, state) {
+        ScaffoldMessenger.maybeOf(context)
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text('auth_email_verified'.tr())));
+        context.go('${AppRouter.signIn}?role=talent');
+      },
       builder: (context, state) {
         if (state.status == EmailVerificationStatus.success) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('auth_email_verified'.tr()),
-              const SizedBox(height: 16),
-              DefaultButton.compact(
-                text: 'sign_in'.tr(),
-                onPressed: () => context.go('/sign-in?role=talent'),
-              ),
-            ],
-          );
+          return const Center(child: CircularProgressIndicator());
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -73,8 +73,15 @@ class BasicInfoStep extends StatelessWidget {
                   onChanged: (files) {
                     draft.cv = files.isEmpty ? null : files.first;
                     draft.refresh();
+                    // A new CV fills the empty fields of every step.
+                    if (draft.cv case final file?) {
+                      draft.parseCv(file);
+                    } else {
+                      draft.cancelCvParse();
+                    }
                   },
                 ),
+                if (draft.isConnected) _CvAutofillStatus(draft: draft),
               ],
               if (draft.showsField('full_name'))
                 ProfileInput(
@@ -313,4 +320,71 @@ class BasicInfoStep extends StatelessWidget {
             ),
         ],
       );
+}
+
+/// Progress and result of filling the form from the uploaded CV.
+class _CvAutofillStatus extends StatelessWidget {
+  const _CvAutofillStatus({required this.draft});
+  final ProfileSetupController draft;
+  @override
+  Widget build(BuildContext context) {
+    final (icon, color, fill, message) = draft.parsingCv
+        ? (
+            null,
+            const Color(0xFF0A32DB),
+            const Color(0xFFF4F8FE),
+            pc(context, 'Reading your CV to fill in your details'),
+          )
+        : draft.cvParseFailure != null
+        ? (
+            Icons.info_outline,
+            const Color(0xFFA16207),
+            const Color(0xFFFEFCE8),
+            pc(
+              context,
+              "We couldn't read your CV automatically. Please fill in your details",
+            ),
+          )
+        : draft.cvAutofilled
+        ? (
+            Icons.check_circle_outline,
+            const Color(0xFF008236),
+            const Color(0xFFDCFCE7),
+            pc(
+              context,
+              'We filled in your details from your CV. Please review them before continuing',
+            ),
+          )
+        : (null, null, null, null);
+    if (message == null) return const SizedBox.shrink();
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        key: const ValueKey('cv-autofill-status'),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: fill,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            if (icon == null)
+              SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: color),
+              )
+            else
+              Icon(icon, size: 18, color: color),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(fontSize: 12, height: 1.5, color: color),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

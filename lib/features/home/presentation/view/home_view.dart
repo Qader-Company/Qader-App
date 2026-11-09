@@ -69,6 +69,12 @@ class HomeView extends StatelessWidget {
               application: application,
               userName: _userName(),
               onRefresh: cubit.load,
+              onSelectSlot: (slotId) async =>
+                  (await cubit.selectSlot(slotId))?.message,
+              onRejectSlots: (reason) async =>
+                  (await cubit.rejectSlots(reason))?.message,
+              onCancelInterview: () async =>
+                  (await cubit.cancelInterview())?.message,
             );
           }
           return _Dashboard(

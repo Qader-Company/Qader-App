@@ -33,7 +33,12 @@ TalentApplication _rejected({required bool canReapply, String? reapplyAt}) =>
     });
 
 void main() {
-  Future<void> mount(WidgetTester tester, TalentApplication app) async {
+  Future<void> mount(
+    WidgetTester tester,
+    TalentApplication app, {
+    Future<String?> Function(int slotId)? onSelectSlot,
+    Future<String?> Function(String reason)? onRejectSlots,
+  }) async {
     tester.view.physicalSize = const Size(390, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -55,6 +60,8 @@ void main() {
               initialStatus: app.viewStatus!,
               application: app,
               userName: 'Ahmed',
+              onSelectSlot: onSelectSlot,
+              onRejectSlots: onRejectSlots,
             ),
           ),
         ),
@@ -197,5 +204,169 @@ void main() {
       find.widgetWithText(ElevatedButton, 'Confirm Selected Slot'),
       findsNothing,
     );
+  });
+
+  test('interview confirmed example: selected slot, meeting, join window', () {
+    Map<String, dynamic> interview() => {
+      'id': 11,
+      'round_number': 1,
+      'type': 'technical',
+      'status': 'confirmed',
+      'available_slots': <Object>[],
+      'selected_slot': {
+        'id': 21,
+        'mode': 'online',
+        'start': '2026-11-12T10:00:00.000000Z',
+        'end': '2026-11-12T11:00:00.000000Z',
+        'status': 'selected',
+        'is_selectable': false,
+      },
+      'meeting_url': 'https://meet.google.com/abc-defg-hij',
+      'join_window_starts_at': '2026-11-12T09:45:00.000000Z',
+      'join_window_ends_at': '2026-11-12T11:00:00.000000Z',
+      'completed_at': null,
+      'talent_reschedule_used_at': null,
+      'actions': {
+        'can_select_slot': false,
+        'can_reject_all_slots': false,
+        'can_cancel_and_reschedule': true,
+        'can_join': false,
+      },
+    };
+    final app = TalentApplication.fromJson({
+      'id': 1,
+      'status': 'scheduled',
+      'status_label': 'Scheduled',
+      'screen_state': 'interview_confirmed',
+      'interview': interview(),
+      'current_interview': interview(),
+      'interview_history': [interview()],
+      'faqs': <Object>[],
+    });
+    final current = app.interview!;
+    expect(app.viewStatus, ApplicationStatus.confirmed);
+    expect(app.history, isEmpty);
+    expect(current.start, DateTime.parse('2026-11-12T10:00:00Z').toLocal());
+    expect(current.online, isTrue);
+    expect(current.meetingUrl, 'https://meet.google.com/abc-defg-hij');
+    expect(current.actions.canCancelAndReschedule, isTrue);
+    expect(current.canJoinAt(DateTime.utc(2026, 11, 12, 9, 30)), isFalse);
+    expect(current.canJoinAt(DateTime.utc(2026, 11, 12, 9, 50)), isTrue);
+    expect(current.canJoinAt(DateTime.utc(2026, 11, 12, 11, 5)), isFalse);
+  });
+
+  testWidgets('interview completed example shows Completed badge and date', (
+    tester,
+  ) async {
+    Map<String, dynamic> interview() => {
+      'id': 11,
+      'round_number': 1,
+      'type': 'technical',
+      'status': 'completed',
+      'status_label': 'Completed',
+      'available_slots': <Object>[],
+      'selected_slot': {
+        'id': 21,
+        'mode': 'online',
+        'start': '2026-11-12T10:00:00.000000Z',
+        'end': '2026-11-12T11:00:00.000000Z',
+        'status': 'selected',
+        'is_selectable': false,
+      },
+      'meeting_url': null,
+      'completed_at': '2026-11-12T11:00:00.000000Z',
+      'actions': {
+        'can_select_slot': false,
+        'can_reject_all_slots': false,
+        'can_cancel_and_reschedule': false,
+        'can_join': false,
+      },
+    };
+    final app = TalentApplication.fromJson({
+      'id': 1,
+      'status': 'scheduled',
+      'status_label': 'Scheduled',
+      'screen_state': 'interview_completed',
+      'interview': interview(),
+      'current_interview': interview(),
+      'interview_history': [interview()],
+      'faqs': <Object>[],
+    });
+    expect(app.viewStatus, ApplicationStatus.completed);
+    expect(app.interview!.completed, isTrue);
+    await mount(tester, app);
+    expect(tester.takeException(), isNull);
+    expect(find.text('Completed'), findsOneWidget);
+    expect(find.text('Scheduled'), findsNothing);
+    expect(find.textContaining('Your interview took place on'), findsOneWidget);
+    expect(find.text('Join'), findsNothing);
+    expect(find.byTooltip('More actions'), findsNothing);
+    expect(find.text('Interview History'), findsNothing);
+  });
+
+  testWidgets('blacklisted shows rejection without reapply options', (
+    tester,
+  ) async {
+    final app = TalentApplication.fromJson({
+      'id': 1,
+      'status': 'rejected',
+      'status_label': 'Rejected',
+      'effective_status': 'blacklisted',
+      'screen_state': 'blacklisted',
+      'reapply_at': null,
+      'can_reapply': false,
+      'is_blacklisted': true,
+      'interview': null,
+      'current_interview': null,
+      'interview_history': <Object>[],
+      'faqs': <Object>[],
+    });
+    expect(app.viewStatus, ApplicationStatus.rejected);
+    expect(app.isBlacklisted, isTrue);
+    await mount(tester, app);
+    expect(tester.takeException(), isNull);
+    expect(
+      find.textContaining("can't submit a new application"),
+      findsOneWidget,
+    );
+    expect(find.text('Apply Again'), findsNothing);
+    expect(find.text('Update Profile'), findsNothing);
+    expect(find.text('Rejection feedback'), findsNothing);
+  });
+
+  testWidgets('confirm and reject call the live actions', (tester) async {
+    final selected = <int>[];
+    final reasons = <String>[];
+    await mount(
+      tester,
+      TalentApplication.fromJson(slotRequired()),
+      onSelectSlot: (id) async {
+        selected.add(id);
+        return null;
+      },
+      onRejectSlots: (reason) async {
+        reasons.add(reason);
+        return 'Rejection limit reached.';
+      },
+    );
+    await tester.tap(find.byKey(const ValueKey('slot-1')));
+    await tester.pump();
+    await tester.tap(find.text('Confirm Selected Slot'));
+    await tester.pumpAndSettle();
+    expect(selected, [22]);
+
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('reject all slots'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byType(TextField),
+      '  Not available next week  ',
+    );
+    await tester.pump();
+    await tester.tap(find.text('Submit Rejection'));
+    await tester.pumpAndSettle();
+    expect(reasons, ['Not available next week']);
+    expect(find.text('Rejection limit reached.'), findsOneWidget);
   });
 }
