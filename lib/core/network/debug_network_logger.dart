@@ -2,19 +2,60 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-/// Installed only in debug builds. Logs safe login diagnostics, never raw
-/// request bodies, passwords, tokens, or header values.
+/// Development-only HTTP console logger (never installed in production; see
+/// `DioConsumer`). Prints every request (URL, query, body) and the complete
+/// response body. Values of credential-like keys (password, token, OTP, API
+/// key, authorization, cookie, secret) are replaced with `[REDACTED]`, and
+/// header values are never printed.
 class DebugNetworkLogger extends Interceptor {
-  DebugNetworkLogger({void Function(String)? log})
-    : _log = log ?? ((message) => debugPrint(message));
+  DebugNetworkLogger({void Function(String)? log}) : _log = log ?? _console;
   final void Function(String) _log;
 
-  String _request(RequestOptions options) =>
-      '${options.method} ${options.uri.replace(query: '', fragment: '')}';
+  static const _startedAt = 'debug_logger_started_at';
+
+  /// Android's logcat cuts long lines, so print in chunks.
+  static void _console(String message) {
+    const chunk = 800;
+    for (final line in message.split('\n')) {
+      for (var i = 0; i < line.length || i == 0; i += chunk) {
+        debugPrint(line.substring(i, (i + chunk).clamp(0, line.length)));
+      }
+    }
+  }
+
+  String _request(RequestOptions options) {
+    final uri = options.uri;
+    final query = {
+      for (final entry in uri.queryParametersAll.entries)
+        entry.key: _sensitive(entry.key) ? ['[REDACTED]'] : entry.value,
+    };
+    return '${options.method} '
+        '${uri.replace(queryParameters: query.isEmpty ? null : query, fragment: '')}';
+  }
+
+  String _duration(RequestOptions options) {
+    final started = options.extra[_startedAt];
+    return started is DateTime
+        ? ' (${DateTime.now().difference(started).inMilliseconds}ms)'
+        : '';
+  }
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.extra[_startedAt] = DateTime.now();
     _log('[HTTP] Request ${_request(options)}');
+    final data = options.data;
+    if (data is FormData) {
+      _log(
+        '[HTTP] Request FormData ${const JsonEncoder.withIndent('  ').convert({
+          'fields': {for (final field in data.fields) field.key: _sensitive(field.key) ? '[REDACTED]' : field.value},
+          'files': [for (final file in data.files) '${file.key}: ${file.value.filename ?? 'file'} (${file.value.length} bytes)'],
+        })}',
+      );
+    } else if (data != null && !options.uri.path.contains('/auth/')) {
+      // Auth bodies hold credentials; login has its own safe diagnostics.
+      _body(data, label: 'Request Body');
+    }
     if (options.method == 'POST' &&
         options.uri.path.endsWith('/auth/talent/login')) {
       _loginDiagnostics(options);
@@ -49,7 +90,8 @@ class DebugNetworkLogger extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     _log(
-      '[HTTP] Response ${response.statusCode} ${_request(response.requestOptions)}',
+      '[HTTP] Response ${response.statusCode} '
+      '${_request(response.requestOptions)}${_duration(response.requestOptions)}',
     );
     _body(response.data);
     handler.next(response);
@@ -59,24 +101,28 @@ class DebugNetworkLogger extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     _log(
       '[HTTP] Error ${err.type.name} '
-      'status=${err.response?.statusCode ?? "no response"} ${_request(err.requestOptions)}',
+      'status=${err.response?.statusCode ?? "no response"} '
+      '${_request(err.requestOptions)}${_duration(err.requestOptions)}',
     );
+    if (err.message case final message? when err.response == null) {
+      _log('[HTTP] Error message $message');
+    }
     if (err.response != null) _body(err.response!.data);
     handler.next(err);
   }
 
-  void _body(Object? data) {
+  void _body(Object? data, {String label = 'Body'}) {
     // Decode textual JSON so secrets cannot bypass structured redaction.
     if (data is String) {
       try {
         data = jsonDecode(data);
       } on FormatException {
-        _log('[HTTP] Non-JSON response body omitted');
+        _log('[HTTP] $label (text) $data');
         return;
       }
     }
     _log(
-      '[HTTP] Body ${const JsonEncoder.withIndent('  ').convert(_redact(data))}',
+      '[HTTP] $label ${const JsonEncoder.withIndent('  ').convert(_redact(data))}',
     );
   }
 
@@ -90,11 +136,9 @@ class DebugNetworkLogger extends Interceptor {
       };
     }
     if (value is List) return value.map(_redact).toList();
-    return value is num || value is bool || value == null
+    return value is num || value is bool || value == null || value is String
         ? value
-        : value is String
-        ? value
-        : '[Non-JSON value]';
+        : '[${value.runtimeType}]';
   }
 
   bool _sensitive(String key) {

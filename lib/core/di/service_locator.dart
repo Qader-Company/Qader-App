@@ -19,6 +19,9 @@ import '../../features/profile_setup/data/repositories/api_profile_lookups_repos
 import '../../features/profile_setup/domain/repositories/onboarding_progress_repository.dart';
 import '../../features/profile_setup/data/repositories/api_onboarding_progress_repository.dart';
 
+import '../../features/home/data/application_repository.dart';
+import '../../features/home/presentation/cubit/application_cubit.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
@@ -55,6 +58,12 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
       sl<TalentAuthRemoteDataSource>(),
       sl<AppPreferences>(),
     ),
+  );
+  sl.registerLazySingleton<ApplicationRepository>(
+    () => ApplicationRepository(sl<ApiConsumer>()),
+  );
+  sl.registerFactory<ApplicationCubit>(
+    () => ApplicationCubit(sl<ApplicationRepository>()),
   );
   sl.registerFactory<RegistrationCubit>(
     () => RegistrationCubit(sl<AuthRepository>()),

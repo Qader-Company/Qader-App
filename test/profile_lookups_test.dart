@@ -77,9 +77,7 @@ void main() {
       lookupsRepository: ApiProfileLookupsRepository(api),
     );
     addTearDown(draft.dispose);
-    draft.fields = [
-      const ProfessionalField('Customer Service', '', [], id: 5),
-    ];
+    draft.fields = [const ProfessionalField('Customer Service', '', [], id: 5)];
     draft.chooseField(draft.fields.single);
     draft.formFields = {'job_title_id'};
     await draft.loadRelevantLookups();

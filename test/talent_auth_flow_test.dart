@@ -36,6 +36,19 @@ class _AuthWithProgress extends AuthApi {
           ? Right(fromJson(progress))
           : Left(progressFailure!);
     }
+    if (path == '/talent/application') {
+      return Right(
+        fromJson({
+          'success': true,
+          'data': {
+            'id': 1,
+            'status': 'under_review',
+            'screen_state': 'under_review',
+            'faqs': <Object>[],
+          },
+        }),
+      );
+    }
     if (path.startsWith('/talent/master-data/')) {
       return Right(fromJson({'success': true, 'data': <Object>[]}));
     }
@@ -138,7 +151,10 @@ void main() {
       expect(find.text('My account'), findsNothing);
       expect(find.text('auth_complete_profile'.tr()), findsNothing);
       expect(find.text('Olivia Rhye'), findsNothing);
-      expect(find.text('Test Talent'), findsOneWidget);
+      expect(
+        find.textContaining('Test Talent', findRichText: true),
+        findsOneWidget,
+      );
       expect(prefs.isLoggedIn, isTrue);
       expect(sl<SharedPreferences>().getString('PREFS_KEY_TOKEN'), isNull);
 
@@ -161,7 +177,10 @@ void main() {
         AppRouter.home,
       );
       expect(find.text('auth_complete_profile'.tr()), findsNothing);
-      expect(find.text('talent@example.test'), findsOneWidget);
+      expect(
+        find.textContaining('Test Talent', findRichText: true),
+        findsOneWidget,
+      );
       expect(api.progressReads, 2);
 
       // Reopening an unfinished account resumes the server's step, not Account.

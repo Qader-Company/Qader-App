@@ -355,6 +355,8 @@ void main() {
     final router = AppRouter.router;
     await tester.tap(find.byTooltip('Menu'));
     await settle();
+    await tester.tap(find.text('Settings'));
+    await settle();
     await tester.tap(find.byType(LanguageToggleButton));
     await settle();
     expect(sl<AppPreferences>().getAppLanguage(), 'ar');

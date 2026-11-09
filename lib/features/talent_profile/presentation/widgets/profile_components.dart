@@ -29,7 +29,7 @@ class TalentProfileScaffold extends StatelessWidget {
   Widget build(BuildContext context) => QaderTheme(
     child: Scaffold(
       backgroundColor: Colors.white,
-      drawer: const HomeDrawer(),
+      drawer: const HomeDrawer(current: HomeDrawerItem.profile),
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,

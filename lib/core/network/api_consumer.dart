@@ -72,7 +72,9 @@ class DioConsumer implements ApiConsumer {
     }
 
     _dio.interceptors.add(AppInterceptors());
-    if (kDebugMode) {
+    // Full request/response console logs while developing; never in release
+    // builds or against production.
+    if (kDebugMode && !AppEnv.instance.isProd) {
       _dio.interceptors.add(DebugNetworkLogger());
     }
   }

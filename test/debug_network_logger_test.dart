@@ -130,16 +130,25 @@ void main() {
     },
   );
 
-  test('non-JSON response text is omitted', () async {
+  test('logs request query/body and non-JSON response text', () async {
     final logs = <String>[];
     final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
     addTearDown(dio.close);
     dio.interceptors.add(DebugNetworkLogger(log: logs.add));
     dio.httpClientAdapter = CallbackAdapter(
-      (_) async => jsonResponse('private non-JSON text', 200),
+      (_) async => jsonResponse('plain server text', 200),
     );
-    await dio.get<dynamic>('/text');
-    expect(logs.join('\n'), contains('Non-JSON response body omitted'));
-    expect(logs.join('\n'), isNot(contains('private non-JSON text')));
+    await dio.post<dynamic>(
+      '/slots?page=2&token=private-token',
+      data: {'slot_id': 7, 'reason': 'busy', 'otp': '99999'},
+    );
+    final output = logs.join('\n');
+    expect(output, contains('page=2'));
+    expect(output, contains('"slot_id": 7'));
+    expect(output, contains('"reason": "busy"'));
+    expect(output, contains('plain server text'));
+    expect(output, matches(RegExp(r'Response 200 .*\(\d+ms\)')));
+    expect(output, isNot(contains('private-token')));
+    expect(output, isNot(contains('99999')));
   });
 }

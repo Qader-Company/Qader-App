@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../../core/widgets/qader_design.dart';
 
 class ApplicationReviewBanner extends StatelessWidget {
-  const ApplicationReviewBanner({super.key});
+  const ApplicationReviewBanner({super.key, this.name = 'Olivia Rhye'});
+  final String name;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(20),
@@ -23,9 +24,9 @@ class ApplicationReviewBanner extends StatelessWidget {
           TextSpan(
             children: [
               TextSpan(text: 'hello'.tr(context: context)),
-              const TextSpan(
-                text: 'Olivia Rhye',
-                style: TextStyle(fontWeight: FontWeight.w700),
+              TextSpan(
+                text: name,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ],
           ),

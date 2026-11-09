@@ -128,13 +128,10 @@ void main() {
           find.widgetWithText(OutlinedButton, 'Reject all slots'),
         );
         await tester.pumpAndSettle();
+        expect(find.text('10 more characters required'), findsOneWidget);
         expect(
-          tester
-              .widget<TextButton>(
-                find.widgetWithText(TextButton, 'Submit Rejection'),
-              )
-              .onPressed,
-          isNull,
+          find.widgetWithText(ElevatedButton, 'Submit Rejection'),
+          findsNothing,
         );
         await tester.enterText(
           find.byType(TextField),
