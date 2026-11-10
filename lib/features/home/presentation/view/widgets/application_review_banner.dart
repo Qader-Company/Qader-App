@@ -13,7 +13,7 @@ class ApplicationReviewBanner extends StatelessWidget {
       gradient: const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFF0A1F6B), QaderDesign.primary, QaderDesign.blue],
+        colors: [AppColors.primaryNavy, QaderDesign.primary, QaderDesign.blue],
         stops: [0, .6, 1],
       ),
     ),
@@ -52,7 +52,7 @@ class ApplicationReviewBanner extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             height: 1.5,
-            color: Color(0xCCFFFFFF),
+            color: AppColors.white80,
           ),
         ),
       ],

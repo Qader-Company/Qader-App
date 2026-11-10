@@ -33,7 +33,7 @@ class OtpCodeField extends StatelessWidget {
             fontSize: 20,
             height: 1.5,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF737373),
+            color: AppColors.neutral500,
           ),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -41,7 +41,7 @@ class OtpCodeField extends StatelessWidget {
             border: Border.all(color: QaderDesign.border),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x0D000000),
+                color: AppColors.shadow5,
                 offset: Offset(0, 1),
                 blurRadius: 2,
               ),

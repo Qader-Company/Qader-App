@@ -15,7 +15,7 @@ import 'package:qader/core/locale/language_manager.dart';
 import 'package:qader/core/router/app_router.dart';
 import 'package:qader/features/talent_profile/presentation/view/profile_evaluation_view.dart';
 import 'package:qader/features/talent_profile/presentation/widgets/evaluation_report_widgets.dart';
-import 'package:qader/features/talent_profile/presentation/widgets/profile_reevaluation_countdown.dart';
+import 'package:qader/core/widgets/reevaluation_countdown.dart';
 import 'package:qader/features/talent_profile/presentation/widgets/restricted_profile_notice.dart';
 import 'package:qader/features/talent_profile/presentation/widgets/profile_sections.dart';
 

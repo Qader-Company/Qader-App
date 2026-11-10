@@ -50,7 +50,7 @@ class ReviewSteps extends StatelessWidget {
                                 : FontWeight.w400,
                             color: key == 'under_review'
                                 ? QaderDesign.primary
-                                : const Color(0xFF737373),
+                                : AppColors.neutral500,
                           ),
                         ),
                       ),

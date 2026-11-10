@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
+import '../../core/resources/app_colors.dart';
 
 class DefaultDropdown<T> extends StatelessWidget {
   const DefaultDropdown({
@@ -48,7 +49,7 @@ class DefaultDropdown<T> extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   height: 20 / 14,
-                  color: Color(0xFF404040),
+                  color: AppColors.neutral700,
                 )
               : getMediumStyle(fontSize: 14.sp, color: ColorManager.textColor),
         ),
@@ -68,7 +69,7 @@ class DefaultDropdown<T> extends StatelessWidget {
                 hint!,
                 overflow: TextOverflow.ellipsis,
                 style: compact
-                    ? const TextStyle(fontSize: 14, color: Color(0xFF737373))
+                    ? const TextStyle(fontSize: 14, color: AppColors.neutral500)
                     : getRegularStyle(
                         fontSize: 12.sp,
                         color: ColorManager.grey,

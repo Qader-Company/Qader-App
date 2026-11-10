@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../../../core/widgets/qader_design.dart';
+import '../../../../core/widgets/qader_design.dart';
 import '../profile_setup_controller.dart';
 import '../profile_copy.dart';
 import 'profile_widgets.dart';
@@ -159,7 +159,7 @@ class _FieldCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 10,
                     height: 1.8,
-                    color: Color(0xFF737373),
+                    color: AppColors.neutral500,
                   ),
                 ),
               ],

@@ -3,6 +3,7 @@ import '../../domain/profile_evaluation.dart';
 import '../profile_copy.dart';
 import '../widgets/profile_components.dart';
 import '../widgets/evaluation_report_widgets.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class ProfileEvaluationView extends StatefulWidget {
   const ProfileEvaluationView({super.key});
@@ -21,7 +22,7 @@ class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFFAFAFA),
+            color: AppColors.neutral50,
             borderRadius: BorderRadius.circular(8),
           ),
           child: ProfileStack(
@@ -49,7 +50,10 @@ class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
               Text(
                 tc(context, 'Based on your skills and experience'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF737373)),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.neutral500,
+                ),
               ),
               const SizedBox(height: 8),
               Column(
@@ -75,10 +79,10 @@ class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
                       borderRadius: BorderRadius.circular(8),
                       gradient: const LinearGradient(
                         colors: [
-                          Color(0xFFEF4444),
-                          Color(0xFFFBBF24),
-                          Color(0xFF22C55E),
-                          Color(0xFF1D52E5),
+                          AppColors.red500,
+                          AppColors.amber400,
+                          AppColors.green500,
+                          AppColors.blueStrong,
                         ],
                       ),
                     ),
@@ -114,7 +118,7 @@ class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
                   style: const TextStyle(
                     fontSize: 12,
                     height: 1.5,
-                    color: Color(0xFF737373),
+                    color: AppColors.neutral500,
                   ),
                 ),
             ],
@@ -142,7 +146,7 @@ class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
             const ProfileHeading('Interview Evaluations'),
             Text(
               tc(context, 'Detailed evaluation of your skills and experience'),
-              style: const TextStyle(fontSize: 12, color: Color(0xFF737373)),
+              style: const TextStyle(fontSize: 12, color: AppColors.neutral500),
             ),
           ],
         ),

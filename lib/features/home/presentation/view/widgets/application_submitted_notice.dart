@@ -8,7 +8,7 @@ class ApplicationSubmittedNotice extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: const Color(0xFFDCFCE7),
+      color: AppColors.green100,
       borderRadius: BorderRadius.circular(8),
     ),
     child: Row(

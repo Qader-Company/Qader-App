@@ -1,13 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'app_colors.dart';
+export 'app_colors.dart';
 
+/// Screen theme for the Figma screens. Colors come from [AppColors].
 abstract class QaderDesign {
-  static const primary = Color(0xFF0A32DB);
-  static const blue = Color(0xFF346AE8);
-  static const paleBlue = Color(0xFFF4F8FE);
-  static const ink = Color(0xFF171717);
-  static const muted = Color(0xFF525252);
-  static const border = Color(0xFFD4D4D4);
+  static const primary = AppColors.primary;
+  static const blue = AppColors.blue;
+  static const paleBlue = AppColors.paleBlue;
+  static const ink = AppColors.textPrimary;
+  static const muted = AppColors.textSecondary;
+  static const border = AppColors.border;
 
   static ThemeData theme(BuildContext context) {
     final base = Theme.of(context);
@@ -24,7 +27,7 @@ abstract class QaderDesign {
         hintStyle: TextStyle(
           fontFamily: font,
           fontSize: 14,
-          color: const Color(0xFF737373),
+          color: AppColors.neutral500,
         ),
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(

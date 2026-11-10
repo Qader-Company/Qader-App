@@ -66,7 +66,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                     minHeight: 8,
                     borderRadius: BorderRadius.circular(4),
                     color: QaderDesign.blue,
-                    backgroundColor: const Color(0xFFF5F5F5),
+                    backgroundColor: AppColors.neutral100,
                     semanticsLabel: 'intro_step'.tr(
                       context: context,
                       args: ['${_index + 1}', '${onboardingPages.length}'],

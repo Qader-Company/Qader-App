@@ -10,16 +10,12 @@ import '../domain/entities/profile_cv.dart';
 import '../domain/repositories/onboarding_steps_repository.dart';
 import '../domain/repositories/onboarding_progress_repository.dart';
 import '../domain/entities/onboarding_progress.dart';
+import '../../../core/router/route_args.dart';
+export '../../../core/router/route_args.dart';
 export '../domain/entities/profile_lookup.dart';
 export '../domain/entities/professional_field.dart';
 part 'profile_progress_restore.dart';
 part 'profile_resume_autofill.dart';
-
-class ProfileSetupSeed {
-  const ProfileSetupSeed({required this.name, required this.email});
-  final String name;
-  final String email;
-}
 
 class LanguageEntry {
   LanguageEntry(this.id, {this.language, this.level});

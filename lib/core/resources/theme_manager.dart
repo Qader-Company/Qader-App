@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'app_colors.dart';
 import 'color_manager.dart';
 import 'font_manager.dart';
 import 'styles_manager.dart';
@@ -8,7 +9,14 @@ class ThemeManager {
   static ThemeData getTheme() {
     return ThemeData(
       fontFamily: FontConstants.fontFamily,
-      colorScheme: ColorScheme.fromSeed(seedColor: ColorManager.primary),
+      // fromSeed alone shifts the primary; pin the Figma colors.
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
+        primary: AppColors.primary,
+        error: AppColors.red600,
+        surface: AppColors.white,
+        onSurface: AppColors.textPrimary,
+      ),
       scaffoldBackgroundColor: ColorManager.white,
       appBarTheme: const AppBarTheme(
         elevation: 0,

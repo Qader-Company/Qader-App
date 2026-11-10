@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:go_router/go_router.dart';
-import '../../../../../core/router/app_router.dart';
-import '../../../../../core/widgets/qader_design.dart';
-import '../../../../../core/widgets/default_button.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/qader_design.dart';
+import '../../../../core/widgets/default_button.dart';
 import '../profile_setup_controller.dart';
 import '../profile_copy.dart';
 import '../widgets/profile_widgets.dart';
@@ -11,8 +11,8 @@ import '../widgets/professional_field_step.dart';
 import '../widgets/basic_info_step.dart';
 import '../widgets/skills_experience_step.dart';
 import '../widgets/work_preferences_step.dart';
-import '../../../../../core/di/service_locator.dart';
-import '../../../../../core/storage/app_preferences.dart';
+import '../../../../core/di/service_locator.dart';
+import '../../../../core/storage/app_preferences.dart';
 import '../../domain/repositories/professional_fields_repository.dart';
 import '../../domain/repositories/profile_lookups_repository.dart';
 import '../../domain/repositories/onboarding_steps_repository.dart';
@@ -206,7 +206,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
               height: 40,
               child: IconButton(
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFFAFAFA),
+                  backgroundColor: AppColors.neutral50,
                 ),
                 tooltip: pc(context, 'Back'),
                 onPressed: _back,
@@ -358,7 +358,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                                             text: pc(context, 'Back'),
                                             isOutlined: true,
                                             color: QaderDesign.border,
-                                            textColor: const Color(0xFF404040),
+                                            textColor: AppColors.neutral700,
                                             onPressed: _back,
                                           ),
                                         ),
@@ -426,7 +426,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                 height: 80,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xFFE8EFFC),
+                  color: AppColors.blueSoft,
                 ),
                 child: const Center(
                   child: QaderAsset(
@@ -461,7 +461,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                 style: const TextStyle(
                   fontSize: 14,
                   height: 20 / 14,
-                  color: Color(0xFF737373),
+                  color: AppColors.neutral500,
                 ),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../profile_copy.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class RestrictedProfileNotice extends StatelessWidget {
   const RestrictedProfileNotice({super.key});
@@ -7,7 +8,7 @@ class RestrictedProfileNotice extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: const Color(0xFFFEE2E2),
+      color: AppColors.red100,
       borderRadius: BorderRadius.circular(8),
     ),
     child: Row(
@@ -17,7 +18,7 @@ class RestrictedProfileNotice extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: const BoxDecoration(
-            color: Color(0xFFEF232A),
+            color: AppColors.alertRed,
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.lock, color: Colors.white, size: 20),
@@ -42,7 +43,7 @@ class RestrictedProfileNotice extends StatelessWidget {
             style: const TextStyle(
               fontSize: 10,
               height: 1.6,
-              color: Color(0xFF525252),
+              color: AppColors.neutral600,
             ),
           ),
         ),

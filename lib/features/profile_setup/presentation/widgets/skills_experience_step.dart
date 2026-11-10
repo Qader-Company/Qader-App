@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/widgets/qader_design.dart';
+import '../../../../core/widgets/qader_design.dart';
 import '../profile_setup_controller.dart';
 import '../profile_copy.dart';
 import 'profile_widgets.dart';
 import 'profile_upload.dart';
 import 'profile_lookup_select.dart';
-import '../../../../../core/widgets/default_form_field.dart';
+import '../../../../core/widgets/default_form_field.dart';
 
 class SkillsExperienceStep extends StatelessWidget {
   const SkillsExperienceStep({super.key, required this.draft});
@@ -248,7 +248,7 @@ class _SkillsInput extends StatelessWidget {
                         skill,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF1D52E5),
+                          color: AppColors.blueStrong,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -495,7 +495,7 @@ class _ProjectCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               height: 1.5,
-              color: Color(0xFF737373),
+              color: AppColors.neutral500,
             ),
           ),
         ],

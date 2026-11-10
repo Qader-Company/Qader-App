@@ -1,4 +1,4 @@
-import '../presentation/status_copy.dart';
+import 'application_status.dart';
 
 /// `GET /talent/application`: the talent's application and the screen to show.
 class TalentApplication {

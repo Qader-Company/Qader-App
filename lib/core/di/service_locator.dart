@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import '../widgets/app_drawer.dart';
+import '../../features/home/presentation/view/widgets/home_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../network/api_consumer.dart';
 import '../network/network_info.dart';
@@ -26,6 +28,10 @@ final GetIt sl = GetIt.instance;
 
 Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   final preferences = await SharedPreferences.getInstance();
+  // Features build the side drawer through this slot (no cross imports).
+  AppDrawer.register(
+    (current, preview) => HomeDrawer(current: current, preview: preview),
+  );
   sl.registerLazySingleton<SharedPreferences>(() => preferences);
   sl.registerSingleton<AppPreferences>(
     preferencesOverride ?? await SecureAppPreferences.create(preferences),

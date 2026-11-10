@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../profile_copy.dart';
 import '../widgets/profile_components.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class ProfileReviewView extends StatelessWidget {
   const ProfileReviewView({super.key});
@@ -21,7 +22,7 @@ class ProfileReviewView extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF4F8FE),
+                  color: AppColors.paleBlue,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -50,7 +51,7 @@ class ProfileReviewView extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 height: 1.5,
-                color: Color(0xFF737373),
+                color: AppColors.neutral500,
               ),
             ),
           ],
@@ -58,7 +59,7 @@ class ProfileReviewView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFE5E5E5)),
+            border: Border.all(color: AppColors.neutral200),
             borderRadius: BorderRadius.circular(8),
           ),
           child: ProfileStack(
@@ -67,7 +68,7 @@ class ProfileReviewView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF4F8FE),
+                  color: AppColors.paleBlue,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -102,7 +103,10 @@ class ProfileReviewView extends StatelessWidget {
               Text(
                 tc(context, '500+ professionals successfully reviewed'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF737373)),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.neutral500,
+                ),
               ),
               for (final text in [
                 'Comprehensive review by a human hiring expert',
@@ -116,7 +120,7 @@ class ProfileReviewView extends StatelessWidget {
                     const Icon(
                       Icons.check_circle_outline,
                       size: 20,
-                      color: Color(0xFF22C55E),
+                      color: AppColors.green500,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -159,7 +163,7 @@ class ProfileReviewView extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF4F8FE),
+                  color: AppColors.paleBlue,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(feature.$1, color: profileBlue, size: 22),
@@ -182,7 +186,7 @@ class ProfileReviewView extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         height: 1.5,
-                        color: Color(0xFF737373),
+                        color: AppColors.neutral500,
                       ),
                     ),
                   ],

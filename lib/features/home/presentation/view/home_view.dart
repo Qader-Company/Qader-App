@@ -16,6 +16,7 @@ import 'widgets/home_header.dart';
 import 'widgets/home_profile_card.dart';
 import 'widgets/review_steps.dart';
 import 'widgets/review_faq.dart';
+import '../../../../core/resources/app_colors.dart';
 
 /// Talent home. In [preview] it shows the static "Under Review" design;
 /// otherwise it loads `GET /talent/application` and shows the screen that
@@ -130,7 +131,7 @@ class _Dashboard extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       child: Container(
         alignment: Alignment.topCenter,
-        color: const Color(0xFFF7F7F7),
+        color: AppColors.background,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 430),
           child: Padding(
@@ -155,10 +156,7 @@ class _Dashboard extends StatelessWidget {
             children: [
               const HomeHeader(),
               Expanded(
-                child: ColoredBox(
-                  color: const Color(0xFFF7F7F7),
-                  child: content,
-                ),
+                child: ColoredBox(color: AppColors.background, child: content),
               ),
             ],
           ),
@@ -179,7 +177,7 @@ class _LoadError extends StatelessWidget {
         const Icon(
           Icons.cloud_off_outlined,
           size: 40,
-          color: Color(0xFF737373),
+          color: AppColors.neutral500,
         ),
         const SizedBox(height: 12),
         Text(

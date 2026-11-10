@@ -1,26 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_form_field.dart';
 import '../../../../core/widgets/qader_design.dart';
-import '../../../home/presentation/view/widgets/home_drawer.dart';
+import '../../../../core/widgets/app_drawer.dart';
+import '../../../../core/widgets/spaced_column.dart';
+export '../../../../core/widgets/spaced_column.dart';
 import '../profile_copy.dart';
 
-const profileBlue = Color(0xFF1D52E5);
+const profileBlue = AppColors.blueStrong;
 
-class ProfileStack extends StatelessWidget {
-  const ProfileStack({super.key, required this.children, this.gap = 16});
-  final List<Widget> children;
-  final double gap;
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      for (var i = 0; i < children.length; i++) ...[
-        if (i > 0) SizedBox(height: gap),
-        children[i],
-      ],
-    ],
-  );
-}
+/// Profile screens' name for the shared [SpacedColumn].
+typedef ProfileStack = SpacedColumn;
 
 class TalentProfileScaffold extends StatelessWidget {
   const TalentProfileScaffold({super.key, required this.child});
@@ -29,7 +18,7 @@ class TalentProfileScaffold extends StatelessWidget {
   Widget build(BuildContext context) => QaderTheme(
     child: Scaffold(
       backgroundColor: Colors.white,
-      drawer: const HomeDrawer(current: HomeDrawerItem.profile),
+      drawer: AppDrawer.build(current: AppDrawerItem.profile),
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
@@ -83,7 +72,7 @@ class TalentProfileScaffold extends StatelessWidget {
                     prefixIcon: const Icon(
                       Icons.search,
                       size: 20,
-                      color: Color(0xFF737373),
+                      color: AppColors.neutral500,
                     ),
                     textInputAction: TextInputAction.search,
                     onSubmitted: (_) => showInfoDialog(
@@ -130,9 +119,9 @@ class ProfileDetail extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: const Color(0xFFFAFAFA),
+      color: AppColors.neutral50,
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: const Color(0xFFF0F0F0)),
+      border: Border.all(color: AppColors.surfaceMuted),
     ),
     child: ProfileStack(
       gap: 4,
@@ -142,7 +131,7 @@ class ProfileDetail extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             height: 1.5,
-            color: Color(0xFF737373),
+            color: AppColors.neutral500,
           ),
         ),
         Text(
@@ -166,7 +155,7 @@ class ProfileTags extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFFF4F8FE),
+            color: AppColors.paleBlue,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
+import '../../core/resources/app_colors.dart';
 
 class DefaultFormField extends StatelessWidget {
   final TextEditingController? controller;
@@ -92,7 +93,7 @@ class DefaultFormField extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         height: 20 / 14,
-                        color: Color(0xFF404040),
+                        color: AppColors.neutral700,
                       )
                     : getMediumStyle(
                         fontSize: 14.sp,
@@ -133,7 +134,7 @@ class DefaultFormField extends StatelessWidget {
             focusedBorder: borderless ? InputBorder.none : null,
             filled: compact || readOnly ? true : null,
             fillColor: compact || readOnly
-                ? (readOnly ? const Color(0xFFFAFAFA) : Colors.white)
+                ? (readOnly ? AppColors.neutral50 : Colors.white)
                 : null,
             prefix: prefix,
             suffix: suffix,

@@ -5,6 +5,7 @@ import '../../domain/talent_profile.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
 import '../../../../core/widgets/qader_theme.dart';
+import '../../../../core/resources/app_colors.dart';
 
 Future<TalentProfile?> editTalentProfile(
   BuildContext context,
@@ -58,7 +59,7 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
             const ProfileHeading('Edit Profile'),
             Text(
               tc(context, 'Changes are kept for this preview session only'),
-              style: const TextStyle(fontSize: 12, color: Color(0xFF737373)),
+              style: const TextStyle(fontSize: 12, color: AppColors.neutral500),
             ),
             for (final entry in fields.entries)
               DefaultFormField(
@@ -96,8 +97,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                   child: DefaultButton.compact(
                     text: tc(context, 'Cancel'),
                     isOutlined: true,
-                    color: const Color(0xFFD4D4D4),
-                    textColor: const Color(0xFF525252),
+                    color: AppColors.neutral300,
+                    textColor: AppColors.neutral600,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),

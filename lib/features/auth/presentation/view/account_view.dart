@@ -8,7 +8,7 @@ import '../cubit/auth_session_cubit.dart';
 import 'widgets/auth_layout.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../profile_setup/presentation/profile_setup_controller.dart';
+import '../../../../core/router/route_args.dart';
 
 class AccountView extends StatefulWidget {
   const AccountView({super.key});

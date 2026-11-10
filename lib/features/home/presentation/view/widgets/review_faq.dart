@@ -34,7 +34,7 @@ class _ReviewFaqState extends State<ReviewFaq> {
           if (i > 0) const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE5E5E5)),
+              border: Border.all(color: AppColors.neutral200),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(

@@ -3,6 +3,7 @@ import '../../../../core/widgets/default_button.dart';
 import '../../domain/profile_evaluation.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class EvaluationAccordion extends StatelessWidget {
   const EvaluationAccordion({
@@ -20,9 +21,9 @@ class EvaluationAccordion extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: const Color(0xFFFAFAFA),
+      color: AppColors.neutral50,
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: const Color(0xFFE5E5E5)),
+      border: Border.all(color: AppColors.neutral200),
     ),
     child: ProfileStack(
       gap: 12,
@@ -37,7 +38,7 @@ class EvaluationAccordion extends StatelessWidget {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: open ? profileBlue : const Color(0xFFA3A3A3),
+                  color: open ? profileBlue : AppColors.neutral400,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -53,14 +54,14 @@ class EvaluationAccordion extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: open ? profileBlue : const Color(0xFF525252),
+                    color: open ? profileBlue : AppColors.neutral600,
                   ),
                 ),
               ),
               Icon(
                 open ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                 size: 20,
-                color: const Color(0xFF737373),
+                color: AppColors.neutral500,
               ),
             ],
           ),
@@ -76,15 +77,13 @@ class EvaluationMetricCard extends StatelessWidget {
   final EvaluationMetric metric;
   @override
   Widget build(BuildContext context) {
-    final color = metric.score < 60
-        ? const Color(0xFFF59E0B)
-        : const Color(0xFF22C55E);
+    final color = metric.score < 60 ? AppColors.amber500 : AppColors.green500;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E5E5)),
+        border: Border.all(color: AppColors.neutral200),
       ),
       child: ProfileStack(
         gap: 6,
@@ -116,7 +115,7 @@ class EvaluationMetricCard extends StatelessWidget {
               value: metric.score / 100,
               minHeight: 6,
               color: profileBlue,
-              backgroundColor: const Color(0xFFE5E5E5),
+              backgroundColor: AppColors.neutral200,
             ),
           ),
         ],
@@ -149,14 +148,14 @@ class EvaluationTextCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFB8D0FF)),
+          border: Border.all(color: AppColors.blueLight),
         ),
         child: Text(
           tc(context, text),
           style: const TextStyle(
             fontSize: 12,
             height: 1.5,
-            color: Color(0xFF525252),
+            color: AppColors.neutral600,
           ),
         ),
       ),
@@ -170,17 +169,13 @@ class ExpertTipCard extends StatelessWidget {
   final int index;
   @override
   Widget build(BuildContext context) {
-    final color = [
-      const Color(0xFFF97316),
-      profileBlue,
-      const Color(0xFF22C55E),
-    ][index];
+    final color = [AppColors.orange500, profileBlue, AppColors.green500][index];
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E5E5)),
+        border: Border.all(color: AppColors.neutral200),
       ),
       child: ProfileStack(
         gap: 12,
@@ -190,7 +185,7 @@ class ExpertTipCard extends StatelessWidget {
               const Icon(
                 Icons.check_circle_outline,
                 size: 20,
-                color: Color(0xFF22C55E),
+                color: AppColors.green500,
               ),
               const Spacer(),
               Container(
@@ -223,7 +218,7 @@ class ExpertTipCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               height: 1.5,
-              color: Color(0xFF737373),
+              color: AppColors.neutral500,
             ),
           ),
         ],

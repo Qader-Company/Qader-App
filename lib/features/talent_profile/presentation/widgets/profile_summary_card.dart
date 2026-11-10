@@ -5,7 +5,8 @@ import '../../../../core/widgets/qader_asset.dart';
 import '../../domain/talent_profile.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
-import 'profile_reevaluation_countdown.dart';
+import '../../../../core/widgets/reevaluation_countdown.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class ProfileSummaryCard extends StatelessWidget {
   const ProfileSummaryCard({
@@ -20,7 +21,7 @@ class ProfileSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      border: Border.all(color: const Color(0xFFE5E5E5)),
+      border: Border.all(color: AppColors.neutral200),
       borderRadius: BorderRadius.circular(12),
     ),
     child: ProfileStack(
@@ -38,7 +39,7 @@ class ProfileSummaryCard extends StatelessWidget {
             else
               CircleAvatar(
                 radius: 32,
-                backgroundColor: const Color(0xFFE8EFFC),
+                backgroundColor: AppColors.blueSoft,
                 child: Text(
                   profile.name
                       .trim()
@@ -71,8 +72,8 @@ class ProfileSummaryCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: profile.status == TalentProfileStatus.accepted
-                          ? const Color(0xFFF0FDF4)
-                          : const Color(0xFFFEF2F2),
+                          ? AppColors.green50
+                          : AppColors.red50,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -84,8 +85,8 @@ class ProfileSummaryCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: profile.status == TalentProfileStatus.accepted
-                            ? const Color(0xFF16A34A)
-                            : const Color(0xFFEF232A),
+                            ? AppColors.green600
+                            : AppColors.alertRed,
                       ),
                     ),
                   ),
@@ -99,7 +100,7 @@ class ProfileSummaryCard extends StatelessWidget {
           style: const TextStyle(
             fontSize: 14,
             height: 1.5,
-            color: Color(0xFF525252),
+            color: AppColors.neutral600,
           ),
         ),
         Wrap(
@@ -113,7 +114,7 @@ class ProfileSummaryCard extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   tooltip: social,
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFFF4F8FE),
+                    backgroundColor: AppColors.paleBlue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -152,7 +153,7 @@ class ProfileSummaryCard extends StatelessWidget {
                 const Icon(
                   Icons.work_outline,
                   size: 14,
-                  color: Color(0xFF737373),
+                  color: AppColors.neutral500,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -160,7 +161,7 @@ class ProfileSummaryCard extends StatelessWidget {
                     tc(context, '2 years experience'),
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF737373),
+                      color: AppColors.neutral500,
                     ),
                   ),
                 ),
@@ -173,7 +174,7 @@ class ProfileSummaryCard extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             height: 1.5,
-            color: Color(0xFF737373),
+            color: AppColors.neutral500,
           ),
         ),
         if (profile.reviewAvailableAt != null)
@@ -186,8 +187,8 @@ class ProfileSummaryCard extends StatelessWidget {
                 child: const LinearProgressIndicator(
                   value: .8,
                   minHeight: 6,
-                  color: Color(0xFF346AE8),
-                  backgroundColor: Color(0xFFE5E5E5),
+                  color: AppColors.blue,
+                  backgroundColor: AppColors.neutral200,
                 ),
               ),
             ),
@@ -235,7 +236,7 @@ class ProfileSummaryCard extends StatelessWidget {
           text,
           style: const TextStyle(
             fontSize: 12,
-            color: Color(0xFF737373),
+            color: AppColors.neutral500,
             height: 1.5,
           ),
         ),

@@ -20,7 +20,7 @@ class AuthFooter extends StatelessWidget {
         height: registration ? 15 : 16,
         child: Row(
           children: [
-            const Expanded(child: Divider(color: Color(0xFFE5E5E5))),
+            const Expanded(child: Divider(color: AppColors.neutral200)),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
@@ -28,7 +28,7 @@ class AuthFooter extends StatelessWidget {
                 style: const TextStyle(fontSize: 9),
               ),
             ),
-            const Expanded(child: Divider(color: Color(0xFFE5E5E5))),
+            const Expanded(child: Divider(color: AppColors.neutral200)),
           ],
         ),
       ),
@@ -40,7 +40,7 @@ class AuthFooter extends StatelessWidget {
           fontSize: 12,
           height: registration ? 1.5 : null,
           fontWeight: registration ? FontWeight.w500 : null,
-          color: const Color(0xFF737373),
+          color: AppColors.neutral500,
         ),
       ),
       const SizedBox(height: 12),

@@ -5,6 +5,7 @@ import 'profile_widgets.dart';
 import 'profile_upload.dart';
 import 'profile_lookup_select.dart';
 import 'profile_phone_input.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class BasicInfoStep extends StatelessWidget {
   const BasicInfoStep({super.key, required this.draft});
@@ -331,15 +332,15 @@ class _CvAutofillStatus extends StatelessWidget {
     final (icon, color, fill, message) = draft.parsingCv
         ? (
             null,
-            const Color(0xFF0A32DB),
-            const Color(0xFFF4F8FE),
+            AppColors.primary,
+            AppColors.paleBlue,
             pc(context, 'Reading your CV to fill in your details'),
           )
         : draft.cvParseFailure != null
         ? (
             Icons.info_outline,
-            const Color(0xFFA16207),
-            const Color(0xFFFEFCE8),
+            AppColors.yellow700,
+            AppColors.yellow50,
             pc(
               context,
               "We couldn't read your CV automatically. Please fill in your details",
@@ -348,8 +349,8 @@ class _CvAutofillStatus extends StatelessWidget {
         : draft.cvAutofilled
         ? (
             Icons.check_circle_outline,
-            const Color(0xFF008236),
-            const Color(0xFFDCFCE7),
+            AppColors.green700,
+            AppColors.green100,
             pc(
               context,
               'We filled in your details from your CV. Please review them before continuing',

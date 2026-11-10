@@ -8,6 +8,7 @@ import '../widgets/profile_summary_card.dart';
 import '../widgets/profile_sections.dart';
 import '../widgets/edit_profile_sheet.dart';
 import '../widgets/restricted_profile_notice.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class TalentProfileView extends StatefulWidget {
   const TalentProfileView({super.key, this.profile = const TalentProfile()});
@@ -95,7 +96,7 @@ class _TalentProfileViewState extends State<TalentProfileView> {
                                 : FontWeight.w400,
                             color: tab == i
                                 ? profileBlue
-                                : const Color(0xFF737373),
+                                : AppColors.neutral500,
                           ),
                         ),
                       ),
@@ -121,7 +122,7 @@ class _TalentProfileViewState extends State<TalentProfileView> {
                 child: FittedBox(
                   child: Switch.adaptive(
                     value: available,
-                    activeTrackColor: const Color(0xFF346AE8),
+                    activeTrackColor: AppColors.blue,
                     onChanged: (value) => setState(() => available = value),
                   ),
                 ),

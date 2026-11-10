@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/widgets/default_button.dart';
-import '../../../../../core/widgets/default_form_field.dart';
-import '../../../../../core/widgets/default_dropdown.dart';
-import '../../../../../core/widgets/qader_design.dart';
+import '../../../../core/widgets/default_button.dart';
+import '../../../../core/widgets/default_form_field.dart';
+import '../../../../core/widgets/default_dropdown.dart';
+import '../../../../core/widgets/qader_design.dart';
 import '../profile_copy.dart';
 
 String? requiredProfile(BuildContext context, String? value) =>
@@ -61,7 +61,7 @@ class ProfileLabel extends StatelessWidget {
       fontSize: 14,
       fontWeight: FontWeight.w500,
       height: 20 / 14,
-      color: Color(0xFF404040),
+      color: AppColors.neutral700,
     ),
   );
 }
@@ -228,7 +228,7 @@ class ProfileEntryCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: const Color(0xFFF5F5F5),
+      color: AppColors.neutral100,
       borderRadius: BorderRadius.circular(8),
     ),
     child: ProfileColumn(
@@ -304,7 +304,7 @@ class ProfileChoices extends StatelessWidget {
                         : QaderDesign.border,
                     textColor: value == options[i]
                         ? QaderDesign.blue
-                        : const Color(0xFF404040),
+                        : AppColors.neutral700,
                     textStyle: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,

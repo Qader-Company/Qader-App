@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/talent_profile.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
+import '../../../../core/resources/app_colors.dart';
 
 class ProfileBasicInfo extends StatelessWidget {
   const ProfileBasicInfo({super.key, required this.profile});
@@ -33,9 +34,9 @@ class ProfileBasicInfo extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFAFAFA),
+                color: AppColors.neutral50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFF0F0F0)),
+                border: Border.all(color: AppColors.surfaceMuted),
               ),
               child: Row(
                 children: [
@@ -57,8 +58,8 @@ class ProfileBasicInfo extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: language == 'Arabic'
-                          ? const Color(0xFFF0FDF4)
-                          : const Color(0xFFFAF5FF),
+                          ? AppColors.green50
+                          : AppColors.purple50,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -66,8 +67,8 @@ class ProfileBasicInfo extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         color: language == 'Arabic'
-                            ? const Color(0xFF16A34A)
-                            : const Color(0xFF9333EA),
+                            ? AppColors.green600
+                            : AppColors.purple600,
                       ),
                     ),
                   ),
@@ -158,12 +159,10 @@ class ProfileSkillsExperience extends StatelessWidget {
               height: 10,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: current ? profileBlue : const Color(0xFFD4D4D4),
+                color: current ? profileBlue : AppColors.neutral300,
               ),
             ),
-            Expanded(
-              child: Container(width: 1, color: const Color(0xFFE5E5E5)),
-            ),
+            Expanded(child: Container(width: 1, color: AppColors.neutral200)),
           ],
         ),
         const SizedBox(width: 12),
@@ -180,18 +179,24 @@ class ProfileSkillsExperience extends StatelessWidget {
               ),
               Text(
                 company,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF525252)),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.neutral600,
+                ),
               ),
               Text(
                 dates,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF737373)),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.neutral500,
+                ),
               ),
               Text(
                 description,
                 style: const TextStyle(
                   fontSize: 14,
                   height: 1.5,
-                  color: Color(0xFF737373),
+                  color: AppColors.neutral500,
                 ),
               ),
               if (current)
@@ -221,7 +226,7 @@ class ProfileSkillsExperience extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE5E5E5)),
+          border: Border.all(color: AppColors.neutral200),
           borderRadius: BorderRadius.circular(8),
         ),
         child: ProfileStack(
@@ -236,7 +241,7 @@ class ProfileSkillsExperience extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 height: 1.5,
-                color: Color(0xFF737373),
+                color: AppColors.neutral500,
               ),
             ),
             Align(
@@ -279,10 +284,10 @@ class ProfileWorkPreferences extends StatelessWidget {
         children: [
           const ProfileHeading('CV / Resume'),
           Material(
-            color: const Color(0xFFF4F8FE),
+            color: AppColors.paleBlue,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              side: const BorderSide(color: Color(0xFFB8D0FF)),
+              side: const BorderSide(color: AppColors.blueLight),
             ),
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
@@ -313,7 +318,7 @@ class ProfileWorkPreferences extends StatelessWidget {
                             tc(context, 'Uploaded CV'),
                             style: const TextStyle(
                               fontSize: 12,
-                              color: Color(0xFF737373),
+                              color: AppColors.neutral500,
                             ),
                           ),
                         ],

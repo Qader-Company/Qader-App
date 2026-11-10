@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../profile_copy.dart';
-import 'profile_components.dart';
+import '../resources/app_colors.dart';
+import 'spaced_column.dart';
+
+/// Countdown to when a rejected profile can be re-evaluated / reapply.
 
 class ProfileReevaluationCountdown extends StatefulWidget {
   const ProfileReevaluationCountdown({super.key, required this.deadline});
@@ -40,17 +42,17 @@ class _ProfileReevaluationCountdownState
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F8FE),
+        color: AppColors.paleBlue,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: ProfileStack(
+      child: SpacedColumn(
         gap: 8,
         children: [
           Text(
             minutes == 0
-                ? tc(context, 'Ready for review')
-                : '${tc(context, 'Time Remaining')}, ${DateFormat('d MMM', context.locale.toString()).format(widget.deadline)}',
-            style: const TextStyle(fontSize: 12, color: Color(0xFF525252)),
+                ? _t(context, 'Ready for review')
+                : '${_t(context, 'Time Remaining')}, ${DateFormat('d MMM', context.locale.toString()).format(widget.deadline)}',
+            style: const TextStyle(fontSize: 12, color: AppColors.neutral600),
           ),
           if (minutes > 0)
             Row(
@@ -66,10 +68,10 @@ class _ProfileReevaluationCountdownState
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFB8D0FF)),
+                            border: Border.all(color: AppColors.blueLight),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color(0x1A1D52E5),
+                                color: AppColors.blueStrong10,
                                 blurRadius: 6,
                                 offset: Offset(0, 2),
                               ),
@@ -81,19 +83,19 @@ class _ProfileReevaluationCountdownState
                             style: const TextStyle(
                               fontSize: 28,
                               height: 1.25,
-                              color: Color(0xFF346AE8),
+                              color: AppColors.blue,
                             ),
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          tc(
+                          _t(
                             context,
                             ['Months', 'Days', 'Hours', 'Minutes'][i],
                           ),
                           style: const TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF737373),
+                            color: AppColors.neutral500,
                           ),
                         ),
                       ],
@@ -107,3 +109,7 @@ class _ProfileReevaluationCountdownState
     );
   }
 }
+
+String _t(BuildContext context, String value) =>
+    ('talent_${value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_').replaceAll(RegExp(r'^_|_$'), '')}')
+        .tr(context: context);

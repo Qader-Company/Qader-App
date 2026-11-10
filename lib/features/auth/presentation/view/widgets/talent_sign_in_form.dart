@@ -10,7 +10,7 @@ import '../../../../../core/widgets/qader_asset.dart';
 import '../../cubit/auth_session_cubit.dart';
 import 'auth_form_field.dart';
 import 'auth_password_field.dart';
-import '../../../../profile_setup/presentation/profile_setup_controller.dart';
+import '../../../../../core/router/route_args.dart';
 
 class TalentSignInForm extends StatefulWidget {
   const TalentSignInForm({super.key});

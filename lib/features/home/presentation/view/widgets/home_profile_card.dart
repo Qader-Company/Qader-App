@@ -11,7 +11,7 @@ class HomeProfileCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: const Color(0xFFE5E5E5)),
+      border: Border.all(color: AppColors.neutral200),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -134,7 +134,7 @@ class HomeProfileCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 height: 20 / 14,
-                color: Color(0xFF737373),
+                color: AppColors.neutral500,
               ),
             ),
           ],

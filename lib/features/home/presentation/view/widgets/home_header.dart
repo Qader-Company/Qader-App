@@ -48,7 +48,7 @@ class _HeaderButton extends StatelessWidget {
       width: 28,
       height: 28,
       decoration: const BoxDecoration(
-        color: Color(0xFFF5F5F5),
+        color: AppColors.neutral100,
         shape: BoxShape.circle,
       ),
       child: Center(

@@ -1,6 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import '../../../../../core/widgets/qader_design.dart';
+import '../../../../core/widgets/qader_design.dart';
 import '../profile_copy.dart';
 
 class ProfileUpload extends StatefulWidget {
@@ -108,7 +108,7 @@ class _ProfileUploadState extends State<ProfileUpload> {
                     height: 30,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0xFFE8EFFC),
+                      color: AppColors.blueSoft,
                     ),
                     child: const Center(
                       child: QaderAsset(
@@ -149,7 +149,7 @@ class _ProfileUploadState extends State<ProfileUpload> {
                     ),
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF737373),
+                      color: AppColors.neutral500,
                     ),
                   ),
                   if (widget.images) ...[
@@ -254,7 +254,7 @@ class _ProfileUploadState extends State<ProfileUpload> {
           if (widget.images)
             Text(
               '${widget.files.length} / 5 ${pc(context, 'images selected')}',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF737373)),
+              style: const TextStyle(fontSize: 12, color: AppColors.neutral500),
             ),
         ],
       ],

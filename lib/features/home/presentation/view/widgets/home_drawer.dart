@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../../core/widgets/app_drawer.dart';
 import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/resources/qader_design.dart';
 import '../../../../../core/router/app_router.dart';
@@ -10,20 +11,18 @@ import '../../../../auth/presentation/cubit/auth_session_cubit.dart';
 import '../../../../talent_profile/presentation/widgets/profile_previews_sheet.dart';
 import '../../status_copy.dart';
 
-enum HomeDrawerItem { home, profile }
-
-const _ink = Color(0xFF171717);
-const _muted = Color(0xFF737373);
-const _line = Color(0xFFE5E5E5);
+const _ink = AppColors.neutral900;
+const _muted = AppColors.neutral500;
+const _line = AppColors.neutral200;
 
 class HomeDrawer extends StatelessWidget {
   const HomeDrawer({
     super.key,
     this.preview = true,
-    this.current = HomeDrawerItem.home,
+    this.current = AppDrawerItem.home,
   });
   final bool preview;
-  final HomeDrawerItem current;
+  final AppDrawerItem current;
 
   void _soon(BuildContext context) {
     Navigator.pop(context);
@@ -103,7 +102,7 @@ class HomeDrawer extends StatelessWidget {
     final email = user?.email ?? prefs?.getUserEmail() ?? '';
     return Drawer(
       width: 280,
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadiusDirectional.only(topEnd: Radius.circular(16)),
       ),
@@ -115,8 +114,8 @@ class HomeDrawer extends StatelessWidget {
             _Item(
               icon: Icons.grid_view_rounded,
               label: 'home'.tr(context: context),
-              selected: current == HomeDrawerItem.home,
-              onTap: current == HomeDrawerItem.home
+              selected: current == AppDrawerItem.home,
+              onTap: current == AppDrawerItem.home
                   ? () => Navigator.pop(context)
                   : () {
                       Navigator.pop(context);
@@ -126,8 +125,8 @@ class HomeDrawer extends StatelessWidget {
             _Item(
               icon: Icons.person_outline_rounded,
               label: sc(context, 'My Profile', 'ملفي الشخصي'),
-              selected: current == HomeDrawerItem.profile,
-              onTap: current == HomeDrawerItem.profile
+              selected: current == AppDrawerItem.profile,
+              onTap: current == AppDrawerItem.profile
                   ? () => Navigator.pop(context)
                   : () => _open(context, AppRouter.talentProfile),
             ),
