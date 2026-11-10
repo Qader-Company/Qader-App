@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qader/core/resources/qader_design.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:qader/core/di/service_locator.dart';
 import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
 import 'package:qader/core/router/app_router.dart';
@@ -39,8 +39,6 @@ void main() {
   testWidgets('verified email goes straight to sign in', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await EasyLocalization.ensureInitialized();
-    sl.registerSingleton<AuthRepository>(_Repo());
-    addTearDown(sl.reset);
     final router = GoRouter(
       initialLocation: AppRouter.verifyEmail,
       routes: [
@@ -67,12 +65,15 @@ void main() {
         path: 'assets/translations',
         assetLoader: const _Translations(),
         child: Builder(
-          builder: (context) => MaterialApp.router(
-            theme: QaderDesign.apply(ThemeData(), context.locale),
-            routerConfig: router,
-            locale: context.locale,
-            supportedLocales: context.supportedLocales,
-            localizationsDelegates: context.localizationDelegates,
+          builder: (context) => RepositoryProvider<AuthRepository>.value(
+            value: _Repo(),
+            child: MaterialApp.router(
+              theme: QaderDesign.apply(ThemeData(), context.locale),
+              routerConfig: router,
+              locale: context.locale,
+              supportedLocales: context.supportedLocales,
+              localizationsDelegates: context.localizationDelegates,
+            ),
           ),
         ),
       ),

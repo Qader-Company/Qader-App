@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/di/service_locator.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../auth/presentation/cubit/auth_session_cubit.dart';
@@ -16,6 +15,7 @@ import 'widgets/home_profile_card.dart';
 import 'widgets/review_steps.dart';
 import 'widgets/review_faq.dart';
 import '../../../../core/resources/app_colors.dart';
+import '../../domain/repositories/application_repository.dart';
 
 /// Talent home. In [preview] it shows the static "Under Review" design;
 /// otherwise it loads `GET /talent/application` and shows the screen that
@@ -43,7 +43,8 @@ class HomeView extends StatelessWidget {
       );
     }
     return BlocProvider(
-      create: (_) => sl<ApplicationCubit>()..load(),
+      create: (context) =>
+          ApplicationCubit(context.read<ApplicationRepository>())..load(),
       child: BlocBuilder<ApplicationCubit, ApplicationState>(
         builder: (context, state) {
           final cubit = context.read<ApplicationCubit>();
@@ -67,7 +68,7 @@ class HomeView extends StatelessWidget {
               key: ValueKey(status),
               initialStatus: status,
               application: application,
-              userName: _userName(),
+              userName: _userName(context),
               onRefresh: cubit.load,
               onSelectSlot: (slotId) async =>
                   (await cubit.selectSlot(slotId))?.message,
@@ -80,17 +81,20 @@ class HomeView extends StatelessWidget {
           return _Dashboard(
             preview: false,
             onRefresh: cubit.load,
-            children: _underReview(application),
+            children: _underReview(context, application),
           );
         },
       ),
     );
   }
 
-  List<Widget> _underReview(TalentApplication application) {
+  List<Widget> _underReview(
+    BuildContext context,
+    TalentApplication application,
+  ) {
     final faqs = application.screenFaqs;
     return [
-      ApplicationReviewBanner(name: _userName()),
+      ApplicationReviewBanner(name: _userName(context)),
       const SizedBox(height: 24),
       const ReviewSteps(),
       const SizedBox(height: 24),
@@ -108,10 +112,10 @@ class HomeView extends StatelessWidget {
   }
 }
 
-String _userName() {
-  final user = sl<AuthSessionCubit>().state.user;
+String _userName(BuildContext context) {
+  final user = context.read<AuthSessionCubit>().state.user;
   if (user != null && user.fullName.isNotEmpty) return user.fullName;
-  return sl<AppPreferences>().getUserName();
+  return context.read<AppPreferences>().getUserName();
 }
 
 class _Dashboard extends StatelessWidget {

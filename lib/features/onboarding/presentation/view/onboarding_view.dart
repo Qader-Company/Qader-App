@@ -1,12 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/di/service_locator.dart';
 import '../../../../core/resources/qader_design.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../models/onboarding_page_data.dart';
 import 'widgets/onboarding_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
@@ -36,7 +36,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     }
     setState(() => _finishing = true);
     try {
-      await sl<AppPreferences>().setOnBoardingViewed();
+      await context.read<AppPreferences>().setOnBoardingViewed();
       if (mounted) context.go(AppRouter.chooseRole);
     } catch (_) {
       if (!mounted) return;

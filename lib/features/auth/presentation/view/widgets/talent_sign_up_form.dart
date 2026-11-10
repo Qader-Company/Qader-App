@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/helpers/validators.dart';
 import '../../../../../core/router/app_router.dart';
 import '../../../../../core/widgets/default_button.dart';
@@ -11,6 +10,7 @@ import '../../../domain/entities/registration_request.dart';
 import '../../cubit/registration_cubit.dart';
 import 'auth_form_field.dart';
 import 'auth_password_field.dart';
+import '../../../domain/repositories/auth_repository.dart';
 
 class TalentSignUpForm extends StatefulWidget {
   const TalentSignUpForm({super.key});
@@ -25,7 +25,7 @@ class _TalentSignUpFormState extends State<TalentSignUpForm> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirmation = TextEditingController();
-  late final _cubit = sl<RegistrationCubit>();
+  late final _cubit = RegistrationCubit(context.read<AuthRepository>());
 
   String? _nameValidator(String? value) {
     final required = Validators.required(value?.trim());

@@ -404,20 +404,20 @@ void main() {
           assetLoader: const _Translations(),
           child: AppProviders(
             child: ScreenUtilInit(
-            designSize: const Size(390, 844),
-            builder: (context, _) => MaterialApp(
-              theme: QaderDesign.apply(ThemeData(), context.locale),
-              locale: context.locale,
-              supportedLocales: context.supportedLocales,
-              localizationsDelegates: context.localizationDelegates,
-              home: const ProfileSetupView(
-                seed: ProfileSetupSeed(
-                  name: 'Demo Talent',
-                  email: 'talent@example.test',
+              designSize: const Size(390, 844),
+              builder: (context, _) => MaterialApp(
+                theme: QaderDesign.apply(ThemeData(), context.locale),
+                locale: context.locale,
+                supportedLocales: context.supportedLocales,
+                localizationsDelegates: context.localizationDelegates,
+                home: const ProfileSetupView(
+                  seed: ProfileSetupSeed(
+                    name: 'Demo Talent',
+                    email: 'talent@example.test',
+                  ),
                 ),
               ),
             ),
-          ),
           ),
         ),
       );

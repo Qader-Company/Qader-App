@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/helpers/validators.dart';
 import '../../../../../core/widgets/default_button.dart';
 import '../../../../../core/widgets/qader_asset.dart';
@@ -28,7 +27,9 @@ class _TalentPasswordRecoveryFormState
   final _code = TextEditingController();
   final _password = TextEditingController();
   final _confirmation = TextEditingController();
-  late final _cubit = PasswordRecoveryCubit(sl<PasswordRecoveryRepository>());
+  late final _cubit = PasswordRecoveryCubit(
+    context.read<PasswordRecoveryRepository>(),
+  );
 
   @override
   void dispose() {

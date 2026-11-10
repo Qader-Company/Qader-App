@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/di/service_locator.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/language_toggle_button.dart';
 import '../cubit/auth_session_cubit.dart';
@@ -17,7 +16,7 @@ class AccountView extends StatefulWidget {
 }
 
 class _AccountViewState extends State<AccountView> {
-  late final _session = sl<AuthSessionCubit>();
+  late final _session = context.read<AuthSessionCubit>();
   @override
   void initState() {
     super.initState();

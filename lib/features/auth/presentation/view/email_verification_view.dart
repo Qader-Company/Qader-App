@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/di/service_locator.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../domain/entities/email_verification_challenge.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -22,7 +21,7 @@ class EmailVerificationView extends StatefulWidget {
 class _EmailVerificationViewState extends State<EmailVerificationView> {
   final _code = TextEditingController();
   late final _cubit = EmailVerificationCubit(
-    sl<AuthRepository>(),
+    context.read<AuthRepository>(),
     widget.challenge,
   );
   @override

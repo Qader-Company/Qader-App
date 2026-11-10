@@ -12,7 +12,6 @@ import '../../features/auth/data/repositories/talent_auth_repository.dart';
 import '../../features/auth/data/repositories/password_recovery_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_session_cubit.dart';
-import '../../features/auth/presentation/cubit/registration_cubit.dart';
 import '../../features/profile_setup/domain/repositories/professional_fields_repository.dart';
 import '../../features/profile_setup/data/repositories/api_professional_fields_repository.dart';
 import '../../features/profile_setup/domain/repositories/onboarding_steps_repository.dart';
@@ -24,7 +23,6 @@ import '../../features/profile_setup/data/repositories/api_onboarding_progress_r
 
 import '../../features/home/data/repositories/api_application_repository.dart';
 import '../../features/home/domain/repositories/application_repository.dart';
-import '../../features/home/presentation/cubit/application_cubit.dart';
 
 export '../../core/di/service_locator.dart';
 
@@ -72,12 +70,6 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<ApplicationRepository>(
     () => ApiApplicationRepository(sl<ApiConsumer>()),
-  );
-  sl.registerFactory<ApplicationCubit>(
-    () => ApplicationCubit(sl<ApplicationRepository>()),
-  );
-  sl.registerFactory<RegistrationCubit>(
-    () => RegistrationCubit(sl<AuthRepository>()),
   );
   sl.registerLazySingleton<AuthSessionCubit>(
     () => AuthSessionCubit(sl<AuthRepository>(), sl<AppPreferences>()),

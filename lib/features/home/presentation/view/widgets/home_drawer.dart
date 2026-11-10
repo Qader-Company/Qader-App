@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/widgets/app_drawer.dart';
-import '../../../../../core/di/service_locator.dart';
 import '../../../../../core/resources/qader_design.dart';
 import '../../../../../core/router/app_router.dart';
 import '../../../../../core/storage/app_preferences.dart';
@@ -10,6 +9,7 @@ import '../../../../../core/widgets/language_toggle_button.dart';
 import '../../../../auth/presentation/cubit/auth_session_cubit.dart';
 import '../../../../talent_profile/presentation/widgets/profile_previews_sheet.dart';
 import '../../status_copy.dart';
+import '../../../../../core/di/maybe_read.dart';
 
 const _ink = AppColors.neutral900;
 const _muted = AppColors.neutral500;
@@ -53,8 +53,10 @@ class HomeDrawer extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     final router = GoRouter.of(context);
+    final loggedIn = context.maybeRead<AppPreferences>()?.isLoggedIn ?? false;
+    final session = context.maybeRead<AuthSessionCubit>();
     Navigator.pop(context);
-    if (sl<AppPreferences>().isLoggedIn) await sl<AuthSessionCubit>().logout();
+    if (loggedIn) await session?.logout();
     router.go(AppRouter.chooseRole);
   }
 
@@ -87,12 +89,8 @@ class HomeDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = sl.isRegistered<AuthSessionCubit>()
-        ? sl<AuthSessionCubit>().state.user
-        : null;
-    final prefs = sl.isRegistered<AppPreferences>()
-        ? sl<AppPreferences>()
-        : null;
+    final user = context.maybeRead<AuthSessionCubit>()?.state.user;
+    final prefs = context.maybeRead<AppPreferences>();
     final savedName = prefs?.getUserName() ?? '';
     final name = user?.fullName.isNotEmpty == true
         ? user!.fullName
