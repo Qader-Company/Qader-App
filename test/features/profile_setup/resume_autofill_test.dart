@@ -8,7 +8,7 @@ import 'package:qader/core/network/failure.dart';
 import 'package:qader/features/profile_setup/data/repositories/api_onboarding_steps_repository.dart';
 import 'package:qader/features/profile_setup/domain/entities/profile_cv.dart';
 import 'package:qader/features/profile_setup/domain/repositories/professional_fields_repository.dart';
-import 'package:qader/features/profile_setup/presentation/profile_setup_controller.dart';
+import 'package:qader/features/profile_setup/presentation/cubit/profile_setup_cubit.dart';
 
 class _Fields extends Fake implements ProfessionalFieldsRepository {}
 
@@ -126,7 +126,7 @@ final _bytes = Uint8List.fromList([37, 80, 68]);
 
 PlatformFile _cv() => PlatformFile(name: 'cv.pdf', size: 3, bytes: _bytes);
 
-ProfileSetupController _draft(_Api api) => ProfileSetupController(
+ProfileSetupCubit _draft(_Api api) => ProfileSetupCubit(
   fieldsRepository: _Fields(),
   stepsRepository: ApiOnboardingStepsRepository(api),
 );
@@ -152,7 +152,7 @@ void main() {
   test('CV fills every step, replacing the signup name and email', () async {
     final api = _Api();
     final draft = _draft(api);
-    addTearDown(draft.dispose);
+    addTearDown(draft.close);
     // Values restored from a previous save.
     draft.text('name').text = 'Old Name';
     draft.text('email').text = 'account@example.test';
@@ -207,7 +207,7 @@ void main() {
   test('existing experiences and projects are kept', () async {
     final api = _Api();
     final draft = _draft(api);
-    addTearDown(draft.dispose);
+    addTearDown(draft.close);
     draft.addExperience();
     final mine = draft.experiences.single;
     draft.text('experience_${mine.id}_company').text = 'My Company';
@@ -223,7 +223,7 @@ void main() {
     final api = _Api()
       ..failure = const ServerFailure(message: 'Could not parse');
     final draft = _draft(api);
-    addTearDown(draft.dispose);
+    addTearDown(draft.close);
 
     await draft.parseCv(_cv());
 

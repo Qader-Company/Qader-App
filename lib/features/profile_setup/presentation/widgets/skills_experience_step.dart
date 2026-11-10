@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/qader_design.dart';
-import '../profile_setup_controller.dart';
+import '../cubit/profile_setup_cubit.dart';
 import '../profile_copy.dart';
 import 'profile_widgets.dart';
 import 'profile_upload.dart';
@@ -9,7 +9,7 @@ import '../../../../core/widgets/default_form_field.dart';
 
 class SkillsExperienceStep extends StatelessWidget {
   const SkillsExperienceStep({super.key, required this.draft});
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   @override
   Widget build(BuildContext context) => ProfileColumn(
     gap: 24,
@@ -208,7 +208,7 @@ class SkillsExperienceStep extends StatelessWidget {
 
 class _SkillsInput extends StatelessWidget {
   const _SkillsInput({required this.draft});
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   @override
   Widget build(BuildContext context) => FormField<List<String>>(
     initialValue: draft.skills,
@@ -316,7 +316,7 @@ class _ExperienceCard extends StatelessWidget {
     required this.entry,
     required this.index,
   });
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   final ExperienceEntry entry;
   final int index;
   String get prefix => 'experience_${entry.id}_';
@@ -445,7 +445,7 @@ class _ProjectCard extends StatelessWidget {
     required this.entry,
     required this.index,
   });
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   final ProjectEntry entry;
   final int index;
   String get prefix => 'project_${entry.id}_';

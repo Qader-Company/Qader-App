@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../profile_setup_controller.dart';
+import '../cubit/profile_setup_cubit.dart';
 import '../profile_copy.dart';
 import 'profile_widgets.dart';
 import 'profile_upload.dart';
@@ -9,7 +9,7 @@ import '../../../../core/resources/app_colors.dart';
 
 class BasicInfoStep extends StatelessWidget {
   const BasicInfoStep({super.key, required this.draft});
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   static const cities = {
     'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Mansoura', 'Other'],
     'Saudi Arabia': ['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Other'],
@@ -326,7 +326,7 @@ class BasicInfoStep extends StatelessWidget {
 /// Progress and result of filling the form from the uploaded CV.
 class _CvAutofillStatus extends StatelessWidget {
   const _CvAutofillStatus({required this.draft});
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   @override
   Widget build(BuildContext context) {
     final (icon, color, fill, message) = draft.parsingCv

@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../profile_setup_controller.dart';
+import '../cubit/profile_setup_cubit.dart';
 import 'profile_widgets.dart';
 
 class ProfileLookupSelect extends StatelessWidget {
@@ -15,7 +15,7 @@ class ProfileLookupSelect extends StatelessWidget {
     this.validator,
   });
   final String label;
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   final ProfileLookup lookup;
   final String? value;
   final ValueChanged<String?> onChanged;
@@ -79,7 +79,7 @@ class ProfileLookupMultiSelect extends StatelessWidget {
     this.required = false,
   });
   final String label;
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   final ProfileLookup lookup;
   final String selectionKey;
   final bool required;

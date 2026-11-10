@@ -1,19 +1,19 @@
-part of 'profile_setup_controller.dart';
+part of 'profile_setup_cubit.dart';
 
-extension ProfileProgressRestore on ProfileSetupController {
+extension ProfileProgressRestore on ProfileSetupCubit {
   bool get hasProgressRepository => _progressRepository != null;
 
   /// Also used after each save, so a previously completed later step is skipped.
   /// Failure retains the draft and retry only repeats GET, never the successful POST.
   Future<bool> restoreProgress() async {
-    if (_progressRepository == null || busy || _disposed) return false;
+    if (_progressRepository == null || busy || isClosed) return false;
     progressLoading = true;
     progressPending = true;
     progressFailure = null;
     refresh();
     try {
       final result = await _progressRepository!.load();
-      if (_disposed) return false;
+      if (isClosed) return false;
       if (result.isError) {
         progressFailure = result.getErrorOrThrow();
         return false;
@@ -22,14 +22,14 @@ extension ProfileProgressRestore on ProfileSetupController {
       progressPending = false;
       return true;
     } on Object {
-      if (!_disposed) {
+      if (!isClosed) {
         progressFailure = const ServerFailure(
           message: 'profile_progress_failed',
         );
       }
       return false;
     } finally {
-      if (!_disposed) {
+      if (!isClosed) {
         progressLoading = false;
         refresh();
       }
@@ -37,7 +37,7 @@ extension ProfileProgressRestore on ProfileSetupController {
   }
 
   void applyProgress(OnboardingProgress progress) {
-    if (_disposed) return;
+    if (isClosed) return;
     // Invalidate earlier lookup responses before restoring another server snapshot.
     for (final lookup in ProfileLookup.values) {
       _lookupRequests[lookup] = (_lookupRequests[lookup] ?? 0) + 1;

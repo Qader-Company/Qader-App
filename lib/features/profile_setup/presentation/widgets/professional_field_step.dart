@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/widgets/qader_design.dart';
-import '../profile_setup_controller.dart';
+import '../cubit/profile_setup_cubit.dart';
 import '../profile_copy.dart';
 import 'profile_widgets.dart';
 
 class ProfessionalFieldStep extends StatelessWidget {
   const ProfessionalFieldStep({super.key, required this.draft});
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   @override
   Widget build(BuildContext context) => ProfileColumn(
     gap: 24,
@@ -98,7 +98,7 @@ class ProfessionalFieldStep extends StatelessWidget {
 class _FieldCard extends StatelessWidget {
   const _FieldCard({required this.field, required this.draft});
   final ProfessionalField field;
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   @override
   Widget build(BuildContext context) {
     final selected = draft.selectedField == field;

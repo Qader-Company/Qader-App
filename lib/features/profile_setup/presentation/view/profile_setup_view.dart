@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/qader_design.dart';
 import '../../../../core/widgets/default_button.dart';
-import '../profile_setup_controller.dart';
+import '../cubit/profile_setup_cubit.dart';
 import '../profile_copy.dart';
 import '../widgets/profile_widgets.dart';
 import '../widgets/professional_field_step.dart';
 import '../widgets/basic_info_step.dart';
 import '../widgets/skills_experience_step.dart';
 import '../widgets/work_preferences_step.dart';
-import '../../../../core/di/service_locator.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../domain/repositories/professional_fields_repository.dart';
 import '../../domain/repositories/profile_lookups_repository.dart';
 import '../../domain/repositories/onboarding_steps_repository.dart';
 import '../../domain/repositories/onboarding_progress_repository.dart';
+import '../../../../core/di/maybe_read.dart';
 
 class ProfileSetupView extends StatefulWidget {
   const ProfileSetupView({super.key, this.seed});
@@ -26,30 +27,30 @@ class ProfileSetupView extends StatefulWidget {
 }
 
 class _ProfileSetupViewState extends State<ProfileSetupView> {
-  late final draft = ProfileSetupController(
-    seed: widget.seed,
-    fieldsRepository: sl<AppPreferences>().isLoggedIn
-        ? sl<ProfessionalFieldsRepository>()
-        : null,
-    lookupsRepository: sl<AppPreferences>().isLoggedIn
-        ? sl<ProfileLookupsRepository>()
-        : null,
-    stepsRepository: sl<AppPreferences>().isLoggedIn
-        ? sl<OnboardingStepsRepository>()
-        : null,
-    progressRepository:
-        sl<AppPreferences>().isLoggedIn &&
-            sl.isRegistered<OnboardingProgressRepository>()
-        ? sl<OnboardingProgressRepository>()
-        : null,
-  );
+  late final _preferences = context.read<AppPreferences>();
+
+  /// Logged-in talents use the onboarding APIs; otherwise an offline preview.
+  late final draft = () {
+    final live = _preferences.isLoggedIn;
+    return ProfileSetupCubit(
+      seed: widget.seed,
+      fieldsRepository: live
+          ? context.read<ProfessionalFieldsRepository>()
+          : null,
+      lookupsRepository: live ? context.read<ProfileLookupsRepository>() : null,
+      stepsRepository: live ? context.read<OnboardingStepsRepository>() : null,
+      progressRepository: live
+          ? context.maybeRead<OnboardingProgressRepository>()
+          : null,
+    );
+  }();
   final _scroll = ScrollController();
   final _forms = List.generate(4, (_) => GlobalKey<FormState>());
   bool _initialProgress = true;
   @override
   void initState() {
     super.initState();
-    sl<AppPreferences>().sessionRevision.addListener(_sessionChanged);
+    _preferences.sessionRevision.addListener(_sessionChanged);
     if (draft.hasProgressRepository) {
       _resume();
     } else {
@@ -58,7 +59,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   }
 
   void _sessionChanged() {
-    if (mounted && draft.isConnected && !sl<AppPreferences>().isLoggedIn) {
+    if (mounted && draft.isConnected && !_preferences.isLoggedIn) {
       context.go('${AppRouter.signIn}?role=talent');
     }
   }
@@ -82,8 +83,8 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
 
   @override
   void dispose() {
-    sl<AppPreferences>().sessionRevision.removeListener(_sessionChanged);
-    draft.dispose();
+    _preferences.sessionRevision.removeListener(_sessionChanged);
+    draft.close();
     _scroll.dispose();
     super.dispose();
   }
@@ -231,8 +232,10 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     ),
   );
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: draft,
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<ProfileSetupCubit, ProfileSetupState>(
+    bloc: draft,
     builder: (context, _) => PopScope(
       canPop: draft.step == 0 && !draft.busy,
       onPopInvokedWithResult: (didPop, result) {

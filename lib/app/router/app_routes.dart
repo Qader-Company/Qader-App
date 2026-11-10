@@ -21,7 +21,7 @@ import '../../features/onboarding/presentation/view/onboarding_view.dart';
 import '../../features/auth/domain/entities/password_recovery_request.dart';
 
 import '../../features/profile_setup/presentation/view/profile_setup_view.dart';
-import '../../features/profile_setup/presentation/profile_setup_controller.dart';
+import '../../features/profile_setup/presentation/cubit/profile_setup_cubit.dart';
 
 import '../../features/talent_profile/presentation/view/talent_profile_view.dart';
 import '../../features/talent_profile/presentation/view/profile_review_view.dart';

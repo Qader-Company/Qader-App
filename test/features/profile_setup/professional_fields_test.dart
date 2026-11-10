@@ -8,6 +8,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qader/app/app_providers.dart';
 import 'package:qader/core/resources/qader_design.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/app/di/dependencies.dart';
@@ -17,7 +18,7 @@ import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
 import 'package:qader/core/storage/app_preferences.dart';
 import 'package:qader/features/profile_setup/data/repositories/api_professional_fields_repository.dart';
-import 'package:qader/features/profile_setup/presentation/profile_setup_controller.dart';
+import 'package:qader/features/profile_setup/presentation/cubit/profile_setup_cubit.dart';
 import 'package:qader/features/profile_setup/presentation/view/profile_setup_view.dart';
 import 'package:qader/features/profile_setup/presentation/widgets/basic_info_step.dart';
 import 'package:qader/features/profile_setup/presentation/widgets/profile_widgets.dart';
@@ -216,7 +217,7 @@ void main() {
   test(
     'personal save rejects incomplete or duplicate languages and ignores late disposal results',
     () async {
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: repository,
         lookupsRepository: ApiProfileLookupsRepository(api),
         stepsRepository: ApiOnboardingStepsRepository(api),
@@ -238,7 +239,7 @@ void main() {
       api.personalGate = Completer<void>();
       final pending = draft.savePersonalInformation();
       expect(draft.savingPersonalInfo, isTrue);
-      draft.dispose();
+      await draft.close();
       api.personalGate!.complete();
       expect(await pending, isFalse);
     },
@@ -273,8 +274,8 @@ void main() {
   test(
     'failed form fields stay retryable and a new selection clears the schema',
     () async {
-      final draft = ProfileSetupController(fieldsRepository: repository);
-      addTearDown(draft.dispose);
+      final draft = ProfileSetupCubit(fieldsRepository: repository);
+      addTearDown(draft.close);
       await draft.loadFields();
       draft.chooseField(draft.fields.first);
       api.formFailure = const NetworkFailure(message: 'offline');
@@ -337,8 +338,8 @@ void main() {
   test(
     'no default live selection, failed save stays retryable and duplicates blocked',
     () async {
-      final draft = ProfileSetupController(fieldsRepository: repository);
-      addTearDown(draft.dispose);
+      final draft = ProfileSetupCubit(fieldsRepository: repository);
+      addTearDown(draft.close);
       await draft.loadFields();
       expect(draft.selectedField, isNull);
       expect(await draft.saveProfessionalField(), isFalse);
@@ -364,7 +365,7 @@ void main() {
   test(
     'load can retry and late results after disposal do not notify',
     () async {
-      final draft = ProfileSetupController(fieldsRepository: repository);
+      final draft = ProfileSetupCubit(fieldsRepository: repository);
       api.loadFailure = const NetworkFailure(message: 'offline');
       await draft.loadFields();
       expect(draft.fields, isEmpty);
@@ -372,7 +373,7 @@ void main() {
       api.loadFailure = null;
       api.gate = Completer<void>();
       final pending = draft.loadFields();
-      draft.dispose();
+      await draft.close();
       api.gate!.complete();
       await pending;
     },
@@ -401,7 +402,8 @@ void main() {
           startLocale: arabicLocale,
           saveLocale: false,
           assetLoader: const _Translations(),
-          child: ScreenUtilInit(
+          child: AppProviders(
+            child: ScreenUtilInit(
             designSize: const Size(390, 844),
             builder: (context, _) => MaterialApp(
               theme: QaderDesign.apply(ThemeData(), context.locale),
@@ -415,6 +417,7 @@ void main() {
                 ),
               ),
             ),
+          ),
           ),
         ),
       );

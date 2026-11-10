@@ -8,7 +8,7 @@ import 'package:qader/features/profile_setup/domain/entities/onboarding_progress
 import 'package:qader/features/profile_setup/data/repositories/api_onboarding_progress_repository.dart';
 import 'package:qader/features/profile_setup/data/repositories/api_onboarding_steps_repository.dart';
 import 'package:qader/features/profile_setup/domain/repositories/professional_fields_repository.dart';
-import 'package:qader/features/profile_setup/presentation/profile_setup_controller.dart';
+import 'package:qader/features/profile_setup/presentation/cubit/profile_setup_cubit.dart';
 import '../../fixtures/onboarding_progress_fixture.dart';
 
 class _Fields extends Fake implements ProfessionalFieldsRepository {}
@@ -57,11 +57,11 @@ void main() {
       expect(progress.completed, isFalse);
       expect(progress.step, 0);
       expect(progress.steps.values.every((step) => step.data.isEmpty), isTrue);
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         progressRepository: ApiOnboardingProgressRepository(api),
       );
-      addTearDown(draft.dispose);
+      addTearDown(draft.close);
       draft.text('name').text = 'New Talent';
       draft.text('email').text = 'new@example.test';
       expect(await draft.restoreProgress(), isTrue);
@@ -132,11 +132,11 @@ void main() {
     'hydrates all steps, nested IDs, enum values, files and string numbers',
     () async {
       final api = _Api();
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         progressRepository: ApiOnboardingProgressRepository(api),
       );
-      addTearDown(draft.dispose);
+      addTearDown(draft.close);
       expect(await draft.restoreProgress(), isTrue);
       expect(draft.step, 2);
       expect(draft.selectedField!.id, 1);
@@ -166,7 +166,7 @@ void main() {
     'failed progress GET preserves draft, retry and disposal never POST',
     () async {
       final api = _Api()..failure = const NetworkFailure(message: 'offline');
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         progressRepository: ApiOnboardingProgressRepository(api),
       );
@@ -184,7 +184,7 @@ void main() {
       expect(api.writes, 0);
       api.gate = Completer<void>();
       final disposed = draft.restoreProgress();
-      draft.dispose();
+      await draft.close();
       api.gate!.complete();
       expect(await disposed, isFalse);
     },
@@ -193,12 +193,12 @@ void main() {
     'resume preserves server record IDs and existing media when saving',
     () async {
       final api = _Api();
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         progressRepository: ApiOnboardingProgressRepository(api),
         stepsRepository: ApiOnboardingStepsRepository(api),
       );
-      addTearDown(draft.dispose);
+      addTearDown(draft.close);
       await draft.restoreProgress();
       for (final lookup in [
         ProfileLookup.jobTitles,

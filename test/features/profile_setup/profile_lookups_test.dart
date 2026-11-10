@@ -5,7 +5,7 @@ import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
 import 'package:qader/features/profile_setup/data/repositories/api_profile_lookups_repository.dart';
 import 'package:qader/features/profile_setup/domain/repositories/profile_lookups_repository.dart';
-import 'package:qader/features/profile_setup/presentation/profile_setup_controller.dart';
+import 'package:qader/features/profile_setup/presentation/cubit/profile_setup_cubit.dart';
 import 'package:qader/features/profile_setup/domain/repositories/professional_fields_repository.dart';
 
 class _Api extends Fake implements ApiConsumer {
@@ -72,11 +72,11 @@ void main() {
           {'id': '14', 'name': 'Inactive', 'is_active': false},
         ],
       };
-    final draft = ProfileSetupController(
+    final draft = ProfileSetupCubit(
       fieldsRepository: _Fields(),
       lookupsRepository: ApiProfileLookupsRepository(api),
     );
-    addTearDown(draft.dispose);
+    addTearDown(draft.close);
     draft.fields = [const ProfessionalField('Customer Service', '', [], id: 5)];
     draft.chooseField(draft.fields.single);
     draft.formFields = {'job_title_id'};
@@ -177,11 +177,11 @@ void main() {
           {'id': 52, 'name': 'Backend Engineer'},
         ],
       };
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         lookupsRepository: ApiProfileLookupsRepository(api),
       );
-      addTearDown(draft.dispose);
+      addTearDown(draft.close);
       draft.fields = [
         const ProfessionalField('A', '', [], id: 42),
         const ProfessionalField('B', '', [], id: 3),
@@ -234,11 +234,11 @@ void main() {
       expect(options.map((o) => o.key), labels.keys);
       expect(options.map((o) => o.label), labels.values);
       final lookups = _Lookups();
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         lookupsRepository: lookups,
       );
-      addTearDown(draft.dispose);
+      addTearDown(draft.close);
       draft.formFields = {'email'};
       await draft.loadRelevantLookups();
       expect(lookups.requested, isEmpty);
@@ -352,11 +352,11 @@ void main() {
     'only visible lists load, cache is reused, failures can retry',
     () async {
       final repo = _Lookups();
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         lookupsRepository: repo,
       );
-      addTearDown(draft.dispose);
+      addTearDown(draft.close);
       draft.formFields = {
         'gender',
         'religion',
@@ -386,7 +386,7 @@ void main() {
     'country changes clear cities and reject stale requests and disposal callbacks',
     () async {
       final repo = _Lookups();
-      final draft = ProfileSetupController(
+      final draft = ProfileSetupCubit(
         fieldsRepository: _Fields(),
         lookupsRepository: repo,
       );
@@ -413,7 +413,7 @@ void main() {
       expect(draft.options(ProfileLookup.cities), isEmpty);
       repo.cityRequests.remove(7);
       final pending = draft.selectResidenceCountry('7');
-      draft.dispose();
+      await draft.close();
       repo.cityRequests[7]!.complete(const Right([]));
       await pending;
     },

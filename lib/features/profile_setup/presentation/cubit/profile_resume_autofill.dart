@@ -1,4 +1,4 @@
-part of 'profile_setup_controller.dart';
+part of 'profile_setup_cubit.dart';
 
 /// Autocomplete from the uploaded CV. Uploading a CV is an explicit request
 /// to fill the form, so every value the CV provides replaces the current
@@ -7,10 +7,10 @@ part of 'profile_setup_controller.dart';
 /// languages/skills are added, experiences/projects are filled only when the
 /// talent has none yet, so saved entries are never dropped. The talent
 /// reviews everything before each step is saved.
-extension ProfileResumeAutofill on ProfileSetupController {
+extension ProfileResumeAutofill on ProfileSetupCubit {
   Future<void> parseCv(PlatformFile file) async {
     final repository = _stepsRepository;
-    if (repository == null || !isConnected || _disposed) return;
+    if (repository == null || !isConnected || isClosed) return;
     final request = ++_parseRequest;
     parsingCv = true;
     cvParseFailure = null;
@@ -20,21 +20,21 @@ extension ProfileResumeAutofill on ProfileSetupController {
       final result = await repository.parseResume(
         ProfileCv(name: file.name, path: file.path, bytes: file.bytes),
       );
-      if (_disposed || request != _parseRequest) return;
+      if (isClosed || request != _parseRequest) return;
       if (result.isError) {
         cvParseFailure = result.getErrorOrThrow();
         return;
       }
       await applyResumeSuggestions(result.getOrThrow());
-      if (!_disposed) cvAutofilled = true;
+      if (!isClosed) cvAutofilled = true;
     } on Object {
-      if (!_disposed && request == _parseRequest) {
+      if (!isClosed && request == _parseRequest) {
         cvParseFailure = const ServerFailure(
           message: 'profile_cv_parse_failed',
         );
       }
     } finally {
-      if (!_disposed && request == _parseRequest) {
+      if (!isClosed && request == _parseRequest) {
         parsingCv = false;
         refresh();
       }
@@ -79,7 +79,7 @@ extension ProfileResumeAutofill on ProfileSetupController {
         // Cities depend on the country; load them so the city can show.
         lookupOptions.remove(ProfileLookup.cities);
         await loadLookup(ProfileLookup.cities, retry: true);
-        if (_disposed) return;
+        if (isClosed) return;
       }
     }
     if (countryId != null && selections['country'] == countryId) {

@@ -1,20 +1,24 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import '../../../core/network/failure.dart';
-import '../../../core/network/either.dart';
-import '../domain/entities/professional_field.dart';
-import '../domain/repositories/professional_fields_repository.dart';
-import '../domain/repositories/profile_lookups_repository.dart';
-import '../domain/entities/profile_lookup.dart';
-import '../domain/entities/profile_cv.dart';
-import '../domain/repositories/onboarding_steps_repository.dart';
-import '../domain/repositories/onboarding_progress_repository.dart';
-import '../domain/entities/onboarding_progress.dart';
-import 'preview/profile_setup_preview_data.dart';
-import '../../../core/router/route_args.dart';
-export '../../../core/router/route_args.dart';
-export '../domain/entities/profile_lookup.dart';
-export '../domain/entities/professional_field.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/network/failure.dart';
+import '../../../../core/network/either.dart';
+import '../../domain/entities/professional_field.dart';
+import '../../domain/repositories/professional_fields_repository.dart';
+import '../../domain/repositories/profile_lookups_repository.dart';
+import '../../domain/entities/profile_lookup.dart';
+import '../../domain/entities/profile_cv.dart';
+import '../../domain/repositories/onboarding_steps_repository.dart';
+import '../../domain/repositories/onboarding_progress_repository.dart';
+import '../../domain/entities/onboarding_progress.dart';
+import '../preview/profile_setup_preview_data.dart';
+import '../../../../core/router/route_args.dart';
+export '../../../../core/router/route_args.dart';
+export '../../domain/entities/profile_lookup.dart';
+export '../../domain/entities/professional_field.dart';
+import 'profile_setup_state.dart';
+export 'profile_setup_state.dart';
+
 part 'profile_progress_restore.dart';
 part 'profile_resume_autofill.dart';
 
@@ -42,9 +46,11 @@ class ProjectEntry {
   final images = <PlatformFile>[];
 }
 
-/// Field selection and personal information persist through the onboarding APIs.
-class ProfileSetupController extends ChangeNotifier {
-  ProfileSetupController({
+/// Profile setup (onboarding) state. Field selection and every step persist
+/// through the onboarding APIs; [ProfileSetupState] holds the step, loading
+/// flags and failures, while form inputs are kept on the cubit.
+class ProfileSetupCubit extends Cubit<ProfileSetupState> {
+  ProfileSetupCubit({
     ProfileSetupSeed? seed,
     ProfessionalFieldsRepository? fieldsRepository,
     ProfileLookupsRepository? lookupsRepository,
@@ -52,7 +58,8 @@ class ProfileSetupController extends ChangeNotifier {
     OnboardingProgressRepository? progressRepository,
   }) : _fieldsRepository = fieldsRepository,
        _lookupsRepository = lookupsRepository,
-       _stepsRepository = stepsRepository {
+       _stepsRepository = stepsRepository,
+       super(const ProfileSetupState()) {
     _progressRepository = progressRepository;
     text('name').text =
         seed?.name ??
@@ -75,43 +82,67 @@ class ProfileSetupController extends ChangeNotifier {
   final ProfileLookupsRepository? _lookupsRepository;
   final OnboardingStepsRepository? _stepsRepository;
   OnboardingProgressRepository? _progressRepository;
-  bool progressLoading = false;
-  Failure? progressFailure;
-  bool progressPending = false;
+
+  // ─── State (see [ProfileSetupState]) ───
+  bool get progressLoading => state.progressLoading;
+  set progressLoading(bool value) =>
+      _set(state.copyWith(progressLoading: value));
+  Failure? get progressFailure => state.progressFailure;
+  set progressFailure(Failure? value) =>
+      _set(state.copyWith(progressFailure: value));
+  bool get progressPending => state.progressPending;
+  set progressPending(bool value) =>
+      _set(state.copyWith(progressPending: value));
+  bool get savingPersonalInfo => state.savingPersonalInfo;
+  set savingPersonalInfo(bool value) =>
+      _set(state.copyWith(savingPersonalInfo: value));
+  bool get savingDetails => state.savingDetails;
+  set savingDetails(bool value) => _set(state.copyWith(savingDetails: value));
+  bool get parsingCv => state.parsingCv;
+  set parsingCv(bool value) => _set(state.copyWith(parsingCv: value));
+  Failure? get cvParseFailure => state.cvParseFailure;
+  set cvParseFailure(Failure? value) =>
+      _set(state.copyWith(cvParseFailure: value));
+  bool get cvAutofilled => state.cvAutofilled;
+  set cvAutofilled(bool value) => _set(state.copyWith(cvAutofilled: value));
+  Failure? get stepFailure => state.stepFailure;
+  set stepFailure(Failure? value) => _set(state.copyWith(stepFailure: value));
+  Failure? get personalFailure => state.personalFailure;
+  set personalFailure(Failure? value) =>
+      _set(state.copyWith(personalFailure: value));
+  bool get fieldsLoading => state.fieldsLoading;
+  set fieldsLoading(bool value) => _set(state.copyWith(fieldsLoading: value));
+  bool get savingField => state.savingField;
+  set savingField(bool value) => _set(state.copyWith(savingField: value));
+  Failure? get fieldFailure => state.fieldFailure;
+  set fieldFailure(Failure? value) => _set(state.copyWith(fieldFailure: value));
+  int get step => state.step;
+  set step(int value) => _set(state.copyWith(step: value));
+
+  void _set(ProfileSetupState next) {
+    if (!isClosed) emit(next);
+  }
+
+  /// Form inputs changed: rebuild listeners.
+  void refresh() => _set(state.copyWith(revision: state.revision + 1));
   Map<String, dynamic>? savedCv;
   final requiredFields = <String>{};
   bool requiresField(String key) => requiredFields.contains(key);
-  bool savingPersonalInfo = false;
-  bool savingDetails = false;
 
-  /// CV is being parsed for autocomplete (`POST onboarding/resume/parse`).
-  bool parsingCv = false;
-  Failure? cvParseFailure;
-
-  /// Fields were filled from the last parsed CV.
-  bool cvAutofilled = false;
   int _parseRequest = 0;
-  bool get busy =>
-      progressLoading ||
-      savingField ||
-      savingPersonalInfo ||
-      savingDetails ||
-      parsingCv;
-  Failure? stepFailure;
+  bool get busy => state.busy;
   final multiSelections = <String, Set<String>>{};
   Set<String> selectedValues(String key) => multiSelections[key] ?? const {};
   void selectValues(String key, Set<String> values) {
     multiSelections[key] = Set.of(values);
-    notifyListeners();
+    refresh();
   }
 
-  Failure? personalFailure;
-
   Future<bool> savePersonalInformation() async {
-    if (busy || !isConnected || _disposed) return false;
+    if (busy || !isConnected || isClosed) return false;
     savingPersonalInfo = true;
     personalFailure = null;
-    notifyListeners();
+    refresh();
     try {
       final repository = _stepsRepository;
       if (repository == null || _field?.id == null || formFields == null) {
@@ -196,32 +227,32 @@ class ProfileSetupController extends ChangeNotifier {
             ? null
             : ProfileCv(name: file.name, path: file.path, bytes: file.bytes),
       );
-      if (_disposed) return false;
+      if (isClosed) return false;
       personalFailure = result.isError ? result.getErrorOrThrow() : null;
       return result.isSuccess;
     } on FormatException catch (error) {
-      if (!_disposed) personalFailure = ServerFailure(message: error.message);
+      if (!isClosed) personalFailure = ServerFailure(message: error.message);
       return false;
     } on Object {
-      if (!_disposed) {
+      if (!isClosed) {
         personalFailure = const ServerFailure(
           message: 'profile_step_save_failed',
         );
       }
       return false;
     } finally {
-      if (!_disposed) {
+      if (!isClosed) {
         savingPersonalInfo = false;
-        notifyListeners();
+        refresh();
       }
     }
   }
 
   Future<bool> saveDetails({required bool work}) async {
-    if (busy || !isConnected || _disposed) return false;
+    if (busy || !isConnected || isClosed) return false;
     savingDetails = true;
     stepFailure = null;
-    notifyListeners();
+    refresh();
     try {
       final repository = _stepsRepository;
       if (repository == null || formFields == null) {
@@ -420,21 +451,21 @@ class ProfileSetupController extends ChangeNotifier {
               visibleFields: formFields!,
               projectImages: images,
             );
-      if (_disposed) return false;
+      if (isClosed) return false;
       stepFailure = result.isError ? result.getErrorOrThrow() : null;
       return result.isSuccess;
     } on FormatException catch (error) {
-      if (!_disposed) stepFailure = ServerFailure(message: error.message);
+      if (!isClosed) stepFailure = ServerFailure(message: error.message);
       return false;
     } on Object {
-      if (!_disposed) {
+      if (!isClosed) {
         stepFailure = const ServerFailure(message: 'profile_step_save_failed');
       }
       return false;
     } finally {
-      if (!_disposed) {
+      if (!isClosed) {
         savingDetails = false;
-        notifyListeners();
+        refresh();
       }
     }
   }
@@ -477,7 +508,7 @@ class ProfileSetupController extends ChangeNotifier {
   }
 
   Future<void> loadLookup(ProfileLookup lookup, {bool retry = false}) async {
-    if (_lookupsRepository == null || _disposed) return;
+    if (_lookupsRepository == null || isClosed) return;
     if (!retry &&
         (lookupLoading.contains(lookup) || lookupOptions.containsKey(lookup))) {
       return;
@@ -489,28 +520,28 @@ class ProfileSetupController extends ChangeNotifier {
     _lookupRequests[lookup] = request;
     lookupLoading.add(lookup);
     lookupFailures.remove(lookup);
-    notifyListeners();
+    refresh();
     try {
       final result = await _lookupsRepository.load(
         lookup,
         countryId: countryId,
         professionalFieldId: lookup.isFieldScoped ? _field?.id : null,
       );
-      if (_disposed || _lookupRequests[lookup] != request) return;
+      if (isClosed || _lookupRequests[lookup] != request) return;
       result.fold(
         (failure) => lookupFailures[lookup] = failure,
         (items) => lookupOptions[lookup] = items,
       );
     } on Object {
-      if (!_disposed && _lookupRequests[lookup] == request) {
+      if (!isClosed && _lookupRequests[lookup] == request) {
         lookupFailures[lookup] = const ServerFailure(
           message: 'profile_lookup_invalid',
         );
       }
     } finally {
-      if (!_disposed && _lookupRequests[lookup] == request) {
+      if (!isClosed && _lookupRequests[lookup] == request) {
         lookupLoading.remove(lookup);
-        notifyListeners();
+        refresh();
       }
     }
   }
@@ -525,7 +556,7 @@ class ProfileSetupController extends ChangeNotifier {
     lookupOptions.remove(ProfileLookup.cities);
     lookupFailures.remove(ProfileLookup.cities);
     lookupLoading.remove(ProfileLookup.cities);
-    notifyListeners();
+    refresh();
     if (showsField('residence_city_id')) await loadLookup(ProfileLookup.cities);
   }
 
@@ -533,23 +564,19 @@ class ProfileSetupController extends ChangeNotifier {
   ProfessionalField? _field;
   ProfessionalField? get selectedField => _field;
   ProfessionalField get field => _field!;
-  bool fieldsLoading = false;
-  bool savingField = false;
-  Failure? fieldFailure;
   Set<String>? formFields;
   bool get isConnected => _fieldsRepository != null;
   bool showsField(String key) =>
       !isConnected || (formFields?.contains(key) ?? false);
-  bool _disposed = false;
 
   Future<void> loadFields() async {
     if (_fieldsRepository == null || fieldsLoading || busy) return;
     fieldsLoading = true;
     fieldFailure = null;
-    notifyListeners();
+    refresh();
     try {
       final result = await _fieldsRepository.load();
-      if (_disposed) return;
+      if (isClosed) return;
       result.fold((failure) => fieldFailure = failure, (value) {
         fields = value;
         final previousId = _field?.id;
@@ -559,15 +586,15 @@ class ProfileSetupController extends ChangeNotifier {
         }
       });
     } on Object {
-      if (!_disposed) {
+      if (!isClosed) {
         fieldFailure = const ServerFailure(
           message: 'profile_fields_load_failed',
         );
       }
     } finally {
-      if (!_disposed) {
+      if (!isClosed) {
         fieldsLoading = false;
-        notifyListeners();
+        refresh();
       }
     }
   }
@@ -579,14 +606,14 @@ class ProfileSetupController extends ChangeNotifier {
     if (id == null || !fields.contains(_field)) return false;
     savingField = true;
     fieldFailure = null;
-    notifyListeners();
+    refresh();
     try {
       final result = await _fieldsRepository.select(id);
-      if (_disposed) return false;
+      if (isClosed) return false;
       fieldFailure = result.isError ? result.getErrorOrThrow() : null;
       if (result.isError) return false;
       final schema = await _fieldsRepository.formFields(id);
-      if (_disposed) return false;
+      if (isClosed) return false;
       if (schema.isError) {
         fieldFailure = schema.getErrorOrThrow();
         return false;
@@ -595,21 +622,20 @@ class ProfileSetupController extends ChangeNotifier {
       requiredFields.clear();
       return true;
     } on Object {
-      if (!_disposed) {
+      if (!isClosed) {
         fieldFailure = const ServerFailure(
           message: 'profile_field_save_failed',
         );
       }
       return false;
     } finally {
-      if (!_disposed) {
+      if (!isClosed) {
         savingField = false;
-        notifyListeners();
+        refresh();
       }
     }
   }
 
-  int step = 0;
   int _nextId = 3;
   final _text = <String, TextEditingController>{};
   final selections = <String, String?>{};
@@ -631,14 +657,13 @@ class ProfileSetupController extends ChangeNotifier {
   String? value(String key) => selections[key];
   void select(String key, String? value) {
     selections[key] = value;
-    notifyListeners();
+    refresh();
   }
 
-  void refresh() => notifyListeners();
   void go(int value) {
     stepFailure = null;
     step = value;
-    notifyListeners();
+    refresh();
   }
 
   void chooseField(ProfessionalField value) {
@@ -660,30 +685,29 @@ class ProfileSetupController extends ChangeNotifier {
     }
     _field = value;
     fieldFailure = null;
-    notifyListeners();
+    refresh();
   }
 
   void addLanguage() {
     languages.add(LanguageEntry(_nextId++));
-    notifyListeners();
+    refresh();
   }
 
   void addExperience() {
     experiences.add(ExperienceEntry(_nextId++));
-    notifyListeners();
+    refresh();
   }
 
   void addProject() {
     projects.add(ProjectEntry(_nextId++));
-    notifyListeners();
+    refresh();
   }
 
   @override
-  void dispose() {
-    _disposed = true;
+  Future<void> close() {
     for (final value in _text.values) {
       value.dispose();
     }
-    super.dispose();
+    return super.close();
   }
 }

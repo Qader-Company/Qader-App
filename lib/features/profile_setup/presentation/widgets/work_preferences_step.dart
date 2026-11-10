@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../profile_setup_controller.dart';
+import '../cubit/profile_setup_cubit.dart';
 import '../profile_copy.dart';
 import 'profile_widgets.dart';
 import 'profile_lookup_select.dart';
 
 class WorkPreferencesStep extends StatelessWidget {
   const WorkPreferencesStep({super.key, required this.draft});
-  final ProfileSetupController draft;
+  final ProfileSetupCubit draft;
   @override
   Widget build(BuildContext context) {
     ProfileChoices choices(
