@@ -30,7 +30,9 @@ class AppProviders extends StatelessWidget {
       RepositoryProvider<ProfessionalFieldsRepository>(create: (_) => sl()),
       RepositoryProvider<ProfileLookupsRepository>(create: (_) => sl()),
       RepositoryProvider<OnboardingStepsRepository>(create: (_) => sl()),
-      RepositoryProvider<OnboardingProgressRepository>(create: (_) => sl()),
+      // Optional: profile setup works without saved-progress restore.
+      if (sl.isRegistered<OnboardingProgressRepository>())
+        RepositoryProvider<OnboardingProgressRepository>(create: (_) => sl()),
     ],
     child: child,
   );

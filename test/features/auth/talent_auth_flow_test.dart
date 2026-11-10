@@ -88,16 +88,15 @@ void main() {
       sl.registerSingleton<ApiConsumer>(api);
       final prefs = sl<AppPreferences>();
       expect(prefs, isA<SecureAppPreferences>());
-      await tester.pumpWidget(
-        EasyLocalization(
-          supportedLocales: const [englishLocale, arabicLocale],
-          path: assetPathLanguage,
-          startLocale: englishLocale,
-          saveLocale: false,
-          assetLoader: const _Translations(),
-          child: const MyApp(),
-        ),
+      Widget app() => EasyLocalization(
+        supportedLocales: const [englishLocale, arabicLocale],
+        path: assetPathLanguage,
+        startLocale: englishLocale,
+        saveLocale: false,
+        assetLoader: const _Translations(),
+        child: const MyApp(),
       );
+      await tester.pumpWidget(app());
       await tester.pumpAndSettle();
       AppRouter.router.go(AppRouter.account);
       await tester.pumpAndSettle();
@@ -170,6 +169,10 @@ void main() {
         () => AuthSessionCubit(sl(), prefs),
         dispose: (cubit) => cubit.close(),
       );
+      // A restart builds a new widget tree, so providers pick up the new
+      // registrations.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(app());
       AppRouter.router.go(AppRouter.root);
       await tester.pumpAndSettle();
       expect(
