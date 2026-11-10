@@ -12,7 +12,7 @@ import 'package:qader/app/app.dart';
 import 'package:qader/features/home/presentation/view/home_view.dart';
 import 'package:qader/core/storage/app_preferences.dart';
 import 'package:qader/app/env/app_env.dart';
-import 'package:qader/core/di/service_locator.dart';
+import 'package:qader/app/di/dependencies.dart';
 import 'package:qader/core/locale/language_manager.dart';
 import 'package:qader/core/router/app_router.dart';
 import 'package:qader/features/profile_setup/presentation/view/profile_setup_view.dart';

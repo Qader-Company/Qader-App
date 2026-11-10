@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:qader/core/di/service_locator.dart';
+import 'package:qader/app/di/dependencies.dart';
 import 'package:qader/core/locale/language_manager.dart';
 import 'package:qader/core/network/api_consumer.dart';
 import 'package:qader/core/network/either.dart';

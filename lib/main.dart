@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app.dart';
 import 'app/env/app_env.dart';
 import 'core/bloc/bloc_observer.dart';
-import 'core/di/service_locator.dart';
+import 'app/di/dependencies.dart';
 import 'core/locale/language_manager.dart';
 import 'core/storage/app_preferences.dart';
 
