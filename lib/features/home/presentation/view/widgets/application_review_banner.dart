@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/widgets/qader_design.dart';
+import '../../preview/home_preview_data.dart';
 
 class ApplicationReviewBanner extends StatelessWidget {
-  const ApplicationReviewBanner({super.key, this.name = 'Olivia Rhye'});
+  const ApplicationReviewBanner({super.key, this.name = HomePreviewData.name});
   final String name;
   @override
   Widget build(BuildContext context) => Container(

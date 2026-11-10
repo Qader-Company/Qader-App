@@ -13,34 +13,18 @@ extension _HistorySection on _ApplicationStatusViewState {
           _ => false,
         };
 
-  List<_HistoryEntry> get _historyEntries => live
-      ? [
-          for (final entry in app!.history)
-            _HistoryEntry(
-              round: entry.round,
-              completed: entry.completed,
-              date: entry.start == null
-                  ? '-'
-                  : '${_day(entry.start!)}, ${_time(entry.start!)}',
-              online: entry.online,
-              location: entry.online ? null : entry.location,
-            ),
-        ]
-      : const [
-          _HistoryEntry(
-            round: 1,
-            completed: true,
-            date: 'Monday, Aug 4, 2026, 10:00 AM',
-            online: true,
-          ),
-          _HistoryEntry(
-            round: 2,
-            completed: false,
-            date: 'Monday, Aug 4, 2026, 10:00 AM',
-            online: false,
-            location: 'Alfardos , 6 of october',
-          ),
-        ];
+  List<_HistoryEntry> get _historyEntries => [
+    for (final entry in live ? app!.history : StatusPreviewData.history)
+      _HistoryEntry(
+        round: entry.round,
+        completed: entry.completed,
+        date: entry.start == null
+            ? '-'
+            : '${_day(entry.start!)}, ${_time(entry.start!)}',
+        online: entry.online,
+        location: entry.online ? null : entry.location,
+      ),
+  ];
 
   Widget _history() {
     if (!historyOpen) {
@@ -54,7 +38,7 @@ extension _HistorySection on _ApplicationStatusViewState {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  t('Interview History', 'سجل المقابلات'),
+                  'status_interview_history'.tr(context: context),
                   style: const TextStyle(fontSize: 14, color: _ink),
                 ),
               ),
@@ -69,7 +53,7 @@ extension _HistorySection on _ApplicationStatusViewState {
       Row(
         children: [
           Text(
-            t('Interview History', 'سجل المقابلات'),
+            'status_interview_history'.tr(context: context),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -96,7 +80,7 @@ extension _HistorySection on _ApplicationStatusViewState {
           ),
           const Spacer(),
           IconButton(
-            tooltip: t('Close', 'إغلاق'),
+            tooltip: 'status_close'.tr(context: context),
             visualDensity: VisualDensity.compact,
             onPressed: () => _update(() => historyOpen = false),
             icon: const QaderAsset('status_close', width: 13, height: 13),
@@ -138,7 +122,7 @@ extension _HistorySection on _ApplicationStatusViewState {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                t('Technical Interview', 'مقابلة تقنية'),
+                'status_technical_interview'.tr(context: context),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -154,17 +138,20 @@ extension _HistorySection on _ApplicationStatusViewState {
           children: [
             entry.completed
                 ? _Badge(
-                    t('Completed', 'مكتملة'),
+                    'status_completed'.tr(context: context),
                     color: _green,
                     fill: _greenSoft,
                   )
                 : _Badge(
-                    t('Upcoming', 'قادمة'),
+                    'status_upcoming'.tr(context: context),
                     color: QaderDesign.primary,
                     fill: _blueSoft,
                   ),
             _Badge(
-              t('Round #${entry.round}', 'الجولة #${entry.round}'),
+              'status_round_number'.tr(
+                context: context,
+                namedArgs: {'round': '${entry.round}'},
+              ),
               color: QaderDesign.primary,
               fill: _blueSoft,
             ),
@@ -180,7 +167,9 @@ extension _HistorySection on _ApplicationStatusViewState {
             ),
             const SizedBox(width: 6),
             Text(
-              entry.online ? t('Online', 'عن بُعد') : t('Offline', 'حضوري'),
+              entry.online
+                  ? 'status_online'.tr(context: context)
+                  : 'status_offline'.tr(context: context),
               style: const TextStyle(fontSize: 12, color: _muted),
             ),
           ],

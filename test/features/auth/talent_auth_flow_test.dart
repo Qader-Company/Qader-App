@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/app/app.dart';
-import 'package:qader/app/env/app_env.dart';
+import 'package:qader/core/env/app_env.dart';
 import 'package:qader/app/di/dependencies.dart';
 import 'package:qader/core/locale/language_manager.dart';
 import 'package:qader/core/network/api_consumer.dart';
@@ -16,7 +16,7 @@ import 'package:qader/core/storage/app_preferences.dart';
 import 'package:qader/core/storage/secure_app_preferences.dart';
 import 'package:qader/features/auth/presentation/cubit/auth_session_cubit.dart';
 import 'auth_repository_test.dart' show AuthApi, loginResponse;
-import 'fixtures/onboarding_progress_fixture.dart';
+import '../../fixtures/onboarding_progress_fixture.dart';
 import 'package:qader/core/network/either.dart';
 import 'package:qader/features/profile_setup/presentation/widgets/professional_field_step.dart';
 

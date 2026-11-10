@@ -5,7 +5,10 @@ part of '../application_status_view.dart';
 extension _CommonSection on _ApplicationStatusViewState {
   String _round() {
     final round = app?.interview?.round ?? 1;
-    return t('Round $round#', 'الجولة ${_digits('$round')}#');
+    return 'status_round'.tr(
+      context: context,
+      namedArgs: {'round': _digits('$round')},
+    );
   }
 
   /// "Technical Interview", "HR Interview"... from `current_interview.type`.
@@ -13,14 +16,14 @@ extension _CommonSection on _ApplicationStatusViewState {
     final interview = app?.interview;
     if (interview?.title case final title?) return title;
     return switch (interview?.type) {
-      'hr' => t('HR Interview', 'مقابلة الموارد البشرية'),
-      'technical' => t('Technical Interview', 'مقابلة تقنية'),
-      'general' => t('General Interview', 'مقابلة عامة'),
-      'final' => t('Final Interview', 'المقابلة النهائية'),
+      'hr' => 'status_hr_interview'.tr(context: context),
+      'technical' => 'status_technical_interview'.tr(context: context),
+      'general' => 'status_general_interview'.tr(context: context),
+      'final' => 'status_final_interview'.tr(context: context),
       _ =>
         fallbackHr
-            ? t('HR Interview', 'مقابلة الموارد البشرية')
-            : t('Technical interview', 'مقابلة تقنية'),
+            ? 'status_hr_interview'.tr(context: context)
+            : 'status_technical_interview_2'.tr(context: context),
     };
   }
 
@@ -33,38 +36,31 @@ extension _CommonSection on _ApplicationStatusViewState {
   }
 
   ({String question, String answer}) _faq() {
-    final passed = t(
-      "You've passed the initial review — congratulations! The next step is to choose one of the available interview time slots.",
-      'لقد اجتزت المراجعة الأولية — تهانينا! الخطوة التالية هي اختيار أحد مواعيد المقابلة المتاحة.',
+    final passed = 'status_you_ve_passed_the_initial_review_congratulations'.tr(
+      context: context,
     );
     return switch (status) {
       ApplicationStatus.rejected ||
       ApplicationStatus.rejectedAfterInterview => (
-        question: t(
-          'What does "Under Review" mean?',
-          'ما معنى «قيد المراجعة»؟',
-        ),
-        answer: t(
-          'Your application has been received and is currently being reviewed by our recruitment team to assess your qualifications and experience.',
-          'تم استلام طلبك ويقوم فريق التوظيف حاليًا بمراجعته لتقييم مؤهلاتك وخبراتك.',
+        question: 'status_what_does_under_review_mean'.tr(context: context),
+        answer: 'status_your_application_has_been_received_and_is'.tr(
+          context: context,
         ),
       ),
       ApplicationStatus.confirmed || ApplicationStatus.accepted => (
-        question: t('Interview Req', 'مطلوب مقابلة'),
+        question: 'status_interview_req'.tr(context: context),
         answer: passed,
       ),
       ApplicationStatus.completed => (
-        question: t('Interview Completed', 'اكتملت المقابلة'),
+        question: 'status_interview_completed'.tr(context: context),
         answer: passed,
       ),
       _ => (
-        question: t(
-          'How long does the review process take?',
-          'كم تستغرق عملية المراجعة؟',
+        question: 'status_how_long_does_the_review_process_take'.tr(
+          context: context,
         ),
-        answer: t(
-          "The review time may vary depending on the number of applications. You'll be notified as soon as your application moves to the next stage.",
-          'تختلف مدة المراجعة حسب عدد الطلبات. سيتم إخطارك فور انتقال طلبك إلى المرحلة التالية.',
+        answer: 'status_the_review_time_may_vary_depending_on'.tr(
+          context: context,
         ),
       ),
     };
@@ -77,7 +73,7 @@ extension _CommonSection on _ApplicationStatusViewState {
           padding: EdgeInsets.zero,
           iconSize: 24,
           icon: const QaderAsset('status_more', width: 3, height: 13),
-          tooltip: t('More actions', 'المزيد'),
+          tooltip: 'status_more_actions'.tr(context: context),
           color: Colors.white,
           elevation: 6,
           shadowColor: AppColors.shadow20,

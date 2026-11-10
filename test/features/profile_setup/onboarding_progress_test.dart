@@ -9,7 +9,7 @@ import 'package:qader/features/profile_setup/data/repositories/api_onboarding_pr
 import 'package:qader/features/profile_setup/data/repositories/api_onboarding_steps_repository.dart';
 import 'package:qader/features/profile_setup/domain/repositories/professional_fields_repository.dart';
 import 'package:qader/features/profile_setup/presentation/profile_setup_controller.dart';
-import 'fixtures/onboarding_progress_fixture.dart';
+import '../../fixtures/onboarding_progress_fixture.dart';
 
 class _Fields extends Fake implements ProfessionalFieldsRepository {}
 

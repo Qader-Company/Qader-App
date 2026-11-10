@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pinput/pinput.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/app/app.dart';
-import 'package:qader/app/env/app_env.dart';
+import 'package:qader/core/env/app_env.dart';
 import 'package:qader/app/di/dependencies.dart';
 import 'package:qader/core/locale/language_manager.dart';
 import 'package:qader/core/network/api_consumer.dart';

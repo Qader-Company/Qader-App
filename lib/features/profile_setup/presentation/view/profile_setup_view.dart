@@ -231,170 +231,167 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     ),
   );
   @override
-  Widget build(BuildContext context) => QaderTheme(
-    child: AnimatedBuilder(
-      animation: draft,
-      builder: (context, _) => PopScope(
-        canPop: draft.step == 0 && !draft.busy,
-        onPopInvokedWithResult: (didPop, result) {
-          if (!didPop) _back();
-        },
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 430),
-                child: draft.progressPending
-                    ? Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (draft.progressLoading)
-                              const CircularProgressIndicator(),
-                            if (draft.progressFailure != null) ...[
-                              Text(
-                                'profile_progress_failed'.tr(),
-                                textAlign: TextAlign.center,
-                              ),
-                              TextButton(
-                                onPressed: _resume,
-                                child: Text('auth_retry'.tr()),
-                              ),
-                            ],
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: draft,
+    builder: (context, _) => PopScope(
+      canPop: draft.step == 0 && !draft.busy,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _back();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 430),
+              child: draft.progressPending
+                  ? Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (draft.progressLoading)
+                            const CircularProgressIndicator(),
+                          if (draft.progressFailure != null) ...[
+                            Text(
+                              'profile_progress_failed'.tr(),
+                              textAlign: TextAlign.center,
+                            ),
+                            TextButton(
+                              onPressed: _resume,
+                              child: Text('auth_retry'.tr()),
+                            ),
                           ],
-                        ),
-                      )
-                    : draft.step == 4
-                    ? _confirmation(context)
-                    : SingleChildScrollView(
-                        controller: _scroll,
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                        child: ProfileColumn(
-                          gap: 24,
-                          children: [
-                            _header(),
-                            Form(
-                              key: _forms[draft.step],
-                              child: ProfileColumn(
-                                gap: 24,
-                                children: [
-                                  if (draft.step > 0)
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 30,
-                                          height: 30,
-                                          decoration: const BoxDecoration(
-                                            color: QaderDesign.primary,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              draft.step.toString(),
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Expanded(
-                                          child: Text(
-                                            pc(
-                                              context,
-                                              [
-                                                '',
-                                                'Basic Info',
-                                                'Skills & Experience',
-                                                'Work Preferences',
-                                              ][draft.step],
-                                            ),
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              height: 1.5,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  AbsorbPointer(
-                                    absorbing: draft.busy,
-                                    child: switch (draft.step) {
-                                      0 => ProfessionalFieldStep(draft: draft),
-                                      1 => BasicInfoStep(draft: draft),
-                                      2 => SkillsExperienceStep(draft: draft),
-                                      _ => WorkPreferencesStep(draft: draft),
-                                    },
-                                  ),
-                                  if (draft.step == 1 &&
-                                      draft.personalFailure != null)
-                                    Text(
-                                      draft.personalFailure!.message.tr(),
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                    ),
-                                  if (draft.step >= 2 &&
-                                      draft.stepFailure != null)
-                                    Text(
-                                      draft.stepFailure!.message.tr(),
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.error,
-                                      ),
-                                    ),
+                        ],
+                      ),
+                    )
+                  : draft.step == 4
+                  ? _confirmation(context)
+                  : SingleChildScrollView(
+                      controller: _scroll,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                      child: ProfileColumn(
+                        gap: 24,
+                        children: [
+                          _header(),
+                          Form(
+                            key: _forms[draft.step],
+                            child: ProfileColumn(
+                              gap: 24,
+                              children: [
+                                if (draft.step > 0)
                                   Row(
                                     children: [
-                                      if (draft.step >= 2) ...[
-                                        Expanded(
-                                          child: DefaultButton.compact(
-                                            text: pc(context, 'Back'),
-                                            isOutlined: true,
-                                            color: QaderDesign.border,
-                                            textColor: AppColors.neutral700,
-                                            onPressed: _back,
+                                      Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: const BoxDecoration(
+                                          color: QaderDesign.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            draft.step.toString(),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-                                      ],
+                                      ),
+                                      const SizedBox(width: 6),
                                       Expanded(
-                                        child: DefaultButton.compact(
-                                          text: pc(
+                                        child: Text(
+                                          pc(
                                             context,
-                                            draft.step == 0
-                                                ? 'Continue'
-                                                : draft.step == 3
-                                                ? draft.isConnected
-                                                      ? 'Save Profile'
-                                                      : 'Submit'
-                                                : 'Next',
+                                            [
+                                              '',
+                                              'Basic Info',
+                                              'Skills & Experience',
+                                              'Work Preferences',
+                                            ][draft.step],
                                           ),
-                                          isLoading: draft.busy,
-                                          onPressed:
-                                              draft.step == 0 &&
-                                                  (draft.fieldsLoading ||
-                                                      draft.selectedField ==
-                                                          null)
-                                              ? null
-                                              : _next,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.5,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                AbsorbPointer(
+                                  absorbing: draft.busy,
+                                  child: switch (draft.step) {
+                                    0 => ProfessionalFieldStep(draft: draft),
+                                    1 => BasicInfoStep(draft: draft),
+                                    2 => SkillsExperienceStep(draft: draft),
+                                    _ => WorkPreferencesStep(draft: draft),
+                                  },
+                                ),
+                                if (draft.step == 1 &&
+                                    draft.personalFailure != null)
+                                  Text(
+                                    draft.personalFailure!.message.tr(),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  ),
+                                if (draft.step >= 2 &&
+                                    draft.stepFailure != null)
+                                  Text(
+                                    draft.stepFailure!.message.tr(),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  ),
+                                Row(
+                                  children: [
+                                    if (draft.step >= 2) ...[
+                                      Expanded(
+                                        child: DefaultButton.compact(
+                                          text: pc(context, 'Back'),
+                                          isOutlined: true,
+                                          color: QaderDesign.border,
+                                          textColor: AppColors.neutral700,
+                                          onPressed: _back,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                    ],
+                                    Expanded(
+                                      child: DefaultButton.compact(
+                                        text: pc(
+                                          context,
+                                          draft.step == 0
+                                              ? 'Continue'
+                                              : draft.step == 3
+                                              ? draft.isConnected
+                                                    ? 'Save Profile'
+                                                    : 'Submit'
+                                              : 'Next',
+                                        ),
+                                        isLoading: draft.busy,
+                                        onPressed:
+                                            draft.step == 0 &&
+                                                (draft.fieldsLoading ||
+                                                    draft.selectedField == null)
+                                            ? null
+                                            : _next,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-              ),
+                    ),
             ),
           ),
         ),

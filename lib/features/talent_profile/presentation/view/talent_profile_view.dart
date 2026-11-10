@@ -9,9 +9,10 @@ import '../widgets/profile_sections.dart';
 import '../widgets/edit_profile_sheet.dart';
 import '../widgets/restricted_profile_notice.dart';
 import '../../../../core/resources/app_colors.dart';
+import '../preview/talent_profile_preview.dart';
 
 class TalentProfileView extends StatefulWidget {
-  const TalentProfileView({super.key, this.profile = const TalentProfile()});
+  const TalentProfileView({super.key, this.profile = previewTalentProfile});
   final TalentProfile profile;
   @override
   State<TalentProfileView> createState() => _TalentProfileViewState();

@@ -8,21 +8,18 @@ extension _SlotsSection on _ApplicationStatusViewState {
       children: [
         Expanded(
           child: _heading(
-            t('Available Interview Slots', 'مواعيد المقابلة المتاحة'),
+            'status_available_interview_slots'.tr(context: context),
           ),
         ),
         if (_canRejectSlots)
           _moreMenu(
-            label: t('reject all slots', 'رفض كل المواعيد'),
+            label: 'status_reject_all_slots'.tr(context: context),
             onSelected: rejectSlots,
           ),
       ],
     ),
     Text(
-      t(
-        'Select one slot and confirm your interview',
-        'اختر موعدًا وأكد مقابلتك',
-      ),
+      'status_select_one_slot_and_confirm_your_interview'.tr(context: context),
     ),
     _type(outlined: true),
     for (var i = 0; i < _slots.length; i++) _slot(i),
@@ -32,24 +29,24 @@ extension _SlotsSection on _ApplicationStatusViewState {
         isOutlined: true,
         color: AppColors.red300,
         textColor: _red,
-        text: t('Reject all slots', 'رفض كل المواعيد'),
+        text: 'status_reject_all_slots_2'.tr(context: context),
         onPressed: rejectSlots,
         child: _iconLabel(
           'status_close',
-          t('Reject all slots', 'رفض كل المواعيد'),
+          'status_reject_all_slots_2'.tr(context: context),
           _red,
           size: 12,
         ),
       ),
     if (_canSelectSlot)
       DefaultButton.compact(
-        text: t('Confirm Selected Slot', 'تأكيد الموعد المحدد'),
+        text: 'status_confirm_selected_slot'.tr(context: context),
         height: 36,
         onPressed: confirmSlot,
       )
     else
       _disabledButton(
-        t('Confirm Selected Slot', 'تأكيد الموعد المحدد'),
+        'status_confirm_selected_slot'.tr(context: context),
         height: 36,
       ),
   ]);
@@ -157,12 +154,12 @@ extension _SlotsSection on _ApplicationStatusViewState {
                       alignment: AlignmentDirectional.centerStart,
                       child: isOnline
                           ? _Badge(
-                              t('Online', 'عن بُعد'),
+                              'status_online'.tr(context: context),
                               color: QaderDesign.primary,
                               fill: isSelected ? Colors.white : _blueSoft,
                             )
                           : _Badge(
-                              t('Offline', 'حضوري'),
+                              'status_offline'.tr(context: context),
                               color: _yellow,
                               fill: isSelected ? Colors.white : _yellowSoft,
                             ),
@@ -224,18 +221,13 @@ extension _SlotsSection on _ApplicationStatusViewState {
       children: [
         Expanded(
           child: _heading(
-            t('Available Interview Slots', 'مواعيد المقابلة المتاحة'),
+            'status_available_interview_slots'.tr(context: context),
           ),
         ),
         _Badge(_round(), color: QaderDesign.primary, fill: _blueSoft),
       ],
     ),
-    Text(
-      t(
-        'No available slots at the moment. New interview slots will be posted soon.',
-        'لا توجد مواعيد متاحة حاليًا. سيتم نشر مواعيد مقابلة جديدة قريبًا.',
-      ),
-    ),
+    Text('status_no_available_slots_at_the_moment_new'.tr(context: context)),
     _type(outlined: false),
     Container(
       padding: const EdgeInsets.all(16),
@@ -248,10 +240,7 @@ extension _SlotsSection on _ApplicationStatusViewState {
           const QaderAsset('status_calendar', width: 32, height: 32),
           const SizedBox(height: 12),
           Text(
-            t(
-              'No available slots at the moment',
-              'لا توجد مواعيد متاحة حاليًا',
-            ),
+            'status_no_available_slots_at_the_moment'.tr(context: context),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 16,
@@ -262,9 +251,8 @@ extension _SlotsSection on _ApplicationStatusViewState {
           ),
           const SizedBox(height: 4),
           Text(
-            t(
-              'New interview slots will be posted soon. You will be notified once new slots are available.',
-              'سيتم نشر مواعيد مقابلة جديدة قريبًا، وسنخطرك فور توفرها.',
+            'status_new_interview_slots_will_be_posted_soon'.tr(
+              context: context,
             ),
             textAlign: TextAlign.center,
             style: const TextStyle(
@@ -277,10 +265,7 @@ extension _SlotsSection on _ApplicationStatusViewState {
       ),
     ),
     Text(
-      t(
-        'No actions available until new slots are posted.',
-        'لا توجد إجراءات متاحة حتى يتم نشر مواعيد جديدة.',
-      ),
+      'status_no_actions_available_until_new_slots_are'.tr(context: context),
       style: const TextStyle(fontSize: 14, height: 20 / 14, color: _body),
     ),
   ]);

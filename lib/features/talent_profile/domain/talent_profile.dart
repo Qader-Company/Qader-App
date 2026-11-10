@@ -2,16 +2,15 @@ enum TalentProfileStatus { accepted, rejected, restricted }
 
 class TalentProfile {
   const TalentProfile({
-    this.name = 'Muhamed Bayomee',
+    required this.name,
+    required this.title,
+    required this.email,
+    this.phone = '',
+    this.whatsapp = '',
+    this.summary = '',
     this.status = TalentProfileStatus.accepted,
     this.reviewAvailableAt,
-    this.title = 'Senior Full Stack Developer',
-    this.email = 'muhamedbayomee@gmail.com',
-    this.phone = '+20 102 234 5678',
-    this.whatsapp = '+20 102 234 5678',
     this.avatarUrl,
-    this.summary =
-        'Experienced Senior Full Stack Developer with 7 years of expertise in building scalable web applications. Proficient in React, Node.js, TypeScript, and cloud services. Passionate about clean code architecture and delivering high-quality user experiences.',
   });
   final String name, title, email, phone, whatsapp, summary;
   final String? avatarUrl;
@@ -24,6 +23,8 @@ class TalentProfile {
     String? phone,
     String? whatsapp,
     String? summary,
+    TalentProfileStatus? status,
+    DateTime? reviewAvailableAt,
   }) => TalentProfile(
     name: name ?? this.name,
     title: title ?? this.title,
@@ -32,7 +33,7 @@ class TalentProfile {
     whatsapp: whatsapp ?? this.whatsapp,
     summary: summary ?? this.summary,
     avatarUrl: avatarUrl,
-    status: status,
-    reviewAvailableAt: reviewAvailableAt,
+    status: status ?? this.status,
+    reviewAvailableAt: reviewAvailableAt ?? this.reviewAvailableAt,
   );
 }

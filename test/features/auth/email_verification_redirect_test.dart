@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qader/core/resources/qader_design.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,6 +68,7 @@ void main() {
         assetLoader: const _Translations(),
         child: Builder(
           builder: (context) => MaterialApp.router(
+            theme: QaderDesign.apply(ThemeData(), context.locale),
             routerConfig: router,
             locale: context.locale,
             supportedLocales: context.supportedLocales,

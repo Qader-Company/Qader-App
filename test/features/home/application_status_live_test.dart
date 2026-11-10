@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qader/core/resources/qader_design.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/features/home/domain/talent_application.dart';
 import 'package:qader/features/home/presentation/status_copy.dart';
@@ -53,6 +54,7 @@ void main() {
         assetLoader: const _Translations(),
         child: Builder(
           builder: (context) => MaterialApp(
+            theme: QaderDesign.apply(ThemeData(), context.locale),
             locale: context.locale,
             supportedLocales: context.supportedLocales,
             localizationsDelegates: context.localizationDelegates,

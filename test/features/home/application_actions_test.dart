@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qader/core/network/api_consumer.dart';
 import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
-import 'package:qader/features/home/data/application_repository.dart';
+import 'package:qader/features/home/data/repositories/api_application_repository.dart';
 import 'package:qader/features/home/presentation/cubit/application_cubit.dart';
 import 'package:qader/features/home/presentation/status_copy.dart';
 
@@ -45,7 +45,7 @@ class _Api extends Fake implements ApiConsumer {
 void main() {
   test('actions call the talent endpoints with the right bodies', () async {
     final api = _Api();
-    final repository = ApplicationRepository(api);
+    final repository = ApiApplicationRepository(api);
     await repository.selectSlot(21);
     await repository.rejectSlots('I am unavailable on all offered dates.');
     await repository.cancelInterview();
@@ -63,7 +63,7 @@ void main() {
 
   test('cubit reloads after an action and surfaces failures', () async {
     final api = _Api();
-    final cubit = ApplicationCubit(ApplicationRepository(api));
+    final cubit = ApplicationCubit(ApiApplicationRepository(api));
     addTearDown(cubit.close);
     await cubit.load();
     expect(cubit.state.application!.viewStatus, ApplicationStatus.slots);

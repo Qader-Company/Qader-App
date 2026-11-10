@@ -5,7 +5,6 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/resources/qader_design.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/storage/app_preferences.dart';
-import '../../../../core/widgets/qader_theme.dart';
 import '../models/onboarding_page_data.dart';
 import 'widgets/onboarding_page.dart';
 
@@ -49,45 +48,43 @@ class _OnboardingViewState extends State<OnboardingView> {
   }
 
   @override
-  Widget build(BuildContext context) => QaderTheme(
-    child: Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 430),
-            child: Column(
-              children: [
-                const SizedBox(height: 32),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: LinearProgressIndicator(
-                    value: onboardingPages[_index].progress,
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(4),
-                    color: QaderDesign.blue,
-                    backgroundColor: AppColors.neutral100,
-                    semanticsLabel: 'intro_step'.tr(
-                      context: context,
-                      args: ['${_index + 1}', '${onboardingPages.length}'],
-                    ),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.white,
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Column(
+            children: [
+              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: LinearProgressIndicator(
+                  value: onboardingPages[_index].progress,
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(4),
+                  color: QaderDesign.blue,
+                  backgroundColor: AppColors.neutral100,
+                  semanticsLabel: 'intro_step'.tr(
+                    context: context,
+                    args: ['${_index + 1}', '${onboardingPages.length}'],
                   ),
                 ),
-                Expanded(
-                  child: PageView.builder(
-                    controller: _controller,
-                    itemCount: onboardingPages.length,
-                    onPageChanged: (index) => setState(() => _index = index),
-                    itemBuilder: (context, index) => OnboardingPage(
-                      data: onboardingPages[index],
-                      isLast: index == onboardingPages.length - 1,
-                      finishing: _finishing,
-                      onNext: _next,
-                    ),
+              ),
+              Expanded(
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: onboardingPages.length,
+                  onPageChanged: (index) => setState(() => _index = index),
+                  itemBuilder: (context, index) => OnboardingPage(
+                    data: onboardingPages[index],
+                    isLast: index == onboardingPages.length - 1,
+                    finishing: _finishing,
+                    onNext: _next,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

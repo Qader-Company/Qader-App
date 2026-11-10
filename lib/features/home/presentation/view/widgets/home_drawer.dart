@@ -29,7 +29,7 @@ class HomeDrawer extends StatelessWidget {
     ScaffoldMessenger.maybeOf(context)
       ?..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(content: Text(sc(context, 'Coming soon', 'قريباً'))),
+        SnackBar(content: Text('drawer_coming_soon'.tr(context: context))),
       );
   }
 
@@ -98,7 +98,7 @@ class HomeDrawer extends StatelessWidget {
         ? user!.fullName
         : savedName.isNotEmpty
         ? savedName
-        : sc(context, 'Guest', 'زائر');
+        : 'drawer_guest'.tr(context: context);
     final email = user?.email ?? prefs?.getUserEmail() ?? '';
     return Drawer(
       width: 280,
@@ -124,7 +124,7 @@ class HomeDrawer extends StatelessWidget {
             ),
             _Item(
               icon: Icons.person_outline_rounded,
-              label: sc(context, 'My Profile', 'ملفي الشخصي'),
+              label: 'drawer_my_profile'.tr(context: context),
               selected: current == AppDrawerItem.profile,
               onTap: current == AppDrawerItem.profile
                   ? () => Navigator.pop(context)
@@ -132,34 +132,34 @@ class HomeDrawer extends StatelessWidget {
             ),
             _Item(
               icon: Icons.verified_outlined,
-              label: sc(context, 'Offers', 'العروض'),
+              label: 'drawer_offers'.tr(context: context),
               onTap: () => _soon(context),
             ),
             const _Divider(),
             _Item(
               icon: Icons.settings_suggest_outlined,
-              label: sc(context, 'Projects', 'المشاريع'),
+              label: 'drawer_projects'.tr(context: context),
               onTap: () => _soon(context),
             ),
             _Item(
               icon: Icons.assignment_outlined,
-              label: sc(context, 'Tasks', 'المهام'),
+              label: 'drawer_tasks'.tr(context: context),
               onTap: () => _soon(context),
             ),
             _Item(
               icon: Icons.assignment_ind_outlined,
-              label: sc(context, 'Attendance', 'الحضور'),
+              label: 'drawer_attendance'.tr(context: context),
               onTap: () => _soon(context),
             ),
             const _Divider(),
             _Item(
               icon: Icons.settings_outlined,
-              label: sc(context, 'Settings', 'الإعدادات'),
+              label: 'drawer_settings'.tr(context: context),
               onTap: () => _settings(context),
             ),
             _Item(
               icon: Icons.logout_rounded,
-              label: sc(context, 'Logout', 'تسجيل الخروج'),
+              label: 'drawer_logout'.tr(context: context),
               onTap: () => _logout(context),
             ),
             if (preview) ...[
@@ -167,7 +167,7 @@ class HomeDrawer extends StatelessWidget {
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(24, 4, 24, 4),
                 child: Text(
-                  sc(context, 'Design previews', 'معاينات التصميم'),
+                  'drawer_design_previews'.tr(context: context),
                   style: const TextStyle(fontSize: 12, color: _muted),
                 ),
               ),
@@ -188,10 +188,8 @@ class HomeDrawer extends StatelessWidget {
               ),
               _Item(
                 icon: Icons.event_available_outlined,
-                label: sc(
-                  context,
-                  'Application status previews',
-                  'معاينة حالات الطلب',
+                label: 'drawer_application_status_previews'.tr(
+                  context: context,
                 ),
                 small: true,
                 onTap: () => _statusPreviews(context),

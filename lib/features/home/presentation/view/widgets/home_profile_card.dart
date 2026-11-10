@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/widgets/qader_design.dart';
 import '../../../../../core/widgets/default_button.dart';
+import '../../preview/home_preview_data.dart';
 
 class HomeProfileCard extends StatelessWidget {
   const HomeProfileCard({super.key});
@@ -44,7 +45,7 @@ class HomeProfileCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Olivia Rhye',
+                    HomePreviewData.name,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -69,7 +70,7 @@ class HomeProfileCard extends StatelessWidget {
         const SizedBox(height: 12),
         const _ProfileDetail(
           'profile_mail',
-          'olivia@untitledui.com',
+          HomePreviewData.email,
           width: 12.5,
           height: 10.8,
         ),

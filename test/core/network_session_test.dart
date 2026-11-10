@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:qader/app/env/app_env.dart';
+import 'package:qader/core/env/app_env.dart';
 import 'package:qader/core/di/service_locator.dart';
 import 'package:qader/core/network/app_interceptors.dart';
 import 'package:qader/core/storage/app_preferences.dart';

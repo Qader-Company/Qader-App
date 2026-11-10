@@ -8,6 +8,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qader/core/resources/qader_design.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/app/di/dependencies.dart';
 import 'package:qader/core/locale/language_manager.dart';
@@ -403,6 +404,7 @@ void main() {
           child: ScreenUtilInit(
             designSize: const Size(390, 844),
             builder: (context, _) => MaterialApp(
+              theme: QaderDesign.apply(ThemeData(), context.locale),
               locale: context.locale,
               supportedLocales: context.supportedLocales,
               localizationsDelegates: context.localizationDelegates,

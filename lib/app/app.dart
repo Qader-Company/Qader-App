@@ -5,7 +5,7 @@ import 'package:country_picker/country_picker.dart';
 
 import '../core/resources/theme_manager.dart';
 import '../core/router/app_router.dart';
-import 'env/app_env.dart';
+import '../core/env/app_env.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
           supportedLocales: context.supportedLocales,
           locale: context.locale,
           debugShowCheckedModeBanner: false,
-          theme: ThemeManager.getTheme(),
+          theme: ThemeManager.getTheme(context.locale),
           routerConfig: AppRouter.router,
         );
       },

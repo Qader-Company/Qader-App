@@ -30,55 +30,47 @@ extension _BannerSection on _ApplicationStatusViewState {
   };
 
   Widget _banner() {
-    final reviewing = t(
-      'A Qader reviewer has opened your application and is evaluating your profile.',
-      'فتح أحد مراجعي قادر طلبك ويقوم بتقييم ملفك.',
+    final reviewing = 'status_a_qader_reviewer_has_opened_your_application'.tr(
+      context: context,
     );
     final (title, badge, subtitle) = switch (status) {
       ApplicationStatus.rejected ||
       ApplicationStatus.rejectedAfterInterview => (
-        t('Your Application Was Rejected', 'تم رفض طلبك'),
-        t('Rejected', 'مرفوض'),
-        t(
-          'A Qader reviewer has evaluated your profile and decided not to move forward at this time. You can apply again later.',
-          'قيّم أحد مراجعي قادر ملفك وقرر عدم المتابعة في الوقت الحالي. يمكنك التقديم مرة أخرى لاحقًا.',
+        'status_your_application_was_rejected'.tr(context: context),
+        'status_rejected'.tr(context: context),
+        'status_a_qader_reviewer_has_evaluated_your_profile'.tr(
+          context: context,
         ),
       ),
       ApplicationStatus.accepted => (
-        t(
-          'The applicant is approved and becomes visible to companies.',
-          'تم قبولك وأصبح ملفك ظاهرًا للشركات.',
+        'status_the_applicant_is_approved_and_becomes_visible'.tr(
+          context: context,
         ),
-        t('Accepted', 'مقبول'),
-        t(
-          'Congratulations! Companies can now discover your profile and reach out with opportunities.',
-          'تهانينا! يمكن للشركات الآن اكتشاف ملفك والتواصل معك بالفرص المناسبة.',
+        'status_accepted_2'.tr(context: context),
+        'status_congratulations_companies_can_now_discover_your_profile'.tr(
+          context: context,
         ),
       ),
       ApplicationStatus.completed => (
-        t('The interview has been completed', 'اكتملت المقابلة'),
-        t('Completed', 'مكتملة'),
-        t(
-          "Check the details below and make sure you're ready on time.",
-          'راجع التفاصيل أدناه وتأكد من استعدادك في الموعد.',
-        ),
+        'status_the_interview_has_been_completed'.tr(context: context),
+        'status_completed'.tr(context: context),
+        'status_check_the_details_below_and_make_sure'.tr(context: context),
       ),
       ApplicationStatus.confirmed => (
-        t('Your Profile Is Being Reviewed', 'ملفك قيد المراجعة'),
-        t('Scheduled', 'مجدولة'),
+        'status_your_profile_is_being_reviewed'.tr(context: context),
+        'status_scheduled'.tr(context: context),
         reviewing,
       ),
       ApplicationStatus.slots => (
-        t('Interview Slot Required', 'مطلوب اختيار موعد المقابلة'),
-        t('Interview Req', 'مطلوب مقابلة'),
-        t(
-          "You've successfully passed the initial review! Please select one of the available interview slots below to schedule your interview.",
-          'لقد اجتزت المراجعة الأولية بنجاح! يرجى اختيار أحد مواعيد المقابلة المتاحة أدناه لجدولة مقابلتك.',
+        'status_interview_slot_required_2'.tr(context: context),
+        'status_interview_req'.tr(context: context),
+        'status_you_ve_successfully_passed_the_initial_review'.tr(
+          context: context,
         ),
       ),
       ApplicationStatus.newSlots || ApplicationStatus.cancelled => (
-        t('Interview Slot Required', 'مطلوب اختيار موعد المقابلة'),
-        t('Interview Req', 'مطلوب مقابلة'),
+        'status_interview_slot_required_2'.tr(context: context),
+        'status_interview_req'.tr(context: context),
         reviewing,
       ),
     };
@@ -106,11 +98,12 @@ extension _BannerSection on _ApplicationStatusViewState {
               Expanded(
                 child: Text.rich(
                   TextSpan(
-                    text: t('Hello, ', 'مرحبًا، '),
+                    text: 'status_hello'.tr(context: context),
                     children: [
                       TextSpan(
                         text:
-                            widget.userName ?? t('Olivia Rhye', 'أوليفيا راي'),
+                            widget.userName ??
+                            'status_olivia_rhye'.tr(context: context),
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],

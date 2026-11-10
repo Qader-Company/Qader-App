@@ -4,7 +4,6 @@ import '../../../../core/widgets/default_form_field.dart';
 import '../../domain/talent_profile.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
-import '../../../../core/widgets/qader_theme.dart';
 import '../../../../core/resources/app_colors.dart';
 
 Future<TalentProfile?> editTalentProfile(
@@ -15,7 +14,7 @@ Future<TalentProfile?> editTalentProfile(
   isScrollControlled: true,
   useSafeArea: true,
   backgroundColor: Colors.white,
-  builder: (_) => QaderTheme(child: _EditProfileSheet(profile: profile)),
+  builder: (_) => _EditProfileSheet(profile: profile),
 );
 
 class _EditProfileSheet extends StatefulWidget {

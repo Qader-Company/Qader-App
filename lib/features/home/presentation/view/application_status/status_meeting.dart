@@ -12,13 +12,13 @@ extension _MeetingSection on _ApplicationStatusViewState {
           Expanded(
             child: _heading(
               completed
-                  ? t('Interview Completed', 'اكتملت المقابلة')
-                  : t('Interview Confirmed!', 'تم تأكيد المقابلة!'),
+                  ? 'status_interview_completed'.tr(context: context)
+                  : 'status_interview_confirmed_2'.tr(context: context),
             ),
           ),
           if (!completed && _canCancelInterview)
             _moreMenu(
-              label: t('Cancel meeting', 'إلغاء المقابلة'),
+              label: 'status_cancel_meeting'.tr(context: context),
               onSelected: cancelInterview,
             ),
         ],
@@ -27,13 +27,19 @@ extension _MeetingSection on _ApplicationStatusViewState {
         _detail(
           'status_clock',
           completed
-              ? t(
-                  'Your interview took place on ${_day(start)} at ${_range(start, booked.end)}',
-                  'أُجريت مقابلتك يوم ${_day(start)} ${_range(start, booked.end)}',
+              ? 'status_interview_took_place_on'.tr(
+                  context: context,
+                  namedArgs: {
+                    'day': _day(start),
+                    'time': _range(start, booked.end),
+                  },
                 )
-              : t(
-                  "You've selected ${_day(start)} at ${_range(start, booked.end)}.",
-                  'اخترت يوم ${_day(start)} ${_range(start, booked.end)}.',
+              : 'status_you_selected_slot'.tr(
+                  context: context,
+                  namedArgs: {
+                    'day': _day(start),
+                    'time': _range(start, booked.end),
+                  },
                 ),
         ),
       if (!online && booked.location != null)
@@ -44,13 +50,13 @@ extension _MeetingSection on _ApplicationStatusViewState {
         children: [
           online
               ? _Badge(
-                  t('Online', 'عن بُعد'),
+                  'status_online'.tr(context: context),
                   color: QaderDesign.primary,
                   fill: _blueSoft,
                   dot: !completed,
                 )
               : _Badge(
-                  t('Offline', 'حضوري'),
+                  'status_offline'.tr(context: context),
                   color: _yellow,
                   fill: _yellowSoft,
                   dot: !completed,
@@ -63,9 +69,9 @@ extension _MeetingSection on _ApplicationStatusViewState {
           ),
           if (completed)
             _Badge(
-              t(
-                'Round ${booked.round}#',
-                'الجولة ${_digits('${booked.round}')}#',
+              'status_round'.tr(
+                context: context,
+                namedArgs: {'round': _digits('${booked.round}')},
               ),
               color: _yellow,
               fill: _yellowSoft,
@@ -73,15 +79,19 @@ extension _MeetingSection on _ApplicationStatusViewState {
         ],
       ),
       if (!completed && online && !_canJoin)
-        _disabledButton(t('Join', 'انضمام'), height: 48)
+        _disabledButton('status_join'.tr(context: context), height: 48)
       else if (!completed)
         DefaultButton.compact(
           height: 48,
-          text: online ? t('Join', 'انضمام') : t('View Location', 'عرض الموقع'),
+          text: online
+              ? 'status_join'.tr(context: context)
+              : 'status_view_location'.tr(context: context),
           onPressed: live ? _openMeeting : previewNotice,
           child: _iconLabel(
             online ? Icons.co_present_outlined : 'status_map',
-            online ? t('Join', 'انضمام') : t('View Location', 'عرض الموقع'),
+            online
+                ? 'status_join'.tr(context: context)
+                : 'status_view_location'.tr(context: context),
             Colors.white,
           ),
         ),
@@ -93,13 +103,11 @@ extension _MeetingSection on _ApplicationStatusViewState {
         ),
         child: Text(
           completed
-              ? t(
-                  "We're now reviewing your interview. You'll be notified once a decision has been made",
-                  'نراجع مقابلتك الآن، وسيتم إخطارك فور اتخاذ القرار.',
+              ? 'status_we_re_now_reviewing_your_interview_you'.tr(
+                  context: context,
                 )
-              : t(
-                  'A confirmation email will be sent to you shortly. Add this to your calendar and prepare for your Technical Interview.',
-                  'ستصلك رسالة تأكيد على بريدك الإلكتروني قريبًا. أضف الموعد إلى تقويمك واستعد للمقابلة التقنية.',
+              : 'status_a_confirmation_email_will_be_sent_to'.tr(
+                  context: context,
                 ),
           style: TextStyle(
             fontSize: completed ? 14 : 12,

@@ -11,11 +11,10 @@ extension _RejectionSection on _ApplicationStatusViewState {
   List<Widget> _rejection() => _blacklisted
       ? [
           _card([
-            _heading(t('We Appreciate Your Effort', 'نقدّر مجهودك')),
+            _heading('status_we_appreciate_your_effort'.tr(context: context)),
             Text(
-              t(
-                "Unfortunately, your application wasn't successful, and you can't submit a new application. Thank you for your interest in Qader.",
-                'للأسف لم يُقبل طلبك، ولا يمكنك تقديم طلب جديد. نشكرك على اهتمامك بقادر.',
+              'status_unfortunately_your_application_wasn_t_successful_and'.tr(
+                context: context,
               ),
               style: const TextStyle(fontSize: 14, height: 20 / 14),
             ),
@@ -25,30 +24,27 @@ extension _RejectionSection on _ApplicationStatusViewState {
 
   List<Widget> _rejectionOptions() => [
     _card([
-      _heading(t('We Appreciate Your Effort', 'نقدّر مجهودك')),
+      _heading('status_we_appreciate_your_effort'.tr(context: context)),
       Text(
-        t(
-          "Unfortunately, your application wasn't successful this time. We appreciate your time and effort, and we encourage you to apply again after the reapplication period has ended.",
-          'للأسف لم يُقبل طلبك هذه المرة. نقدّر وقتك ومجهودك، ونشجعك على التقديم مرة أخرى بعد انتهاء فترة إعادة التقديم.',
+        'status_unfortunately_your_application_wasn_t_successful_this'.tr(
+          context: context,
         ),
         style: const TextStyle(fontSize: 14, height: 20 / 14),
       ),
       Text(
         _canReapply
-            ? t(
-                'The reapplication period has ended. You can now update your profile and submit a new application.',
-                'انتهت فترة إعادة التقديم. يمكنك الآن تحديث ملفك وتقديم طلب جديد.',
+            ? 'status_the_reapplication_period_has_ended_you_can'.tr(
+                context: context,
               )
-            : t(
-                "We encourage you to continue developing your skills and experience, and you're welcome to submit a new application once the reapplication period has ended.",
-                'نشجعك على مواصلة تطوير مهاراتك وخبراتك، ويسعدنا استقبال طلبك الجديد بعد انتهاء فترة إعادة التقديم.',
+            : 'status_we_encourage_you_to_continue_developing_your'.tr(
+                context: context,
               ),
         style: const TextStyle(fontSize: 14, height: 20 / 14),
       ),
       if (!_canReapply && deadline != null && deadline!.isAfter(DateTime.now()))
         ProfileReevaluationCountdown(deadline: deadline!),
       DefaultButton.compact(
-        text: t('Update Profile', 'تحديث الملف'),
+        text: 'status_update_profile'.tr(context: context),
         isOutlined: true,
         color: _grey,
         textColor: _body,
@@ -56,14 +52,14 @@ extension _RejectionSection on _ApplicationStatusViewState {
       ),
       if (_canReapply)
         DefaultButton.compact(
-          text: t('Apply Again', 'التقديم مجددًا'),
+          text: 'status_apply_again'.tr(context: context),
           onPressed: () => context.push(AppRouter.profileSetup),
         )
       else
-        _disabledButton(t('Apply Again', 'التقديم مجددًا')),
+        _disabledButton('status_apply_again'.tr(context: context)),
     ]),
     _card([
-      _heading(t('Rejection feedback', 'ملاحظات الرفض')),
+      _heading('status_rejection_feedback'.tr(context: context)),
       Container(
         height: 100,
         decoration: BoxDecoration(
@@ -78,9 +74,8 @@ extension _RejectionSection on _ApplicationStatusViewState {
               child: ImageFiltered(
                 imageFilter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                 child: Text(
-                  t(
-                    'Your experience level didn’t fully match the requirements for this position and we are looking for a candidate with stronger expertise in design systems.',
-                    'لم يتطابق مستوى خبرتك بالكامل مع متطلبات هذه الوظيفة، ونبحث عن مرشح بخبرة أقوى في أنظمة التصميم.',
+                  'status_your_experience_level_didn_t_fully_match'.tr(
+                    context: context,
                   ),
                 ),
               ),
@@ -103,36 +98,30 @@ extension _RejectionSection on _ApplicationStatusViewState {
         ),
       ),
       Text(
-        t("What's included", 'ما الذي تتضمنه الخدمة'),
+        'status_what_s_included'.tr(context: context),
         style: const TextStyle(fontSize: 14, color: _muted),
       ),
       for (final item in [
         (
-          t('Detailed rejection reason', 'سبب الرفض بالتفصيل'),
-          t(
-            "The specific reasons the reviewer didn't move you forward.",
-            'الأسباب المحددة التي جعلت المراجع لا ينقلك للمرحلة التالية.',
+          'status_detailed_rejection_reason'.tr(context: context),
+          'status_the_specific_reasons_the_reviewer_didn_t'.tr(
+            context: context,
           ),
         ),
         (
-          t('CV review', 'مراجعة السيرة الذاتية'),
-          t(
-            "A breakdown of what stood out and what's missing in your CV.",
-            'تحليل لأبرز نقاط القوة وما ينقص سيرتك الذاتية.',
+          'status_cv_review'.tr(context: context),
+          'status_a_breakdown_of_what_stood_out_and'.tr(context: context),
+        ),
+        (
+          'status_personalized_tips'.tr(context: context),
+          'status_concrete_steps_to_improve_your_profile_before'.tr(
+            context: context,
           ),
         ),
         (
-          t('Personalized tips', 'نصائح مخصصة'),
-          t(
-            'Concrete steps to improve your profile before your next application.',
-            'خطوات عملية لتحسين ملفك قبل طلبك القادم.',
-          ),
-        ),
-        (
-          t('Faster reapplication', 'إعادة تقديم أسرع'),
-          t(
-            'Skip the waiting period and reapply right away instead of later.',
-            'تخطَّ فترة الانتظار وأعد التقديم فورًا بدلًا من الانتظار.',
+          'status_faster_reapplication'.tr(context: context),
+          'status_skip_the_waiting_period_and_reapply_right'.tr(
+            context: context,
           ),
         ),
       ])
@@ -142,12 +131,12 @@ extension _RejectionSection on _ApplicationStatusViewState {
         children: [
           Expanded(
             child: Text(
-              t('Unlock detailed feedback', 'عرض الملاحظات التفصيلية'),
+              'status_unlock_detailed_feedback'.tr(context: context),
               style: const TextStyle(fontSize: 14, color: _muted),
             ),
           ),
           Text(
-            t('EGP 100', '١٠٠ ج.م'),
+            'status_egp_100'.tr(context: context),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -158,15 +147,17 @@ extension _RejectionSection on _ApplicationStatusViewState {
       ),
       DefaultButton.compact(
         height: 44,
-        text: t('Unlock', 'فتح'),
+        text: 'status_unlock'.tr(context: context),
         onPressed: previewNotice,
-        child: _iconLabel('lock', t('Unlock', 'فتح'), Colors.white, size: 16),
+        child: _iconLabel(
+          'lock',
+          'status_unlock'.tr(context: context),
+          Colors.white,
+          size: 16,
+        ),
       ),
       Text(
-        t(
-          'One-time payment. Includes tips to improve your next application.',
-          'دفع لمرة واحدة. يتضمن نصائح لتحسين طلبك القادم.',
-        ),
+        'status_one_time_payment_includes_tips_to_improve'.tr(context: context),
         textAlign: TextAlign.center,
         style: const TextStyle(fontSize: 10, color: _muted),
       ),

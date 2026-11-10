@@ -15,75 +15,73 @@ class TalentProfileScaffold extends StatelessWidget {
   const TalentProfileScaffold({super.key, required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context) => QaderTheme(
-    child: Scaffold(
-      backgroundColor: Colors.white,
-      drawer: AppDrawer.build(current: AppDrawerItem.profile),
-      body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 430),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
-              child: ProfileStack(
-                children: [
-                  Row(
-                    children: [
-                      Builder(
-                        builder: (context) => IconButton(
-                          tooltip: tc(context, 'Menu'),
-                          alignment: AlignmentDirectional.centerStart,
-                          padding: EdgeInsets.zero,
-                          onPressed: () => Scaffold.of(context).openDrawer(),
-                          icon: const QaderAsset(
-                            'menu',
-                            width: 14.6,
-                            height: 12.9,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          tc(context, 'Profile'),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: tc(context, 'Notifications'),
-                        alignment: AlignmentDirectional.centerEnd,
-                        onPressed: () =>
-                            showPendingFeature(context, 'notifications'),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.white,
+    drawer: AppDrawer.build(current: AppDrawerItem.profile),
+    body: SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+            child: ProfileStack(
+              children: [
+                Row(
+                  children: [
+                    Builder(
+                      builder: (context) => IconButton(
+                        tooltip: tc(context, 'Menu'),
+                        alignment: AlignmentDirectional.centerStart,
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Scaffold.of(context).openDrawer(),
                         icon: const QaderAsset(
-                          'notification',
-                          width: 17.1,
-                          height: 17.9,
+                          'menu',
+                          width: 14.6,
+                          height: 12.9,
                         ),
                       ),
-                    ],
-                  ),
-                  DefaultFormField(
-                    compact: true,
-                    hint: tc(context, 'Search requests, talent, companies'),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      size: 20,
-                      color: AppColors.neutral500,
                     ),
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: (_) => showInfoDialog(
-                      context,
-                      titleKey: 'talent_search',
-                      messageKey: 'talent_search_pending',
+                    Expanded(
+                      child: Text(
+                        tc(context, 'Profile'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
+                    IconButton(
+                      tooltip: tc(context, 'Notifications'),
+                      alignment: AlignmentDirectional.centerEnd,
+                      onPressed: () =>
+                          showPendingFeature(context, 'notifications'),
+                      icon: const QaderAsset(
+                        'notification',
+                        width: 17.1,
+                        height: 17.9,
+                      ),
+                    ),
+                  ],
+                ),
+                DefaultFormField(
+                  compact: true,
+                  hint: tc(context, 'Search requests, talent, companies'),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    size: 20,
+                    color: AppColors.neutral500,
                   ),
-                  child,
-                ],
-              ),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => showInfoDialog(
+                    context,
+                    titleKey: 'talent_search',
+                    messageKey: 'talent_search_pending',
+                  ),
+                ),
+                child,
+              ],
             ),
           ),
         ),

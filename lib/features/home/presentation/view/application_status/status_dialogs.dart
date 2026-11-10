@@ -120,33 +120,30 @@ class _RejectSlotsDialog extends StatefulWidget {
 class _RejectSlotsDialogState extends State<_RejectSlotsDialog> {
   static const _minLength = 10;
   String reason = '';
-  String t(String en, String ar) => sc(context, en, ar);
 
   @override
   Widget build(BuildContext context) {
     final missing = _minLength - reason.length;
     return _StatusDialog(
-      title: t('Reject Interview Slots', 'رفض مواعيد المقابلة'),
+      title: 'status_reject_interview_slots'.tr(context: context),
       content: [
         Text(
-          t(
-            'Please explain why none of the available slots work for you.',
-            'يرجى توضيح سبب عدم مناسبة أي من المواعيد المتاحة لك.',
+          'status_please_explain_why_none_of_the_available'.tr(
+            context: context,
           ),
           style: const TextStyle(fontSize: 14, height: 20 / 14, color: _muted),
         ),
         const Divider(height: 1, color: _line),
         _DialogWarning(
-          text: t(
-            'Rejecting all slots will notify the Qader team to provide new available times. This may delay your application.',
-            'رفض جميع المواعيد سيُخطر فريق قادر بتوفير مواعيد جديدة، وقد يؤدي ذلك إلى تأخير طلبك.',
+          text: 'status_rejecting_all_slots_will_notify_the_qader'.tr(
+            context: context,
           ),
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              t('Reason for rejection *', 'سبب الرفض *'),
+              'status_reason_for_rejection'.tr(context: context),
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -162,9 +159,8 @@ class _RejectSlotsDialogState extends State<_RejectSlotsDialog> {
               style: const TextStyle(fontSize: 14, color: _ink),
               decoration: InputDecoration(
                 counterText: '',
-                hintText: t(
-                  "e.g. I'm unavailable on all three dates due to a prior commitment. Please provide slots for the following week.",
-                  'مثال: لست متاحًا في المواعيد الثلاثة بسبب التزام سابق. يرجى توفير مواعيد في الأسبوع التالي.',
+                hintText: 'status_e_g_i_m_unavailable_on_all'.tr(
+                  context: context,
                 ),
                 hintStyle: const TextStyle(
                   fontSize: 14,
@@ -185,9 +181,9 @@ class _RejectSlotsDialogState extends State<_RejectSlotsDialog> {
             if (missing > 0) ...[
               const SizedBox(height: 6),
               Text(
-                t(
-                  '$missing more characters required',
-                  'مطلوب $missing أحرف إضافية',
+                'status_more_characters_required'.tr(
+                  context: context,
+                  namedArgs: {'count': '$missing'},
                 ),
                 textAlign: TextAlign.end,
                 style: const TextStyle(fontSize: 12, color: _red),
@@ -198,11 +194,14 @@ class _RejectSlotsDialogState extends State<_RejectSlotsDialog> {
       ],
       actions: [
         if (missing > 0)
-          _disabledButton(t('Submit Rejection', 'تأكيد الرفض'), height: 44)
+          _disabledButton(
+            'status_submit_rejection'.tr(context: context),
+            height: 44,
+          )
         else
           DefaultButton.compact(
             height: 44,
-            text: t('Submit Rejection', 'تأكيد الرفض'),
+            text: 'status_submit_rejection'.tr(context: context),
             onPressed: () => Navigator.pop(context, reason.trim()),
           ),
         DefaultButton.compact(
@@ -210,7 +209,7 @@ class _RejectSlotsDialogState extends State<_RejectSlotsDialog> {
           isOutlined: true,
           color: _grey,
           textColor: _body,
-          text: t('Cancel', 'إلغاء'),
+          text: 'status_cancel'.tr(context: context),
           onPressed: () => Navigator.pop(context),
         ),
       ],

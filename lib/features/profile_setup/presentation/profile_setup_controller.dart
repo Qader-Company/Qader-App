@@ -10,6 +10,7 @@ import '../domain/entities/profile_cv.dart';
 import '../domain/repositories/onboarding_steps_repository.dart';
 import '../domain/repositories/onboarding_progress_repository.dart';
 import '../domain/entities/onboarding_progress.dart';
+import 'preview/profile_setup_preview_data.dart';
 import '../../../core/router/route_args.dart';
 export '../../../core/router/route_args.dart';
 export '../domain/entities/profile_lookup.dart';
@@ -54,10 +55,11 @@ class ProfileSetupController extends ChangeNotifier {
        _stepsRepository = stepsRepository {
     _progressRepository = progressRepository;
     text('name').text =
-        seed?.name ?? (fieldsRepository == null ? 'Olivia Rhye' : '');
+        seed?.name ??
+        (fieldsRepository == null ? ProfileSetupPreviewData.name : '');
     text('email').text =
         seed?.email ??
-        (fieldsRepository == null ? 'olivia@untitledui.com' : '');
+        (fieldsRepository == null ? ProfileSetupPreviewData.email : '');
     if (fieldsRepository != null) {
       skills.clear();
       experiences.clear();
@@ -611,9 +613,13 @@ class ProfileSetupController extends ChangeNotifier {
   int _nextId = 3;
   final _text = <String, TextEditingController>{};
   final selections = <String, String?>{};
-  final skills = ['React', 'TypeScript'];
+  final skills = [...ProfileSetupPreviewData.skills];
   final languages = [
-    LanguageEntry(1, language: 'English', level: 'B1'),
+    LanguageEntry(
+      1,
+      language: ProfileSetupPreviewData.language,
+      level: ProfileSetupPreviewData.languageLevel,
+    ),
     LanguageEntry(2),
   ];
   final experiences = [ExperienceEntry(1)];

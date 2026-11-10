@@ -73,7 +73,9 @@ extension _StatusFormat on _ApplicationStatusViewState {
     final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
     final minute = '${date.minute}'.padLeft(2, '0');
     final am = date.hour < 12;
-    return _digits('$hour:$minute ${am ? t('AM', 'ص') : t('PM', 'م')}');
+    return _digits(
+      '$hour:$minute ${am ? 'status_am'.tr(context: context) : 'status_pm'.tr(context: context)}',
+    );
   }
 
   String _range(DateTime start, DateTime? end) =>
