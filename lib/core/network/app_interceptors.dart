@@ -9,7 +9,7 @@ import '../di/service_locator.dart';
 import '../router/app_router.dart';
 import '../storage/app_preferences.dart';
 import 'end_points.dart';
-import '../../app/env/app_env.dart';
+import '../env/app_env.dart';
 
 /// Custom Dio interceptor that handles automatic token refresh.
 ///

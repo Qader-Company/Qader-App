@@ -12,9 +12,14 @@ abstract class QaderDesign {
   static const muted = AppColors.textSecondary;
   static const border = AppColors.border;
 
-  static ThemeData theme(BuildContext context) {
-    final base = Theme.of(context);
-    final font = context.locale.languageCode == 'ar' ? 'Rubik' : 'Poppins';
+  /// Figma typography and inputs on top of the ambient theme.
+  static ThemeData theme(BuildContext context) =>
+      apply(Theme.of(context), context.locale);
+
+  /// Applies the Figma typography (Poppins / Rubik for Arabic), text colors
+  /// and input style to [base]. Idempotent.
+  static ThemeData apply(ThemeData base, Locale locale) {
+    final font = locale.languageCode == 'ar' ? 'Rubik' : 'Poppins';
     return base.copyWith(
       textTheme: base.textTheme.apply(
         fontFamily: font,

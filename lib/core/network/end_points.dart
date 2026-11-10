@@ -1,4 +1,4 @@
-import '../../app/env/app_env.dart';
+import '../env/app_env.dart';
 
 /// Talent routes; OTP purpose values still await confirmation.
 class EndPoints {

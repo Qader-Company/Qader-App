@@ -1,13 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/widgets/default_button.dart';
-import '../../../../core/widgets/qader_theme.dart';
 import '../../../auth/presentation/cubit/auth_session_cubit.dart';
 import '../../domain/talent_application.dart';
 import '../cubit/application_cubit.dart';
-import '../status_copy.dart';
 import 'application_status_view.dart';
 import 'widgets/application_review_banner.dart';
 import 'widgets/application_submitted_notice.dart';
@@ -147,19 +146,17 @@ class _Dashboard extends StatelessWidget {
     if (onRefresh case final refresh?) {
       content = RefreshIndicator(onRefresh: refresh, child: content);
     }
-    return QaderTheme(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        drawer: HomeDrawer(preview: preview),
-        body: SafeArea(
-          child: Column(
-            children: [
-              const HomeHeader(),
-              Expanded(
-                child: ColoredBox(color: AppColors.background, child: content),
-              ),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      drawer: HomeDrawer(preview: preview),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const HomeHeader(),
+            Expanded(
+              child: ColoredBox(color: AppColors.background, child: content),
+            ),
+          ],
         ),
       ),
     );
@@ -181,18 +178,14 @@ class _LoadError extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          sc(
-            context,
-            "We couldn't load your application status.",
-            'تعذر تحميل حالة طلبك.',
-          ),
+          'home_we_couldn_t_load_your_application_status'.tr(context: context),
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 14, height: 20 / 14),
         ),
         const SizedBox(height: 16),
         DefaultButton.compact(
           height: 40,
-          text: sc(context, 'Try again', 'إعادة المحاولة'),
+          text: 'home_try_again'.tr(context: context),
           onPressed: onRetry,
         ),
       ],

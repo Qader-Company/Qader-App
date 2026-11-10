@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import '../../../../core/widgets/spaced_column.dart';
 import '../../../../core/widgets/reevaluation_countdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../domain/talent_application.dart';
+import '../preview/status_preview_data.dart';
 import '../status_copy.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_header.dart';
@@ -59,30 +61,13 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
   void _update(VoidCallback fn) => setState(fn);
 
   late ApplicationStatus status = widget.initialStatus;
-  final _previewDeadline = DateTime.now().add(
-    const Duration(days: 72, hours: 21),
-  );
+  final _previewDeadline = StatusPreviewData.reapplyAt();
   TalentApplication? get app => widget.application;
   bool get live => app != null;
   DateTime? get deadline => live ? app!.reapplyAt : _previewDeadline;
 
-  static final _previewSlots = [
-    InterviewSlot(
-      id: 1,
-      start: DateTime(2026, 8, 4, 10),
-      end: DateTime(2026, 8, 4, 11),
-    ),
-    InterviewSlot(
-      id: 2,
-      start: DateTime(2026, 8, 4, 10),
-      end: DateTime(2026, 8, 4, 11),
-      online: false,
-      location: 'Alfardos , 6 of october',
-    ),
-  ];
-
   List<InterviewSlot> get _slots {
-    if (!live) return _previewSlots;
+    if (!live) return StatusPreviewData.slots;
     return app!.slots;
   }
 
@@ -99,10 +84,11 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
         round: interview?.round ?? 1,
       );
     }
-    final slot = _previewSlots[selected.clamp(0, _previewSlots.length - 1)];
+    final previewSlots = StatusPreviewData.slots;
+    final slot = previewSlots[selected.clamp(0, previewSlots.length - 1)];
     return (
-      start: DateTime(2026, 8, 7, 11),
-      end: DateTime(2026, 8, 7, 12),
+      start: StatusPreviewData.bookedStart,
+      end: StatusPreviewData.bookedEnd,
       online: slot.online,
       location: slot.location,
       round: 1,
@@ -119,7 +105,6 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
   bool get slots =>
       status == ApplicationStatus.slots || status == ApplicationStatus.newSlots;
   bool get online => _booked.online;
-  String t(String en, String ar) => sc(context, en, ar);
 
   @override
   void didUpdateWidget(covariant ApplicationStatusView oldWidget) {
@@ -136,17 +121,14 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
   void previewNotice() => showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(t('Design preview', 'معاينة التصميم')),
+      title: Text('status_design_preview'.tr(context: context)),
       content: Text(
-        t(
-          'This action is not connected yet. No booking, payment or account change has been made.',
-          'هذا الإجراء غير متصل بالخدمة بعد. لم يتم إجراء حجز أو دفع أو تغيير في الحساب.',
-        ),
+        'status_this_action_is_not_connected_yet_no'.tr(context: context),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(t('Close', 'إغلاق')),
+          child: Text('status_close'.tr(context: context)),
         ),
       ],
     ),
@@ -157,12 +139,12 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
     context: context,
     builder: (context) => AlertDialog(
       content: Text(
-        t('This action will be available soon.', 'سيتوفر هذا الإجراء قريبًا.'),
+        'status_this_action_will_be_available_soon'.tr(context: context),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(t('Close', 'إغلاق')),
+          child: Text('status_close'.tr(context: context)),
         ),
       ],
     ),
@@ -233,13 +215,10 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       barrierColor: AppColors.barrier,
       builder: (context) => _StatusDialog(
         centered: true,
-        title: t('Cancel this appointment?', 'إلغاء هذا الموعد؟'),
+        title: 'status_cancel_this_appointment'.tr(context: context),
         content: [
           Text(
-            t(
-              'Are you sure you want to cancel your scheduled interview and choose a different time slot?',
-              'هل أنت متأكد من إلغاء المقابلة المحددة واختيار موعد آخر؟',
-            ),
+            'status_are_you_sure_you_want_to_cancel'.tr(context: context),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 14,
@@ -248,10 +227,9 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
             ),
           ),
           _DialogWarning(
-            lead: t('Please note', 'يرجى الملاحظة'),
-            text: t(
-              'You only have one chance to cancel and reschedule. Once you choose a new slot, it will be final and no further changes will be allowed.',
-              'لديك فرصة واحدة فقط للإلغاء وإعادة الجدولة. بمجرد اختيار موعد جديد سيكون نهائيًا ولن يُسمح بأي تغيير آخر.',
+            lead: 'status_please_note'.tr(context: context),
+            text: 'status_you_only_have_one_chance_to_cancel'.tr(
+              context: context,
             ),
             destructive: true,
           ),
@@ -263,13 +241,13 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
             color: _grey,
             textColor: _body,
             onPressed: () => Navigator.pop(context, false),
-            text: t('Keep My Slot', 'الاحتفاظ بموعدي'),
+            text: 'status_keep_my_slot'.tr(context: context),
           ),
           DefaultButton.compact(
             height: 44,
             color: _red,
             onPressed: () => Navigator.pop(context, true),
-            text: t('Yes, Cancel', 'نعم، إلغاء'),
+            text: 'status_yes_cancel'.tr(context: context),
           ),
         ],
       ),
@@ -283,30 +261,28 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
   }
 
   @override
-  Widget build(BuildContext context) => QaderTheme(
-    child: Scaffold(
-      backgroundColor: Colors.white,
-      drawer: HomeDrawer(preview: !live),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const HomeHeader(),
-            if (_busy) const LinearProgressIndicator(minHeight: 2),
-            Expanded(
-              child: ColoredBox(
-                color: AppColors.background,
-                child: _refreshable(
-                  SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 430),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                          child: AbsorbPointer(
-                            absorbing: _busy,
-                            child: SpacedColumn(gap: 12, children: _sections()),
-                          ),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.white,
+    drawer: HomeDrawer(preview: !live),
+    body: SafeArea(
+      child: Column(
+        children: [
+          const HomeHeader(),
+          if (_busy) const LinearProgressIndicator(minHeight: 2),
+          Expanded(
+            child: ColoredBox(
+              color: AppColors.background,
+              child: _refreshable(
+                SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 430),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                        child: AbsorbPointer(
+                          absorbing: _busy,
+                          child: SpacedColumn(gap: 12, children: _sections()),
                         ),
                       ),
                     ),
@@ -314,8 +290,8 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     ),
   );
@@ -328,9 +304,9 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
     _banner(),
     _StatusSteps(
       labels: [
-        t('Under Review', 'قيد المراجعة'),
-        t('Interviews', 'المقابلات'),
-        t('Accepted', 'القبول'),
+        'status_under_review'.tr(context: context),
+        'status_interviews'.tr(context: context),
+        'status_accepted'.tr(context: context),
       ],
       steps: _stepStates(),
     ),
@@ -338,13 +314,11 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       ApplicationStatus.slots => [
         _notice(
           _Tone.success,
-          title: t(
-            "Congratulations! You've passed the initial review.",
-            'تهانينا! لقد اجتزت المراجعة الأولية.',
+          title: 'status_congratulations_you_ve_passed_the_initial_review'.tr(
+            context: context,
           ),
-          body: t(
-            'The Qader team has reviewed your profile and approved you for an interview. Please choose one of the available time slots below and confirm your selection.',
-            'راجع فريق قادر ملفك ووافق على انتقالك إلى المقابلة. يرجى اختيار أحد المواعيد المتاحة أدناه وتأكيد اختيارك.',
+          body: 'status_the_qader_team_has_reviewed_your_profile'.tr(
+            context: context,
           ),
         ),
         _slots.isEmpty ? _emptySlotsCard() : _slotCard(),
@@ -352,10 +326,9 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       ApplicationStatus.newSlots => [
         _notice(
           _Tone.warning,
-          title: t('We sincerely apologize', 'نعتذر بصدق'),
-          body: t(
-            "The Qader team has cancelled your previously scheduled interview appointments. We understand this may be inconvenient, and we're sorry for any disruption. You now have a fresh opportunity to choose from newly available interview slots. Please confirm to proceed and select your preferred time.",
-            'ألغى فريق قادر مواعيد المقابلة التي حددتها سابقًا. نتفهم أن ذلك قد يسبب لك إزعاجًا ونعتذر عنه. لديك الآن فرصة جديدة لاختيار موعد من المواعيد المتاحة حديثًا. يرجى التأكيد واختيار الموعد المناسب لك.',
+          title: 'status_we_sincerely_apologize'.tr(context: context),
+          body: 'status_the_qader_team_has_cancelled_your_previously'.tr(
+            context: context,
           ),
         ),
         _slots.isEmpty ? _emptySlotsCard() : _slotCard(),
@@ -363,13 +336,11 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       ApplicationStatus.cancelled => [
         _notice(
           _Tone.danger,
-          lead: t(
-            'Your previously selected interview slots have been cancelled. The Qader team is currently reviewing and preparing new available time slots for you. You will be notified once new slots are available',
-            'تم إلغاء مواعيد المقابلة التي اخترتها سابقًا. يعمل فريق قادر حاليًا على مراجعة وتجهيز مواعيد جديدة لك، وسيتم إخطارك فور توفرها',
+          lead: 'status_your_previously_selected_interview_slots_have_been'.tr(
+            context: context,
           ),
-          body: t(
-            ", We appreciate your patience. Once new slots are available, you'll receive an email notification and can select a new time from this page..",
-            '. نقدّر صبرك. عند توفر مواعيد جديدة ستصلك رسالة على بريدك الإلكتروني ويمكنك اختيار موعد جديد من هذه الصفحة.',
+          body: 'status_we_appreciate_your_patience_once_new_slots'.tr(
+            context: context,
           ),
         ),
         _emptySlotsCard(),
@@ -380,10 +351,9 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
         _notice(
           _Tone.success,
           clockIcon: true,
-          body: t(
-            "Congratulations! You've successfully passed the interview and have been accepted into the Qader Talent Network. Your profile is now available for matching with suitable opportunities.",
-            'تهانينا! لقد اجتزت المقابلة بنجاح وتم قبولك في شبكة مواهب قادر. أصبح ملفك متاحًا الآن للترشيح للفرص المناسبة.',
-          ),
+          body:
+              'status_congratulations_you_ve_successfully_passed_the_interview'
+                  .tr(context: context),
         ),
       ],
       ApplicationStatus.rejected ||

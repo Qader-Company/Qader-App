@@ -1,10 +1,11 @@
-import '../../../core/network/api_consumer.dart';
-import '../../../core/network/either.dart';
-import '../../../core/network/failure.dart';
-import '../domain/talent_application.dart';
+import '../../../../core/network/api_consumer.dart';
+import '../../../../core/network/either.dart';
+import '../../../../core/network/failure.dart';
+import '../../domain/repositories/application_repository.dart';
+import '../../domain/talent_application.dart';
 
-class ApplicationRepository {
-  const ApplicationRepository(this._api);
+class ApiApplicationRepository implements ApplicationRepository {
+  const ApiApplicationRepository(this._api);
   final ApiConsumer _api;
   static const applicationPath = '/talent/application';
   static const rejectSlotsPath = '/talent/application/interview/slots/reject';
@@ -13,14 +14,17 @@ class ApplicationRepository {
       '/talent/application/interview/slots/$slotId/select';
 
   /// Confirm Interview Slot (no body).
+  @override
   Future<Either<Failure, void>> selectSlot(int slotId) =>
       _action(selectSlotPath(slotId));
 
   /// Reject All Interview Slots with the talent's reason.
+  @override
   Future<Either<Failure, void>> rejectSlots(String reason) =>
       _action(rejectSlotsPath, data: {'reason': reason});
 
   /// Cancel Interview and Request New Slots (one chance).
+  @override
   Future<Either<Failure, void>> cancelInterview() =>
       _action(cancelInterviewPath);
 
@@ -44,6 +48,7 @@ class ApplicationRepository {
     return const Right(null);
   }
 
+  @override
   Future<Either<Failure, TalentApplication>> load() async {
     final result = await _api.get<Object?>(
       applicationPath,

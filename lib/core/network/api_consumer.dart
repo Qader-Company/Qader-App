@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../app/env/app_env.dart';
+import '../env/app_env.dart';
 import '../di/service_locator.dart';
 import '../storage/app_preferences.dart';
 import 'app_interceptors.dart';

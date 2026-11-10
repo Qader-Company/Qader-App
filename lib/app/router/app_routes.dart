@@ -3,7 +3,7 @@ import '../../features/auth/domain/entities/email_verification_challenge.dart';
 import '../../features/auth/presentation/view/email_verification_view.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../env/app_env.dart';
+import '../../core/env/app_env.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/storage/app_preferences.dart';
 import '../../features/auth/presentation/view/account_view.dart';
@@ -28,6 +28,7 @@ import '../../features/talent_profile/presentation/view/profile_review_view.dart
 
 import '../../features/talent_profile/presentation/view/profile_evaluation_view.dart';
 import '../../features/talent_profile/domain/talent_profile.dart';
+import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
 import '../../core/router/app_router.dart';
 export '../../core/router/app_router.dart';
 
@@ -137,7 +138,7 @@ GoRouter buildAppRouter() => GoRouter(
           _ => TalentProfileStatus.accepted,
         };
         return TalentProfileView(
-          profile: TalentProfile(
+          profile: previewTalentProfile.copyWith(
             status: status,
             reviewAvailableAt: status == TalentProfileStatus.accepted
                 ? null

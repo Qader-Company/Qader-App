@@ -3,46 +3,28 @@ import 'package:flutter/widgets.dart';
 import '../domain/application_status.dart';
 export '../domain/application_status.dart';
 
-String sc(BuildContext context, String en, String ar) =>
-    context.locale.languageCode == 'ar' ? ar : en;
-
 extension ApplicationStatusLabel on ApplicationStatus {
   String label(BuildContext context) => switch (this) {
-    ApplicationStatus.slots => sc(
-      context,
-      'Interview Slot Required',
-      'اختيار موعد المقابلة',
+    ApplicationStatus.slots => 'status_interview_slot_required'.tr(
+      context: context,
     ),
-    ApplicationStatus.confirmed => sc(
-      context,
-      'Interview Confirmed',
-      'تم تأكيد المقابلة',
+    ApplicationStatus.confirmed => 'status_interview_confirmed'.tr(
+      context: context,
     ),
-    ApplicationStatus.completed => sc(
-      context,
-      'Interview Completed',
-      'اكتملت المقابلة',
+    ApplicationStatus.completed => 'status_interview_completed'.tr(
+      context: context,
     ),
-    ApplicationStatus.accepted => sc(context, 'Talent Accepted', 'تم قبولك'),
-    ApplicationStatus.cancelled => sc(
-      context,
-      'Cancelled Interview Slots',
-      'مواعيد مقابلة ملغاة',
+    ApplicationStatus.accepted => 'status_talent_accepted'.tr(context: context),
+    ApplicationStatus.cancelled => 'status_cancelled_interview_slots'.tr(
+      context: context,
     ),
-    ApplicationStatus.newSlots => sc(
-      context,
-      'New Interview Slots',
-      'مواعيد مقابلة جديدة',
+    ApplicationStatus.newSlots => 'status_new_interview_slots'.tr(
+      context: context,
     ),
-    ApplicationStatus.rejected => sc(
-      context,
-      'Profile Rejected',
-      'تم رفض الطلب',
+    ApplicationStatus.rejected => 'status_profile_rejected'.tr(
+      context: context,
     ),
-    ApplicationStatus.rejectedAfterInterview => sc(
-      context,
-      'Rejected after interview',
-      'الرفض بعد المقابلة',
-    ),
+    ApplicationStatus.rejectedAfterInterview =>
+      'status_rejected_after_interview'.tr(context: context),
   };
 }

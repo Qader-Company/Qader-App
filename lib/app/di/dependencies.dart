@@ -22,7 +22,8 @@ import '../../features/profile_setup/data/repositories/api_profile_lookups_repos
 import '../../features/profile_setup/domain/repositories/onboarding_progress_repository.dart';
 import '../../features/profile_setup/data/repositories/api_onboarding_progress_repository.dart';
 
-import '../../features/home/data/application_repository.dart';
+import '../../features/home/data/repositories/api_application_repository.dart';
+import '../../features/home/domain/repositories/application_repository.dart';
 import '../../features/home/presentation/cubit/application_cubit.dart';
 
 export '../../core/di/service_locator.dart';
@@ -70,7 +71,7 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
     ),
   );
   sl.registerLazySingleton<ApplicationRepository>(
-    () => ApplicationRepository(sl<ApiConsumer>()),
+    () => ApiApplicationRepository(sl<ApiConsumer>()),
   );
   sl.registerFactory<ApplicationCubit>(
     () => ApplicationCubit(sl<ApplicationRepository>()),
