@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../../../../core/widgets/default_button.dart';
+import '../../../../core/widgets/locale_change_listener.dart';
 import '../../domain/entities/talent_profile.dart';
 import '../../domain/repositories/talent_profile_repository.dart';
 import '../cubit/talent_profile_cubit.dart';
@@ -34,16 +35,20 @@ class TalentProfileView extends StatelessWidget {
         builder: (context, state) {
           final cubit = context.read<TalentProfileCubit>();
           final profile = state.profile;
-          return TalentProfileScaffold(
-            onRefresh: profile == null ? null : cubit.load,
-            child: profile != null
-                ? ProfileContent(profile: profile, preview: false)
-                : state.loading
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 120),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                : _LoadError(onRetry: cubit.load),
+          // Backend names follow the app language: reload when it changes.
+          return LocaleChangeListener(
+            onChanged: cubit.load,
+            child: TalentProfileScaffold(
+              onRefresh: profile == null ? null : cubit.load,
+              child: profile != null
+                  ? ProfileContent(profile: profile, preview: false)
+                  : state.loading
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 120),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : _LoadError(onRetry: cubit.load),
+            ),
           );
         },
       ),

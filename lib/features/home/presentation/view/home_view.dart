@@ -17,6 +17,7 @@ import 'widgets/review_faq.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../../domain/repositories/application_repository.dart';
 import '../../../../core/di/maybe_read.dart';
+import '../../../../core/widgets/locale_change_listener.dart';
 
 /// Talent home. In [preview] it shows the static "Under Review" design;
 /// otherwise it loads `GET /talent/application` and shows the screen that
@@ -46,46 +47,53 @@ class HomeView extends StatelessWidget {
     return BlocProvider(
       create: (context) =>
           ApplicationCubit(context.read<ApplicationRepository>())..load(),
-      child: BlocBuilder<ApplicationCubit, ApplicationState>(
-        builder: (context, state) {
-          final cubit = context.read<ApplicationCubit>();
-          final application = state.application;
-          if (application == null) {
-            return _Dashboard(
-              preview: false,
-              children: [
-                if (state.loading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 120),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                else
-                  _LoadError(onRetry: cubit.load),
-              ],
-            );
-          }
-          if (application.viewStatus case final status?) {
-            return ApplicationStatusView(
-              key: ValueKey(status),
-              initialStatus: status,
-              application: application,
-              userName: _userName(context),
-              onRefresh: cubit.load,
-              onSelectSlot: (slotId) async =>
-                  (await cubit.selectSlot(slotId))?.message,
-              onRejectSlots: (reason) async =>
-                  (await cubit.rejectSlots(reason))?.message,
-              onCancelInterview: () async =>
-                  (await cubit.cancelInterview())?.message,
-            );
-          }
-          return _Dashboard(
-            preview: false,
-            onRefresh: cubit.load,
-            children: _underReview(context, application),
-          );
-        },
+      // Backend labels and FAQs follow the app language: reload on change.
+      child: Builder(
+        builder: (context) => LocaleChangeListener(
+          onChanged: context.read<ApplicationCubit>().load,
+          child: BlocBuilder<ApplicationCubit, ApplicationState>(
+            builder: _buildState,
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildState(BuildContext context, ApplicationState state) {
+    final cubit = context.read<ApplicationCubit>();
+    final application = state.application;
+    if (application == null) {
+      return _Dashboard(
+        preview: false,
+        children: [
+          if (state.loading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 120),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            _LoadError(onRetry: cubit.load),
+        ],
+      );
+    }
+    if (application.viewStatus case final status?) {
+      return ApplicationStatusView(
+        key: ValueKey(status),
+        initialStatus: status,
+        application: application,
+        userName: _userName(context),
+        onRefresh: cubit.load,
+        onSelectSlot: (slotId) async =>
+            (await cubit.selectSlot(slotId))?.message,
+        onRejectSlots: (reason) async =>
+            (await cubit.rejectSlots(reason))?.message,
+        onCancelInterview: () async => (await cubit.cancelInterview())?.message,
+      );
+    }
+    return _Dashboard(
+      preview: false,
+      onRefresh: cubit.load,
+      children: _underReview(context, application),
     );
   }
 

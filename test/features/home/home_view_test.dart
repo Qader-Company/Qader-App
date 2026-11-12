@@ -167,4 +167,17 @@ void main() {
     expect(find.text('Review Process — FAQ'), findsNothing);
     expect(find.text('Interview Req'), findsNothing);
   });
+
+  testWidgets('changing the language reloads the application', (tester) async {
+    final repo = _Repo([_app('under_review')]);
+    await pump(tester, repo);
+    await tester.pumpAndSettle();
+    expect(repo.loads, 1);
+    await tester
+        .element(find.byType(HomeView))
+        .setLocale(const Locale('ar', 'SA'));
+    await tester.pumpAndSettle();
+    expect(repo.loads, 2);
+    expect(tester.takeException(), isNull);
+  });
 }

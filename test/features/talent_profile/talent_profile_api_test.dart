@@ -408,4 +408,16 @@ void main() {
     expect(repo.loads, 2);
     expect(find.text('Demo Talent'), findsOneWidget);
   });
+
+  testWidgets('changing the language reloads the profile', (tester) async {
+    final repo = _Repo([Right(_profile())]);
+    await pump(tester, repo);
+    expect(repo.loads, 1);
+    await tester
+        .element(find.byType(TalentProfileView))
+        .setLocale(const Locale('ar', 'SA'));
+    await tester.pumpAndSettle();
+    expect(repo.loads, 2);
+    expect(tester.takeException(), isNull);
+  });
 }
