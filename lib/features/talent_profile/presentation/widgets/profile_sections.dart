@@ -1,336 +1,270 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../../domain/talent_profile.dart';
+import '../../domain/entities/talent_profile.dart';
 import '../profile_copy.dart';
+import '../../../../core/helpers/feature_dialog.dart';
 import 'profile_components.dart';
+import 'profile_experience_widgets.dart';
 import '../../../../core/resources/app_colors.dart';
 
 class ProfileBasicInfo extends StatelessWidget {
   const ProfileBasicInfo({super.key, required this.profile});
   final TalentProfile profile;
   @override
+  Widget build(BuildContext context) {
+    final birth = profile.dateOfBirth;
+    final details = [
+      if (profile.shows('phone_number') && profile.phone.isNotEmpty)
+        ProfileDetail('Phone Number', profile.phone),
+      if (profile.shows('whatsapp_number') && profile.whatsapp.isNotEmpty)
+        ProfileDetail('WhatsApp', profile.whatsapp),
+      if (profile.shows('email') && profile.email.isNotEmpty)
+        ProfileDetail('Email', profile.email),
+      if (profile.shows('nationality_country_id') &&
+          profile.nationality.isNotEmpty)
+        ProfileDetail('Nationality', profile.nationality),
+      if (profile.shows('religion') && profile.religion.isNotEmpty)
+        ProfileDetail('Religion', profileCodeLabel(context, profile.religion)),
+      if (profile.shows('residence_city_id') && profile.city.isNotEmpty)
+        ProfileDetail('City', profile.city),
+      if (profile.shows('residence_country_id') && profile.country.isNotEmpty)
+        ProfileDetail('Country', profile.country),
+      if (profile.shows('gender') && profile.gender.isNotEmpty)
+        ProfileDetail('Gender', profileCodeLabel(context, profile.gender)),
+      if (profile.shows('date_of_birth') && birth != null)
+        ProfileDetail(
+          'Date of Birthday',
+          '${birth.day}/${birth.month}/${birth.year}',
+        ),
+    ];
+    final languages = profile.shows('languages')
+        ? profile.languages
+        : const <ProfileLanguage>[];
+    return ProfileStack(
+      gap: 24,
+      children: [
+        if (details.isNotEmpty)
+          ProfileStack(
+            gap: 12,
+            children: [const ProfileHeading('Contact & Personal'), ...details],
+          ),
+        if (languages.isNotEmpty)
+          ProfileStack(
+            gap: 12,
+            children: [
+              const ProfileHeading('Languages'),
+              for (final language in languages) _LanguageTile(language),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _LanguageTile extends StatelessWidget {
+  const _LanguageTile(this.language);
+  final ProfileLanguage language;
+  @override
+  Widget build(BuildContext context) {
+    final native = language.level == 'native';
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.neutral50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.surfaceMuted),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.language, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              language.name,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+          if (language.level.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: native ? AppColors.green50 : AppColors.purple50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                profileCodeLabel(context, language.level),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: native ? AppColors.green600 : AppColors.purple600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class ProfileSkillsExperience extends StatelessWidget {
+  const ProfileSkillsExperience({
+    super.key,
+    required this.profile,
+    required this.preview,
+  });
+  final TalentProfile profile;
+  final bool preview;
+  @override
   Widget build(BuildContext context) => ProfileStack(
     gap: 24,
     children: [
-      ProfileStack(
-        gap: 12,
-        children: [
-          const ProfileHeading('Contact & Personal'),
-          ProfileDetail('Phone Number', profile.phone),
-          ProfileDetail('WhatsApp', profile.whatsapp),
-          ProfileDetail('Email', profile.email),
-          const ProfileDetail('Nationality', 'Egyptian', translated: true),
-          const ProfileDetail('Religion', 'Islam', translated: true),
-          const ProfileDetail('City', 'Giza', translated: true),
-          const ProfileDetail('Country', 'Egypt', translated: true),
-          const ProfileDetail('Gender', 'Male', translated: true),
-          const ProfileDetail('Date of Birthday', '9/7/2002'),
-        ],
-      ),
-      ProfileStack(
-        gap: 12,
-        children: [
-          const ProfileHeading('Languages'),
-          for (final language in ['Arabic', 'English'])
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.neutral50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.surfaceMuted),
+      if (profile.shows('skill_ids') && profile.skills.isNotEmpty)
+        ProfileStack(
+          gap: 12,
+          children: [
+            const ProfileHeading('Skills'),
+            ProfileTags(profile.skills),
+          ],
+        ),
+      if (profile.shows('tool_ids') && profile.tools.isNotEmpty)
+        ProfileStack(
+          gap: 12,
+          children: [const ProfileHeading('Tools'), ProfileTags(profile.tools)],
+        ),
+      if (profile.shows('experiences') && profile.experiences.isNotEmpty)
+        ProfileStack(
+          gap: 12,
+          children: [
+            const ProfileHeading('Work Experience'),
+            for (final experience in profile.experiences)
+              ProfileExperienceTile(experience: experience, preview: preview),
+          ],
+        ),
+      if (profile.shows('projects') && profile.projects.isNotEmpty)
+        ProfileStack(
+          gap: 12,
+          children: [
+            const ProfileHeading('Projects'),
+            for (final project in profile.projects)
+              ProfileProjectCard(project: project, preview: preview),
+          ],
+        ),
+    ],
+  );
+}
+
+class ProfileWorkPreferences extends StatelessWidget {
+  const ProfileWorkPreferences({
+    super.key,
+    required this.profile,
+    required this.preview,
+  });
+  final TalentProfile profile;
+  final bool preview;
+  @override
+  Widget build(BuildContext context) {
+    final tags = [
+      if (profile.shows('work_types'))
+        for (final type in profile.workTypes) profileCodeLabel(context, type),
+      if (profile.shows('work_modes'))
+        for (final mode in profile.workModes) profileCodeLabel(context, mode),
+    ];
+    final notice = profile.noticePeriodDays;
+    final relocate = profile.willingToRelocate;
+    final cv = profile.shows('cv') ? profile.cvFileName : null;
+    return ProfileStack(
+      gap: 24,
+      children: [
+        ProfileStack(
+          gap: 12,
+          children: [
+            const ProfileHeading('Availability'),
+            if (tags.isNotEmpty) ProfileTags(tags),
+            if (profile.shows('expected_salary') &&
+                profile.expectedSalary.isNotEmpty)
+              ProfileDetail('Expected Salary', profile.expectedSalary),
+            if (profile.shows('current_salary') &&
+                profile.currentSalary.isNotEmpty)
+              ProfileDetail('Current Salary', profile.currentSalary),
+            if (profile.shows('notice_period_days') && notice != null)
+              ProfileDetail(
+                'Notice Period',
+                'talent_notice_days'.tr(
+                  context: context,
+                  namedArgs: {'count': '$notice'},
+                ),
               ),
-              child: Row(
+            if (profile.shows('willing_to_relocate') && relocate != null)
+              ProfileDetail(
+                'Willing to Relocate',
+                tc(context, relocate ? 'Yes' : 'No'),
+              ),
+          ],
+        ),
+        if (cv != null)
+          ProfileStack(
+            gap: 12,
+            children: [
+              const ProfileHeading('CV / Resume'),
+              _CvTile(fileName: cv, preview: preview),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _CvTile extends StatelessWidget {
+  const _CvTile({required this.fileName, required this.preview});
+  final String fileName;
+  final bool preview;
+  @override
+  Widget build(BuildContext context) => Material(
+    color: AppColors.paleBlue,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: const BorderSide(color: AppColors.blueLight),
+    ),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(8),
+      // The media download endpoint is not connected yet.
+      onTap: () => preview
+          ? profileNotice(
+              context,
+              'CV / Resume',
+              'This preview does not include an uploaded CV file',
+            )
+          : showPendingFeature(context, 'talent_cv_resume'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.description_outlined,
+              size: 24,
+              color: profileBlue,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ProfileStack(
+                gap: 4,
                 children: [
-                  const Icon(Icons.language, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      tc(context, language),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                  Text(
+                    fileName,
+                    style: const TextStyle(fontSize: 14, color: profileBlue),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: language == 'Arabic'
-                          ? AppColors.green50
-                          : AppColors.purple50,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      tc(context, language == 'Arabic' ? 'Native' : 'Advanced'),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: language == 'Arabic'
-                            ? AppColors.green600
-                            : AppColors.purple600,
-                      ),
+                  Text(
+                    tc(context, 'Uploaded CV'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.neutral500,
                     ),
                   ),
                 ],
               ),
             ),
-        ],
-      ),
-    ],
-  );
-}
-
-class ProfileSkillsExperience extends StatelessWidget {
-  const ProfileSkillsExperience({super.key});
-  @override
-  Widget build(BuildContext context) => ProfileStack(
-    gap: 24,
-    children: [
-      const ProfileStack(
-        gap: 12,
-        children: [
-          ProfileHeading('Skills'),
-          ProfileTags(['Figma', 'React', 'TypeScript', 'Node.js']),
-        ],
-      ),
-      const ProfileStack(
-        gap: 12,
-        children: [
-          ProfileHeading('Tools'),
-          ProfileTags(['Figma', 'Jira', 'Notion', 'GitHub']),
-        ],
-      ),
-      ProfileStack(
-        gap: 12,
-        children: [
-          const ProfileHeading('Work Experience'),
-          _experience(
-            context,
-            'Senior UI/UX Designer',
-            'Google Inc.',
-            'Mar 2022 - Present',
-            'Leading the design system and user research for Google Workspace products. Collaborated with cross-functional teams to deliver pixel-perfect experiences.',
-            true,
-          ),
-          _experience(
-            context,
-            'UI Designer',
-            'Dribbble Studio',
-            'Jan 2020 - Feb 2022',
-            'Designed mobile-first interfaces for SaaS clients. Reduced user drop-off by 34% through iterative usability testing.',
-            false,
-          ),
-        ],
-      ),
-      ProfileStack(
-        gap: 12,
-        children: [
-          const ProfileHeading('Projects'),
-          _project(
-            context,
-            'Qader Talent Portal',
-            'End-to-end design and front-end implementation of a talent matching platform connecting companies with top Arab tech talent.',
-          ),
-          _project(
-            context,
-            'FinTrack Mobile App',
-            'Designed a personal finance management app with a focus on simplicity, accessibility, and intuitive data visualization.',
-          ),
-        ],
-      ),
-    ],
-  );
-  Widget _experience(
-    BuildContext context,
-    String title,
-    String company,
-    String dates,
-    String description,
-    bool current,
-  ) => IntrinsicHeight(
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: current ? profileBlue : AppColors.neutral300,
-              ),
-            ),
-            Expanded(child: Container(width: 1, color: AppColors.neutral200)),
           ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ProfileStack(
-            gap: 4,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                company,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.neutral600,
-                ),
-              ),
-              Text(
-                dates,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.neutral500,
-                ),
-              ),
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: AppColors.neutral500,
-                ),
-              ),
-              if (current)
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton.icon(
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                    icon: const Icon(Icons.open_in_new, size: 14),
-                    label: Text(
-                      tc(context, 'Company profile'),
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    onPressed: () => profileNotice(
-                      context,
-                      'Company profile',
-                      'Company details are not connected yet',
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
+      ),
     ),
-  );
-  Widget _project(BuildContext context, String title, String description) =>
-      Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.neutral200),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: ProfileStack(
-          gap: 8,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-            Text(
-              description,
-              style: const TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: AppColors.neutral500,
-              ),
-            ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                icon: const Icon(Icons.open_in_new, size: 14),
-                label: Text(title, style: const TextStyle(fontSize: 12)),
-                onPressed: () => profileNotice(
-                  context,
-                  'Project link',
-                  'This sample project has no live URL',
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
-class ProfileWorkPreferences extends StatelessWidget {
-  const ProfileWorkPreferences({super.key});
-  @override
-  Widget build(BuildContext context) => ProfileStack(
-    gap: 24,
-    children: [
-      ProfileStack(
-        gap: 12,
-        children: [
-          const ProfileHeading('Availability'),
-          ProfileTags([tc(context, 'Full Time'), tc(context, 'Remote')]),
-          const ProfileDetail('Expected Salary', '8,000–12,000 USD'),
-          const ProfileDetail('Current Salary', '12,000 USD'),
-          const ProfileDetail('Notice Period', '1 Month', translated: true),
-          const ProfileDetail('Willing to Relocate', 'Yes', translated: true),
-        ],
-      ),
-      ProfileStack(
-        gap: 12,
-        children: [
-          const ProfileHeading('CV / Resume'),
-          Material(
-            color: AppColors.paleBlue,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: const BorderSide(color: AppColors.blueLight),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => profileNotice(
-                context,
-                'CV / Resume',
-                'This preview does not include an uploaded CV file',
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.description_outlined,
-                      size: 24,
-                      color: profileBlue,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ProfileStack(
-                        gap: 4,
-                        children: [
-                          const Text(
-                            'Olivia_Rhye_CV_2026.pdf',
-                            style: TextStyle(fontSize: 14, color: profileBlue),
-                          ),
-                          Text(
-                            tc(context, 'Uploaded CV'),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.neutral500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ],
   );
 }

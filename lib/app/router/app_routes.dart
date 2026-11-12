@@ -27,7 +27,7 @@ import '../../features/talent_profile/presentation/view/talent_profile_view.dart
 import '../../features/talent_profile/presentation/view/profile_review_view.dart';
 
 import '../../features/talent_profile/presentation/view/profile_evaluation_view.dart';
-import '../../features/talent_profile/domain/talent_profile.dart';
+import '../../features/talent_profile/domain/entities/talent_profile.dart';
 import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
 import '../../core/router/app_router.dart';
 export '../../core/router/app_router.dart';
@@ -132,13 +132,18 @@ GoRouter buildAppRouter() => GoRouter(
     GoRoute(
       path: AppRouter.talentProfile,
       builder: (context, state) {
-        final status = switch (state.uri.queryParameters['status']) {
+        // Sample profile when logged out or for the status preview links.
+        final statusParam = state.uri.queryParameters['status'];
+        if (sl<AppPreferences>().isLoggedIn && statusParam == null) {
+          return const TalentProfileView();
+        }
+        final status = switch (statusParam) {
           'rejected' => TalentProfileStatus.rejected,
           'restricted' => TalentProfileStatus.restricted,
           _ => TalentProfileStatus.accepted,
         };
         return TalentProfileView(
-          profile: previewTalentProfile.copyWith(
+          preview: previewTalentProfile.copyWith(
             status: status,
             reviewAvailableAt: status == TalentProfileStatus.accepted
                 ? null

@@ -1,8 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/default_image.dart';
 import '../../../../core/widgets/qader_asset.dart';
-import '../../domain/talent_profile.dart';
+import '../../domain/entities/talent_profile.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
 import '../../../../core/widgets/reevaluation_countdown.dart';
@@ -12,10 +13,14 @@ class ProfileSummaryCard extends StatelessWidget {
   const ProfileSummaryCard({
     super.key,
     required this.profile,
+    required this.preview,
     required this.onEdit,
     required this.onEvaluation,
   });
   final TalentProfile profile;
+
+  /// Sample profile: links explain they are not live instead of opening.
+  final bool preview;
   final VoidCallback onEdit, onEvaluation;
   @override
   Widget build(BuildContext context) => Container(
@@ -64,138 +69,96 @@ class ProfileSummaryCard extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: profile.status == TalentProfileStatus.accepted
-                          ? AppColors.green50
-                          : AppColors.red50,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      tc(context, switch (profile.status) {
-                        TalentProfileStatus.accepted => 'Accepted',
-                        TalentProfileStatus.rejected => 'Rejected',
-                        TalentProfileStatus.restricted => 'Profile Restricted',
-                      }),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: profile.status == TalentProfileStatus.accepted
-                            ? AppColors.green600
-                            : AppColors.alertRed,
-                      ),
-                    ),
-                  ),
+                  if (profile.status case final status?) ...[
+                    const SizedBox(height: 4),
+                    _StatusBadge(status),
+                  ],
                 ],
               ),
             ),
           ],
         ),
-        Text(
-          profile.title,
-          style: const TextStyle(
-            fontSize: 14,
-            height: 1.5,
-            color: AppColors.neutral600,
+        if (profile.title.isNotEmpty)
+          Text(
+            profile.title,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: AppColors.neutral600,
+            ),
           ),
-        ),
-        Wrap(
-          spacing: 8,
-          children: [
-            for (final social in ['LinkedIn', 'Behance', 'Portfolio', 'GitHub'])
-              SizedBox(
-                width: 32,
-                height: 32,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  tooltip: social,
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.paleBlue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  onPressed: () => profileNotice(
-                    context,
-                    'Social link',
-                    'This sample profile has no live social links',
-                  ),
-                  icon: social == 'LinkedIn' || social == 'Behance'
-                      ? Text(
-                          social == 'LinkedIn' ? 'in' : 'Bē',
-                          style: const TextStyle(
-                            color: profileBlue,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        )
-                      : Icon(
-                          social == 'Portfolio' ? Icons.language : Icons.code,
-                          size: 20,
-                          color: profileBlue,
-                        ),
-                ),
-              ),
-          ],
-        ),
+        if (profile.links.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final link in profile.links)
+                _LinkButton(link: link, preview: preview),
+            ],
+          ),
         ProfileStack(
           gap: 4,
           children: [
-            _contact('mail', profile.email),
-            _contact('location', tc(context, 'October, Giza')),
-            _contact('phone', profile.phone),
-            Row(
-              children: [
+            if (profile.email.isNotEmpty)
+              _Contact(
+                const QaderAsset('mail', width: 14, height: 14),
+                profile.email,
+              ),
+            if (profile.location.isNotEmpty)
+              _Contact(
+                const QaderAsset('location', width: 14, height: 14),
+                profile.location,
+              ),
+            if (profile.phone.isNotEmpty)
+              _Contact(
+                const QaderAsset('phone', width: 14, height: 14),
+                profile.phone,
+              ),
+            if (profile.yearsOfExperience case final years?)
+              _Contact(
                 const Icon(
                   Icons.work_outline,
                   size: 14,
                   color: AppColors.neutral500,
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    tc(context, '2 years experience'),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.neutral500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Text(
-          profile.summary,
-          style: const TextStyle(
-            fontSize: 12,
-            height: 1.5,
-            color: AppColors.neutral500,
-          ),
-        ),
-        if (profile.reviewAvailableAt != null)
-          ProfileReevaluationCountdown(deadline: profile.reviewAvailableAt!),
-        Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: const LinearProgressIndicator(
-                  value: .8,
-                  minHeight: 6,
-                  color: AppColors.blue,
-                  backgroundColor: AppColors.neutral200,
+                'talent_years_experience'.tr(
+                  context: context,
+                  namedArgs: {'count': '$years'},
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            const Text('80%', style: TextStyle(fontSize: 12)),
           ],
         ),
+        if (profile.summary.isNotEmpty)
+          Text(
+            profile.summary,
+            style: const TextStyle(
+              fontSize: 12,
+              height: 1.5,
+              color: AppColors.neutral500,
+            ),
+          ),
+        if (profile.reviewAvailableAt != null)
+          ProfileReevaluationCountdown(deadline: profile.reviewAvailableAt!),
+        if (profile.completion case final completion?)
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: completion,
+                    minHeight: 6,
+                    color: AppColors.blue,
+                    backgroundColor: AppColors.neutral200,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '${(completion * 100).round()}%',
+                style: const TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
         Row(
           children: [
             Expanded(
@@ -250,9 +213,102 @@ class ProfileSummaryCard extends StatelessWidget {
       ],
     ),
   );
-  Widget _contact(String icon, String text) => Row(
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge(this.status);
+  final TalentProfileStatus status;
+  @override
+  Widget build(BuildContext context) {
+    final accepted = status == TalentProfileStatus.accepted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: accepted ? AppColors.green50 : AppColors.red50,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        tc(context, switch (status) {
+          TalentProfileStatus.accepted => 'Accepted',
+          TalentProfileStatus.rejected => 'Rejected',
+          TalentProfileStatus.restricted => 'Profile Restricted',
+        }),
+        style: TextStyle(
+          fontSize: 12,
+          color: accepted ? AppColors.green600 : AppColors.alertRed,
+        ),
+      ),
+    );
+  }
+}
+
+class _LinkButton extends StatelessWidget {
+  const _LinkButton({required this.link, required this.preview});
+  final ProfileLink link;
+  final bool preview;
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 32,
+    height: 32,
+    child: IconButton(
+      padding: EdgeInsets.zero,
+      tooltip: switch (link.kind) {
+        ProfileLinkKind.linkedin => 'LinkedIn',
+        ProfileLinkKind.behance => 'Behance',
+        ProfileLinkKind.portfolio => 'Portfolio',
+        ProfileLinkKind.github => 'GitHub',
+      },
+      style: IconButton.styleFrom(
+        backgroundColor: AppColors.paleBlue,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+      onPressed: () => openProfileLink(
+        context,
+        preview: preview,
+        url: link.url,
+        title: 'Social link',
+        sampleMessage: 'This sample profile has no live social links',
+      ),
+      icon: switch (link.kind) {
+        ProfileLinkKind.linkedin => const _LinkText('in'),
+        ProfileLinkKind.behance => const _LinkText('Bē'),
+        ProfileLinkKind.portfolio => const Icon(
+          Icons.language,
+          size: 20,
+          color: profileBlue,
+        ),
+        ProfileLinkKind.github => const Icon(
+          Icons.code,
+          size: 20,
+          color: profileBlue,
+        ),
+      },
+    ),
+  );
+}
+
+class _LinkText extends StatelessWidget {
+  const _LinkText(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: const TextStyle(
+      color: profileBlue,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+}
+
+class _Contact extends StatelessWidget {
+  const _Contact(this.icon, this.text);
+  final Widget icon;
+  final String text;
+  @override
+  Widget build(BuildContext context) => Row(
     children: [
-      QaderAsset(icon, width: 14, height: 14),
+      icon,
       const SizedBox(width: 6),
       Expanded(
         child: Text(

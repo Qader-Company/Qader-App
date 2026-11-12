@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/default_form_field.dart';
-import '../../domain/talent_profile.dart';
+import '../../domain/entities/talent_profile.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
 import '../../../../core/resources/app_colors.dart';

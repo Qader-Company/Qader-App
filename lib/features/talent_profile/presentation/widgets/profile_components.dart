@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/widgets/default_form_field.dart';
 import '../../../../core/widgets/qader_design.dart';
 import '../../../../core/widgets/app_drawer.dart';
@@ -12,8 +13,11 @@ const profileBlue = AppColors.blueStrong;
 typedef ProfileStack = SpacedColumn;
 
 class TalentProfileScaffold extends StatelessWidget {
-  const TalentProfileScaffold({super.key, required this.child});
+  const TalentProfileScaffold({super.key, required this.child, this.onRefresh});
   final Widget child;
+
+  /// Enables pull to refresh.
+  final Future<void> Function()? onRefresh;
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.white,
@@ -23,7 +27,8 @@ class TalentProfileScaffold extends StatelessWidget {
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 430),
-          child: SingleChildScrollView(
+          child: _Refreshable(
+            onRefresh: onRefresh,
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             child: ProfileStack(
               children: [
@@ -104,15 +109,10 @@ class ProfileHeading extends StatelessWidget {
   );
 }
 
+/// A labelled value. [label] is translated; [value] is shown as is.
 class ProfileDetail extends StatelessWidget {
-  const ProfileDetail(
-    this.label,
-    this.value, {
-    super.key,
-    this.translated = false,
-  });
+  const ProfileDetail(this.label, this.value, {super.key});
   final String label, value;
-  final bool translated;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(12),
@@ -132,10 +132,7 @@ class ProfileDetail extends StatelessWidget {
             color: AppColors.neutral500,
           ),
         ),
-        Text(
-          translated ? tc(context, value) : value,
-          style: const TextStyle(fontSize: 14, height: 1.5),
-        ),
+        Text(value, style: const TextStyle(fontSize: 14, height: 1.5)),
       ],
     ),
   );
@@ -180,3 +177,46 @@ Future<void> profileNotice(
   messageKey:
       'talent_${message.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
 );
+
+/// Opens [url] in the browser. A [preview] profile has no live links, so it
+/// explains that with [sampleMessage] instead.
+Future<void> openProfileLink(
+  BuildContext context, {
+  required bool preview,
+  required String url,
+  required String title,
+  required String sampleMessage,
+}) async {
+  if (preview) return profileNotice(context, title, sampleMessage);
+  final uri = Uri.tryParse(url);
+  final opened =
+      uri != null &&
+      uri.hasScheme &&
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!opened && context.mounted) {
+    await profileNotice(context, title, 'Could not open this link');
+  }
+}
+
+class _Refreshable extends StatelessWidget {
+  const _Refreshable({
+    required this.onRefresh,
+    required this.padding,
+    required this.child,
+  });
+  final Future<void> Function()? onRefresh;
+  final EdgeInsetsGeometry padding;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    final scroll = SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: padding,
+      child: child,
+    );
+    final refresh = onRefresh;
+    return refresh == null
+        ? scroll
+        : RefreshIndicator(onRefresh: refresh, child: scroll);
+  }
+}
