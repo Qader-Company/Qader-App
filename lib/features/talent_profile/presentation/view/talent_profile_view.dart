@@ -9,6 +9,7 @@ import '../widgets/profile_sections.dart';
 import '../widgets/edit_profile_sheet.dart';
 import '../widgets/restricted_profile_notice.dart';
 import '../../../../core/resources/app_colors.dart';
+import '../../../../core/widgets/qader_asset.dart';
 import '../preview/talent_profile_preview.dart';
 
 class TalentProfileView extends StatefulWidget {
@@ -52,60 +53,9 @@ class _TalentProfileViewState extends State<TalentProfileView> {
         ),
         if (profile.status == TalentProfileStatus.restricted)
           const RestrictedProfileNotice(),
-        LayoutBuilder(
-          builder: (context, box) => Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < 3; i++)
-                Expanded(
-                  child: Semantics(
-                    selected: tab == i,
-                    button: true,
-                    child: InkWell(
-                      key: ValueKey('profile_tab_$i'),
-                      onTap: () => setState(() => tab = i),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: tab == i
-                                  ? profileBlue
-                                  : Colors.transparent,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          tc(
-                            context,
-                            [
-                              'Basic Info',
-                              'Skills & Experience',
-                              'Work Preferences',
-                            ][i],
-                          ),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            height: 1.5,
-                            fontWeight: tab == i
-                                ? FontWeight.w500
-                                : FontWeight.w400,
-                            color: tab == i
-                                ? profileBlue
-                                : AppColors.neutral500,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        _ProfileTabs(
+          selected: tab,
+          onSelected: (value) => setState(() => tab = value),
         ),
         Row(
           children: [
@@ -137,6 +87,71 @@ class _TalentProfileViewState extends State<TalentProfileView> {
             1 => const ProfileSkillsExperience(),
             _ => const ProfileWorkPreferences(),
           },
+      ],
+    ),
+  );
+}
+
+/// Hug-width, start-aligned tabs as in the Figma profile frames.
+class _ProfileTabs extends StatelessWidget {
+  const _ProfileTabs({required this.selected, required this.onSelected});
+  final int selected;
+  final ValueChanged<int> onSelected;
+  static const _labels = [
+    'Basic Info',
+    'Skills & Experience',
+    'Work Preferences',
+  ];
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Row(
+      children: [
+        for (var i = 0; i < _labels.length; i++) ...[
+          if (i > 0) const SizedBox(width: 12),
+          Semantics(
+            selected: selected == i,
+            button: true,
+            child: InkWell(
+              key: ValueKey('profile_tab_$i'),
+              onTap: () => onSelected(i),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: selected == i ? profileBlue : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      tc(context, _labels[i]),
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.5,
+                        fontWeight: selected == i
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                        color: selected == i
+                            ? profileBlue
+                            : AppColors.neutral500,
+                      ),
+                    ),
+                    // The design shows a disclosure chevron on this tab only.
+                    if (i == 1) ...const [
+                      SizedBox(width: 4),
+                      QaderAsset('chevron_down', width: 16, height: 16),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     ),
   );

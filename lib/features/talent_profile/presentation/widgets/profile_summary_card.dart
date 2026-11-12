@@ -199,16 +199,39 @@ class ProfileSummaryCard extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: DefaultButton.compact(
-                text: tc(context, 'Evaluation'),
-                isOutlined: true,
-                color: profileBlue,
-                textStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              child: SizedBox(
+                height: 40,
+                // Plain OutlinedButton: the shared DefaultButton has no
+                // tinted-fill outlined variant.
+                child: OutlinedButton(
+                  onPressed: onEvaluation,
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: AppColors.paleBlue,
+                    foregroundColor: profileBlue,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    side: const BorderSide(color: AppColors.blueLight),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const QaderAsset('lock', width: 12, height: 14),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          tc(context, 'Evaluation'),
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                icon: const QaderAsset('lock', width: 12, height: 14),
-                onPressed: onEvaluation,
               ),
             ),
             const SizedBox(width: 12),

@@ -3,6 +3,7 @@ import '../../domain/profile_evaluation.dart';
 import '../profile_copy.dart';
 import '../widgets/profile_components.dart';
 import '../widgets/evaluation_report_widgets.dart';
+import '../widgets/evaluation_salary_card.dart';
 import '../../../../core/resources/app_colors.dart';
 
 class ProfileEvaluationView extends StatefulWidget {
@@ -13,117 +14,12 @@ class ProfileEvaluationView extends StatefulWidget {
 
 class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
   final _open = <int>{0};
-  bool _salaryOpen = false;
   @override
   Widget build(BuildContext context) => TalentProfileScaffold(
     child: ProfileStack(
       gap: 24,
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.neutral50,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: ProfileStack(
-            gap: 12,
-            children: [
-              Center(
-                child: Text(
-                  tc(context, 'Expected Salary Recommendations'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const Text(
-                '20k–30k',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  height: 1.5,
-                ),
-              ),
-              Text(
-                tc(context, 'Based on your skills and experience'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.neutral500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Column(
-                children: [
-                  Align(
-                    alignment: const Alignment(-.5, 0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      color: Colors.white,
-                      child: Text(
-                        tc(context, 'Your range'),
-                        style: const TextStyle(fontSize: 10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    height: 8,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      gradient: const LinearGradient(
-                        colors: [
-                          AppColors.red500,
-                          AppColors.amber400,
-                          AppColors.green500,
-                          AppColors.blueStrong,
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('0k', style: TextStyle(fontSize: 10)),
-                      Text('120k', style: TextStyle(fontSize: 10)),
-                    ],
-                  ),
-                ],
-              ),
-              TextButton(
-                onPressed: () => setState(() => _salaryOpen = !_salaryOpen),
-                child: Text(
-                  tc(
-                    context,
-                    _salaryOpen
-                        ? 'Hide Recommendations'
-                        : 'See Recommendations (30%)',
-                  ),
-                  style: const TextStyle(fontSize: 12, color: profileBlue),
-                ),
-              ),
-              if (_salaryOpen)
-                Text(
-                  tc(
-                    context,
-                    'Improve your profile with measurable achievements, current skills and clear project examples to strengthen your market position.',
-                  ),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    height: 1.5,
-                    color: AppColors.neutral500,
-                  ),
-                ),
-            ],
-          ),
-        ),
+        const EvaluationSalaryCard(),
         Align(
           alignment: AlignmentDirectional.centerEnd,
           child: TextButton(
@@ -145,18 +41,19 @@ class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
           children: [
             const ProfileHeading('Interview Evaluations'),
             Text(
-              tc(context, 'Detailed evaluation of your skills and experience'),
+              tc(context, 'Detailed evaluation criteria for each review stage'),
               style: const TextStyle(fontSize: 12, color: AppColors.neutral500),
             ),
           ],
         ),
         EvaluationAccordion(
+          number: 1,
           title: 'Profile Review',
           open: _open.contains(0),
           onTap: () => _toggle(0),
           children: [
             Text(
-              tc(context, 'Evaluation Details'),
+              tc(context, 'Evaluation Criteria'),
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             for (final metric in ProfileEvaluation.metrics)
@@ -169,6 +66,7 @@ class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
           ],
         ),
         EvaluationAccordion(
+          number: 2,
           title: 'Overall HR Interview',
           open: _open.contains(1),
           onTap: () => _toggle(1),

@@ -128,8 +128,11 @@ void main() {
       expect(find.byType(ProfileEvaluationView), findsOneWidget);
       expect(find.byType(EvaluationMetricCard), findsNWidgets(4));
       await capture('talent_evaluation', 2718);
-      await tap(find.text('See Recommendations (30%)'));
-      expect(find.text('Hide Recommendations'), findsOneWidget);
+      await tap(find.text('Your Recommended Position (25K)'));
+      expect(
+        find.textContaining('Improve your profile with measurable'),
+        findsOneWidget,
+      );
       await tap(find.text('Collapse all'));
       expect(find.byType(EvaluationMetricCard), findsNothing);
       await capture('talent_evaluation_collapsed', 922);

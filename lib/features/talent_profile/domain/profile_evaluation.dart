@@ -1,16 +1,19 @@
+enum EvaluationLevel { poor, average, good, veryGood }
+
 class EvaluationMetric {
-  const EvaluationMetric(this.title, this.score, this.rating);
-  final String title, rating;
+  const EvaluationMetric(this.title, this.score, this.level);
+  final String title;
   final int score;
+  final EvaluationLevel level;
 }
 
 /// Sample UI report, not an assessment of a real account.
 class ProfileEvaluation {
   static const metrics = [
-    EvaluationMetric('Technical Skills', 30, 'Poor'),
-    EvaluationMetric('Communication Skills', 50, 'Needs improvement'),
-    EvaluationMetric('Problem Solving', 90, 'Good'),
-    EvaluationMetric('Soft Skills', 90, 'Very good'),
+    EvaluationMetric('Technical Skills', 35, EvaluationLevel.poor),
+    EvaluationMetric('Communication Skills', 50, EvaluationLevel.average),
+    EvaluationMetric('Problem Solving', 65, EvaluationLevel.good),
+    EvaluationMetric('Soft Skills', 65, EvaluationLevel.veryGood),
   ];
   static const reports = [
     (

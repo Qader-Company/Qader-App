@@ -8,11 +8,13 @@ import '../../../../core/resources/app_colors.dart';
 class EvaluationAccordion extends StatelessWidget {
   const EvaluationAccordion({
     super.key,
+    required this.number,
     required this.title,
     required this.open,
     required this.onTap,
     required this.children,
   });
+  final int number;
   final String title;
   final bool open;
   final VoidCallback onTap;
@@ -21,7 +23,7 @@ class EvaluationAccordion extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: AppColors.neutral50,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(8),
       border: Border.all(color: AppColors.neutral200),
     ),
@@ -41,10 +43,14 @@ class EvaluationAccordion extends StatelessWidget {
                   color: open ? profileBlue : AppColors.neutral400,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.assignment_outlined,
-                  color: Colors.white,
-                  size: 16,
+                alignment: Alignment.center,
+                child: Text(
+                  '$number',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -77,29 +83,51 @@ class EvaluationMetricCard extends StatelessWidget {
   final EvaluationMetric metric;
   @override
   Widget build(BuildContext context) {
-    final color = metric.score < 60 ? AppColors.amber500 : AppColors.green500;
+    final (label, background, foreground) = switch (metric.level) {
+      EvaluationLevel.poor => (
+        'Poor',
+        AppColors.yellow100,
+        AppColors.yellow700,
+      ),
+      EvaluationLevel.average => ('AVG', AppColors.red50, AppColors.orange500),
+      EvaluationLevel.good => ('Good', AppColors.green50, AppColors.green600),
+      EvaluationLevel.veryGood => (
+        'VG',
+        AppColors.purple50,
+        AppColors.purple600,
+      ),
+    };
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.neutral50,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.neutral200),
       ),
       child: ProfileStack(
-        gap: 6,
+        gap: 8,
         children: [
           Text(
             tc(context, metric.title),
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
           Row(
             children: [
-              Expanded(
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: background,
+                  borderRadius: BorderRadius.circular(6),
+                ),
                 child: Text(
-                  tc(context, metric.rating),
-                  style: TextStyle(fontSize: 12, color: color),
+                  tc(context, label),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: foreground,
+                  ),
                 ),
               ),
+              const Spacer(),
               Text(
                 '${metric.score}%',
                 style: const TextStyle(
@@ -139,7 +167,7 @@ class EvaluationTextCard extends StatelessWidget {
         tc(context, title),
         style: const TextStyle(
           fontSize: 12,
-          color: profileBlue,
+          color: AppColors.neutral800,
           fontWeight: FontWeight.w500,
         ),
       ),
