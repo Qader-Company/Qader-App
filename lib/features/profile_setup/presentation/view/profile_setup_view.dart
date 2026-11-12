@@ -12,6 +12,8 @@ import '../widgets/professional_field_step.dart';
 import '../widgets/basic_info_step.dart';
 import '../widgets/skills_experience_step.dart';
 import '../widgets/work_preferences_step.dart';
+import '../widgets/profile_setup_confirmation.dart';
+import '../widgets/profile_setup_header.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../domain/repositories/professional_fields_repository.dart';
 import '../../domain/repositories/profile_lookups_repository.dart';
@@ -192,45 +194,6 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     if (preview == true && mounted) _move(4);
   }
 
-  Widget _header() => SizedBox(
-    height: 40,
-    width: double.infinity,
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        const QaderLogo(),
-        if (draft.step != 4)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.neutral50,
-                ),
-                tooltip: pc(context, 'Back'),
-                onPressed: _back,
-                icon: Directionality.of(context) == TextDirection.rtl
-                    ? const RotatedBox(
-                        quarterTurns: 2,
-                        child: QaderAsset(
-                          'profile_back',
-                          width: 7.5,
-                          height: 13.5,
-                        ),
-                      )
-                    : const QaderAsset(
-                        'profile_back',
-                        width: 7.5,
-                        height: 13.5,
-                      ),
-              ),
-            ),
-          ),
-      ],
-    ),
-  );
   @override
   Widget build(
     BuildContext context,
@@ -269,14 +232,20 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       ),
                     )
                   : draft.step == 4
-                  ? _confirmation(context)
+                  ? ProfileSetupConfirmation(
+                      connected: draft.isConnected,
+                      onBack: _back,
+                    )
                   : SingleChildScrollView(
                       controller: _scroll,
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                       child: ProfileColumn(
                         gap: 24,
                         children: [
-                          _header(),
+                          ProfileSetupHeader(
+                            showBack: draft.step != 4,
+                            onBack: _back,
+                          ),
                           Form(
                             key: _forms[draft.step],
                             child: ProfileColumn(
@@ -400,74 +369,5 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
         ),
       ),
     ),
-  );
-  Widget _confirmation(BuildContext context) => Stack(
-    children: [
-      Positioned(
-        left: 16,
-        right: 16,
-        bottom: 24,
-        child: DefaultButton.compact(
-          text: pc(context, draft.isConnected ? 'Go to Home' : 'Preview Home'),
-          onPressed: () => draft.isConnected
-              ? context.go(AppRouter.home)
-              : context.go('${AppRouter.home}?preview=true&role=talent'),
-        ),
-      ),
-      Padding(padding: const EdgeInsets.all(16), child: _header()),
-      Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.blueSoft,
-                ),
-                child: const Center(
-                  child: QaderAsset(
-                    'profile_success',
-                    width: 44.8,
-                    height: 44.8,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                pc(
-                  context,
-                  draft.isConnected ? 'Profile Saved!' : 'Profile Submitted!',
-                ),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 24,
-                  height: 32 / 24,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                pc(
-                  context,
-                  draft.isConnected
-                      ? 'Your profile information has been saved successfully.'
-                      : "Your talent profile has been submitted successfully, We'll review it and get back to you shortly.",
-                ),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 20 / 14,
-                  color: AppColors.neutral500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ],
   );
 }

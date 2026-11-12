@@ -1,0 +1,40 @@
+name: CI
+
+# Enforces AGENTS.md on every push and pull request: formatting, analyzer,
+# architecture rules (tool/check_rules.dart) and the test suite.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.1
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Formatting
+        run: dart format --output=none --set-exit-if-changed lib test tool
+
+      - name: Analyzer
+        run: flutter analyze
+
+      - name: Architecture rules
+        run: dart run tool/check_rules.dart
+
+      - name: Tests
+        run: flutter test --timeout 90s

@@ -7,6 +7,11 @@ the user first; never break one silently.
 Talk to the user in Egyptian Arabic. Write code, comments, commit messages and
 identifiers in English.
 
+References:
+- Design (Figma): https://www.figma.com/design/Ey9gKqsJd8qx1aBMgefEQB/qader-app (status screens: node `4318-73837`)
+- API (Apidog, project 1396841): https://app.apidog.com/project/1396841. Ask the user for the endpoint and its examples; never guess.
+- Test server: `https://test.api.qadereg.com/api/v1` (via `tool/flutter.dev.json`)
+
 ## 1. Architecture (feature-first Clean Architecture, "lite")
 
 ```
@@ -27,6 +32,48 @@ Dependency rules (never violate):
 - Features never import each other in a cycle. Shared UI goes to `core/widgets`; cross-feature navigation goes through route paths in `core/router/app_router.dart`, and route arguments go in `core/router/route_args.dart`.
 - Only `lib/app/` knows every feature: routes in `app/router/app_routes.dart`, registrations in `app/di/dependencies.dart`, providers in `app/app_providers.dart`.
 - No use-case layer: a cubit calls its repository interface directly.
+
+Patterns to copy (see `features/home` for a complete example):
+
+```dart
+// domain/repositories/thing_repository.dart
+abstract class ThingRepository {
+  Future<Either<Failure, Thing>> load();
+}
+
+// data/repositories/api_thing_repository.dart
+class ApiThingRepository implements ThingRepository {
+  const ApiThingRepository(this._api);
+  final ApiConsumer _api;
+  @override
+  Future<Either<Failure, Thing>> load() async {
+    final result = await _api.get<Object?>('/talent/thing', fromJson: (raw) => raw);
+    if (result.isError) return Left(result.getErrorOrThrow());
+    final raw = result.getOrThrow();
+    if (raw is! Map || raw['success'] != true || raw['data'] is! Map) {
+      return const Left(ServerFailure(message: 'thing_invalid_response'));
+    }
+    return Right(Thing.fromJson(Map<String, dynamic>.from(raw['data'] as Map)));
+  }
+}
+
+// presentation/cubit/thing_cubit.dart: immutable state, reload after actions
+class ThingCubit extends Cubit<ThingState> {
+  ThingCubit(this._repository) : super(const ThingState(loading: true));
+  final ThingRepository _repository;
+  Future<void> load() async {
+    emit(ThingState(loading: true, thing: state.thing));
+    final result = await _repository.load();
+    if (isClosed) return;
+    emit(result.fold(
+      (failure) => ThingState(failure: failure, thing: state.thing),
+      (thing) => ThingState(thing: thing),
+    ));
+  }
+}
+
+// view: BlocProvider(create: (context) => ThingCubit(context.read<ThingRepository>())..load())
+```
 
 A new feature needs:
 1. Entity and repository interface in `domain/`.
@@ -71,6 +118,7 @@ A new feature needs:
 - Network images use `cached_network_image` with sized placeholders. Local images and SVGs are sized explicitly.
 - No synchronous file or disk work on the UI thread. Uploads build `MultipartFile` asynchronously.
 - Avoid unnecessary rebuild triggers: no new closures or objects inside hot paths, no `setState` in loops, and no polling. Use timers for time-based UI (e.g. the join window).
+- Check performance claims in profile mode (`flutter run --profile --dart-define-from-file=tool/flutter.dev.json`) with DevTools or the performance overlay. Don't guess.
 
 ## 6. Code quality
 
@@ -89,12 +137,15 @@ A new feature needs:
 
 ## 8. Testing and verification (required before saying "done")
 
-1. `dart format lib test`
+CI (`.github/workflows/ci.yml`) runs steps 1–4 on every push and pull request; run them locally first.
+
+1. `dart format lib test tool`
 2. `flutter analyze`: must print "No issues found!"
-3. `flutter test`: all tests pass.
-4. New logic gets tests in `test/features/<feature>/` (or `test/core/`, `test/app/`), mirroring `lib/`. Use `Fake implements …` for repositories and `ApiConsumer`. Build fixtures from real Apidog examples.
-5. UI changes: compare the screenshots that tests render in `build/design_review/` before and after; unchanged screens must stay pixel-identical.
-6. Report honestly what was not verified (e.g. not run on a device, not tried against the real server).
+3. `dart run tool/check_rules.dart`: checks colors, `sl` in features, layer imports, cycles and file size. It must print "Rules OK".
+4. `flutter test`: all tests pass.
+5. New logic gets tests in `test/features/<feature>/` (or `test/core/`, `test/app/`), mirroring `lib/`. Use `Fake implements …` for repositories and `ApiConsumer`. Build fixtures from real Apidog examples.
+6. UI or refactor work: run `flutter test` then `dart run tool/compare_screenshots.dart save` BEFORE the change, and `flutter test` then `dart run tool/compare_screenshots.dart compare` after. Screens that should not change must be identical. Look at the PNGs of screens that should change.
+7. Report honestly what was not verified (e.g. not run on a device, not tried against the real server).
 
 ## 9. Environment and workflow
 
