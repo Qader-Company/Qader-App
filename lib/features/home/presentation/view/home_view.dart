@@ -16,6 +16,7 @@ import 'widgets/review_steps.dart';
 import 'widgets/review_faq.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../../domain/repositories/application_repository.dart';
+import '../../../../core/di/maybe_read.dart';
 
 /// Talent home. In [preview] it shows the static "Under Review" design;
 /// otherwise it loads `GET /talent/application` and shows the screen that
@@ -99,23 +100,24 @@ class HomeView extends StatelessWidget {
       const ReviewSteps(),
       const SizedBox(height: 24),
       const ApplicationSubmittedNotice(),
-      const SizedBox(height: 24),
-      ReviewFaq(
-        items: faqs.isEmpty
-            ? null
-            : [
-                for (final faq in faqs)
-                  (question: faq.question, answer: faq.answer),
-              ],
-      ),
+      // Backend FAQs for this screen only; none → no FAQ card.
+      if (faqs.isNotEmpty) ...[
+        const SizedBox(height: 24),
+        ReviewFaq(
+          items: [
+            for (final faq in faqs)
+              (question: faq.question, answer: faq.answer),
+          ],
+        ),
+      ],
     ];
   }
 }
 
 String _userName(BuildContext context) {
-  final user = context.read<AuthSessionCubit>().state.user;
+  final user = context.maybeRead<AuthSessionCubit>()?.state.user;
   if (user != null && user.fullName.isNotEmpty) return user.fullName;
-  return context.read<AppPreferences>().getUserName();
+  return context.maybeRead<AppPreferences>()?.getUserName() ?? '';
 }
 
 class _Dashboard extends StatelessWidget {

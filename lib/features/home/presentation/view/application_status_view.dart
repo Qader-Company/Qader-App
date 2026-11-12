@@ -360,7 +360,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       ApplicationStatus.rejectedAfterInterview => _rejection(),
     },
     if (_showsHistory) _history(),
-    ReviewFaq(items: _faqs()),
+    if (_faqs() case final faqs when faqs.isNotEmpty) ReviewFaq(items: faqs),
   ];
 
   /// Rebuilds when the join window opens or closes while the screen is open.

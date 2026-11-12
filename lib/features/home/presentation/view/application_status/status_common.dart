@@ -27,9 +27,11 @@ extension _CommonSection on _ApplicationStatusViewState {
     };
   }
 
+  /// Live: only the backend FAQs for this screen (none → no FAQ card).
+  /// Preview: the sample question from the design.
   List<({String question, String answer})> _faqs() {
-    final faqs = live ? app!.screenFaqs : const <ApplicationFaq>[];
-    if (faqs.isEmpty) return [_faq()];
+    if (!live) return [_faq()];
+    final faqs = app!.screenFaqs;
     return [
       for (final faq in faqs) (question: faq.question, answer: faq.answer),
     ];

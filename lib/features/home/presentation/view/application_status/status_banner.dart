@@ -16,6 +16,8 @@ extension _BannerSection on _ApplicationStatusViewState {
 
   List<_Step> _stepStates() => switch (status) {
     ApplicationStatus.confirmed => [_Step.done, _Step.done, _Step.current],
+    // Accepted is the final stage: every step is complete.
+    ApplicationStatus.accepted => [_Step.done, _Step.done, _Step.done],
     ApplicationStatus.rejected => [
       _Step.failedDone,
       _Step.pending,
