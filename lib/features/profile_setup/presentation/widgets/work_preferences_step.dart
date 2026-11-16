@@ -47,6 +47,34 @@ class WorkPreferencesStep extends StatelessWidget {
           : pc(context, 'Enter a valid salary');
     }
 
+    final minSalary = ProfileInput(
+      '',
+      controller: draft.text('minSalary'),
+      hint: 'Min 0',
+      type: const TextInputType.numberWithOptions(decimal: true),
+      validator: salary,
+    );
+    final maxSalary = ProfileInput(
+      '',
+      controller: draft.text('maxSalary'),
+      hint: 'Max 0',
+      type: const TextInputType.numberWithOptions(decimal: true),
+      validator: (v) {
+        final invalid = salary(v);
+        if (invalid != null) return invalid;
+        final min = double.tryParse(draft.text('minSalary').text.trim());
+        return min != null && double.parse(v!.trim()) < min
+            ? pc(context, 'Maximum must be at least minimum')
+            : null;
+      },
+    );
+    final currentSalary = ProfileInput(
+      '',
+      controller: draft.text('currentSalary'),
+      hint: 'Enter your current salary',
+      type: const TextInputType.numberWithOptions(decimal: true),
+      validator: salary,
+    );
     return ProfileColumn(
       gap: 24,
       children: [
@@ -67,6 +95,7 @@ class WorkPreferencesStep extends StatelessWidget {
                     lookup: ProfileLookup.workTypes,
                     selectionKey: 'work_types',
                     required: true,
+                    boxes: true,
                   )
                 else
                   choices('Work Type', 'workType', const [
@@ -81,6 +110,7 @@ class WorkPreferencesStep extends StatelessWidget {
                     lookup: ProfileLookup.workModes,
                     selectionKey: 'work_modes',
                     required: true,
+                    boxes: true,
                   )
                 else
                   choices('Work Mode', 'workMode', const [
@@ -131,64 +161,51 @@ class WorkPreferencesStep extends StatelessWidget {
                   gap: 8,
                   children: [
                     const ProfileLabel('Expected Salary Range', required: true),
-                    currency('expectedCurrency'),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: ProfileInput(
-                            '',
-                            controller: draft.text('minSalary'),
-                            hint: 'Min 0',
-                            type: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            validator: salary,
+                    // The edit design puts the currency beside the range.
+                    if (draft.isEditing)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: currency('expectedCurrency'),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ProfileInput(
-                            '',
-                            controller: draft.text('maxSalary'),
-                            hint: 'Max 0',
-                            type: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            validator: (v) {
-                              final invalid = salary(v);
-                              if (invalid != null) return invalid;
-                              final min = double.tryParse(
-                                draft.text('minSalary').text.trim(),
-                              );
-                              return min != null &&
-                                      double.parse(v!.trim()) < min
-                                  ? pc(
-                                      context,
-                                      'Maximum must be at least minimum',
-                                    )
-                                  : null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 3, child: minSalary),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 3, child: maxSalary),
+                        ],
+                      )
+                    else ...[
+                      currency('expectedCurrency'),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: minSalary),
+                          const SizedBox(width: 12),
+                          Expanded(child: maxSalary),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               if (draft.showsField('current_salary'))
                 ProfileColumn(
                   children: [
                     const ProfileLabel('Current Salary Range', required: true),
-                    currency('currentCurrency'),
-                    ProfileInput(
-                      '',
-                      controller: draft.text('currentSalary'),
-                      hint: 'Enter your current salary',
-                      type: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      validator: salary,
-                    ),
+                    if (draft.isEditing)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 4, child: currency('currentCurrency')),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 6, child: currentSalary),
+                        ],
+                      )
+                    else ...[
+                      currency('currentCurrency'),
+                      currentSalary,
+                    ],
                   ],
                 ),
             ],

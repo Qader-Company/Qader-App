@@ -68,16 +68,18 @@ class ProjectCard extends StatelessWidget {
           ),
         ],
       ),
-      ProfileUpload(
-        images: true,
-        files: entry.images,
-        onChanged: (files) {
-          entry.images
-            ..clear()
-            ..addAll(files);
-          draft.refresh();
-        },
-      ),
+      // Uploading new images from Edit Profile is not connected yet.
+      if (!draft.isEditing)
+        ProfileUpload(
+          images: true,
+          files: entry.images,
+          onChanged: (files) {
+            entry.images
+              ..clear()
+              ..addAll(files);
+            draft.refresh();
+          },
+        ),
       for (final image in entry.savedImages)
         Text(
           image['file_name']?.toString() ??

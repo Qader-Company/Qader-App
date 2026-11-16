@@ -503,7 +503,7 @@ void main() {
       expect(step.draft.options(ProfileLookup.cities), isEmpty);
       await chooseLookup('Language', 'Arabic');
       expect(step.draft.languages.first.language, '9');
-      await chooseLookup('Proficiency', 'B1 - Intermediate');
+      await chooseLookup('Proficiency Level', 'B1 - Intermediate');
       expect(step.draft.languages.first.level, 'b1');
       step.draft.formFields = {
         ...step.draft.formFields!,
@@ -697,10 +697,14 @@ void main() {
       expect(skills['skill_ids[1]'], '3');
       expect(skills['industry_ids[0]'], '20');
       expect(step.draft.step, 3);
-      await chooseChip('Full Time');
-      await chooseChip('Part Time');
-      await chooseChip('Remote');
-      await chooseChip('Hybrid');
+      // Work type and mode are option boxes, not chips.
+      for (final label in ['Full Time', 'Part Time', 'Remote', 'Hybrid']) {
+        final box = find.widgetWithText(OutlinedButton, label);
+        await tester.ensureVisible(box);
+        await tester.pumpAndSettle();
+        await tester.tap(box);
+        await tester.pumpAndSettle();
+      }
       step.draft.text('noticeDays').text = '30';
       step.draft.text('currentSalary').text = '15000';
       step.draft.text('minSalary').text = '20000';

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/locale_change_listener.dart';
@@ -41,7 +43,16 @@ class TalentProfileView extends StatelessWidget {
             child: TalentProfileScaffold(
               onRefresh: profile == null ? null : cubit.load,
               child: profile != null
-                  ? ProfileContent(profile: profile, preview: false)
+                  ? ProfileContent(
+                      profile: profile,
+                      preview: false,
+                      // The edit flow saves step by step, so reload even
+                      // when the talent leaves it half way.
+                      onEdit: () async {
+                        await context.push(AppRouter.profileEdit);
+                        if (context.mounted) await cubit.load();
+                      },
+                    )
                   : state.loading
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 120),

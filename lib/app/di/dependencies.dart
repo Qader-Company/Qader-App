@@ -14,6 +14,8 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/cubit/auth_session_cubit.dart';
 import '../../features/talent_profile/data/repositories/api_talent_profile_repository.dart';
 import '../../features/talent_profile/domain/repositories/talent_profile_repository.dart';
+import '../../features/profile_setup/data/repositories/api_profile_edit_repository.dart';
+import '../../features/profile_setup/domain/repositories/profile_edit_repository.dart';
 import '../../features/profile_setup/domain/repositories/professional_fields_repository.dart';
 import '../../features/profile_setup/data/repositories/api_professional_fields_repository.dart';
 import '../../features/profile_setup/domain/repositories/onboarding_steps_repository.dart';
@@ -72,6 +74,9 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<ApplicationRepository>(
     () => ApiApplicationRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<ProfileEditRepository>(
+    () => ApiProfileEditRepository(sl<ApiConsumer>()),
   );
   sl.registerLazySingleton<TalentProfileRepository>(
     () => ApiTalentProfileRepository(sl<ApiConsumer>()),

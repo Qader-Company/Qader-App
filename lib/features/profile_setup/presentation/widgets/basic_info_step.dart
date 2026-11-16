@@ -5,6 +5,8 @@ import 'profile_widgets.dart';
 import 'profile_upload.dart';
 import 'profile_lookup_select.dart';
 import 'profile_phone_input.dart';
+import 'language_card.dart';
+import 'saved_cv_tile.dart';
 import '../../../../core/resources/app_colors.dart';
 
 class BasicInfoStep extends StatelessWidget {
@@ -49,6 +51,51 @@ class BasicInfoStep extends StatelessWidget {
             value: draft.value(key),
             onChanged: (v) => draft.select(key, v),
           );
+    final editing = draft.isEditing;
+    final gender = draft.isConnected
+        ? ProfileLookupSelect(
+            'Gender',
+            draft: draft,
+            lookup: ProfileLookup.genders,
+            value: draft.value('gender'),
+            required: true,
+            onChanged: (v) => draft.select('gender', v),
+          )
+        : ProfileSelect(
+            'Gender',
+            required: true,
+            items: const ['Male', 'Female'],
+            value: draft.value('gender'),
+            onChanged: (v) => draft.select('gender', v),
+          );
+    final birthday = ProfileDate(
+      'Date of Birthday',
+      controller: draft.text('birthday'),
+      birthday: true,
+      value: draft.birthday,
+      onChanged: (v) {
+        draft.birthday = v;
+        draft.refresh();
+      },
+    );
+    final showGender = draft.showsField('gender');
+    final showBirthday = draft.showsField('date_of_birth');
+    // Setup pairs gender and birthday in one row after the phones; the
+    // edit design lists them first, each on its own row.
+    final genderAndBirthday = <Widget>[
+      if (editing) ...[
+        if (showGender) gender,
+        if (showBirthday) birthday,
+      ] else if (showGender || showBirthday)
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showGender) Expanded(child: gender),
+            if (showGender && showBirthday) const SizedBox(width: 12),
+            if (showBirthday) Expanded(child: birthday),
+          ],
+        ),
+    ];
     return ProfileColumn(
       gap: 24,
       children: [
@@ -65,38 +112,45 @@ class BasicInfoStep extends StatelessWidget {
         ].any(draft.showsField))
           ProfileSection(
             'Personal Information',
+            large: editing,
             children: [
               if (draft.showsField('cv')) ...[
                 const ProfileLabel('CV', required: true),
-                ProfileUpload(
-                  savedFileName: draft.savedCv?['file_name']?.toString(),
-                  files: [if (draft.cv != null) draft.cv!],
-                  onChanged: (files) {
-                    draft.cv = files.isEmpty ? null : files.first;
-                    draft.refresh();
-                    // A new CV fills the empty fields of every step.
-                    if (draft.cv case final file?) {
-                      draft.parseCv(file);
-                    } else {
-                      draft.cancelCvParse();
-                    }
-                  },
-                ),
-                if (draft.isConnected) _CvAutofillStatus(draft: draft),
+                if (editing)
+                  SavedCvTile(cv: draft.savedCv)
+                else
+                  ProfileUpload(
+                    savedFileName: draft.savedCv?['file_name']?.toString(),
+                    files: [if (draft.cv != null) draft.cv!],
+                    onChanged: (files) {
+                      draft.cv = files.isEmpty ? null : files.first;
+                      draft.refresh();
+                      // A new CV fills the empty fields of every step.
+                      if (draft.cv case final file?) {
+                        draft.parseCv(file);
+                      } else {
+                        draft.cancelCvParse();
+                      }
+                    },
+                  ),
+                if (draft.isConnected && !editing)
+                  _CvAutofillStatus(draft: draft),
               ],
               if (draft.showsField('full_name'))
                 ProfileInput(
                   'Full Name',
                   controller: draft.text('name'),
-                  readOnly: !draft.isConnected,
+                  // The design locks the name once the profile exists.
+                  readOnly: !draft.isConnected || editing,
                   required: draft.isConnected,
                 ),
               if (draft.showsField('email'))
                 ProfileInput(
-                  'Email Address',
+                  'Email',
                   controller: draft.text('email'),
                   readOnly: true,
                 ),
+              if (editing) ...genderAndBirthday,
               if (draft.showsField('phone_number'))
                 if (draft.isConnected)
                   ProfilePhoneInput(
@@ -110,9 +164,7 @@ class BasicInfoStep extends StatelessWidget {
                   ProfileInput(
                     'Phone Number',
                     controller: draft.text('phone'),
-                    hint: draft.isConnected
-                        ? 'Enter phone number'
-                        : '+966000000000',
+                    hint: '+966000000000',
                     required: true,
                     type: TextInputType.phone,
                     validator: phone,
@@ -130,57 +182,12 @@ class BasicInfoStep extends StatelessWidget {
                   ProfileInput(
                     'WhatsApp Number',
                     controller: draft.text('whatsapp'),
-                    hint: draft.isConnected
-                        ? 'Enter phone number'
-                        : '+966000000000',
+                    hint: '+966000000000',
                     required: true,
                     type: TextInputType.phone,
                     validator: phone,
                   ),
-              if (draft.showsField('gender') ||
-                  draft.showsField('date_of_birth'))
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (draft.showsField('gender'))
-                      Expanded(
-                        child: draft.isConnected
-                            ? ProfileLookupSelect(
-                                'Gender',
-                                draft: draft,
-                                lookup: ProfileLookup.genders,
-                                value: draft.value('gender'),
-                                required: true,
-                                onChanged: (v) => draft.select('gender', v),
-                              )
-                            : ProfileSelect(
-                                'Gender',
-                                required: true,
-                                items: draft.isConnected
-                                    ? const []
-                                    : const ['Male', 'Female'],
-                                value: draft.value('gender'),
-                                onChanged: (v) => draft.select('gender', v),
-                              ),
-                      ),
-                    if (draft.showsField('gender') &&
-                        draft.showsField('date_of_birth'))
-                      const SizedBox(width: 12),
-                    if (draft.showsField('date_of_birth'))
-                      Expanded(
-                        child: ProfileDate(
-                          'Date of Birthday',
-                          controller: draft.text('birthday'),
-                          birthday: true,
-                          value: draft.birthday,
-                          onChanged: (v) {
-                            draft.birthday = v;
-                            draft.refresh();
-                          },
-                        ),
-                      ),
-                  ],
-                ),
+              if (!editing) ...genderAndBirthday,
               if (draft.showsField('nationality_country_id'))
                 select('Nationality', 'nationality', const [
                   'Egyptian',
@@ -217,7 +224,7 @@ class BasicInfoStep extends StatelessWidget {
                   ProfileSelect(
                     'Country',
                     value: draft.value('country'),
-                    items: draft.isConnected ? const [] : cities.keys.toList(),
+                    items: cities.keys.toList(),
                     onChanged: (v) {
                       draft.selections['city'] = null;
                       draft.select('country', v);
@@ -240,87 +247,17 @@ class BasicInfoStep extends StatelessWidget {
             addLabel: 'Add Language',
             children: [
               for (var i = 0; i < draft.languages.length; i++)
-                _language(context, draft.languages[i], i),
+                LanguageCard(
+                  key: ValueKey(draft.languages[i].id),
+                  draft: draft,
+                  entry: draft.languages[i],
+                  index: i,
+                ),
             ],
           ),
       ],
     );
   }
-
-  Widget _language(BuildContext context, LanguageEntry entry, int index) =>
-      ProfileEntryCard(
-        key: ValueKey(entry.id),
-        title: '${pc(context, 'Language')} ${index + 1}',
-        onRemove: () {
-          draft.languages.remove(entry);
-          draft.refresh();
-        },
-        children: [
-          if (draft.isConnected)
-            ProfileLookupSelect(
-              'Language',
-              draft: draft,
-              lookup: ProfileLookup.languages,
-              value: entry.language,
-              validator: (v) =>
-                  entry.level != null ? requiredProfile(context, v) : null,
-              onChanged: (v) {
-                entry.language = v;
-                draft.refresh();
-              },
-            )
-          else
-            ProfileSelect(
-              'Language',
-              hint: 'Select language',
-              value: entry.language,
-              items: draft.isConnected
-                  ? const []
-                  : const [
-                      'English',
-                      'Arabic',
-                      'French',
-                      'German',
-                      'Spanish',
-                      'Other',
-                    ],
-              validator: (v) =>
-                  entry.level != null ? requiredProfile(context, v) : null,
-              onChanged: (v) {
-                entry.language = v;
-                draft.refresh();
-              },
-            ),
-          if (draft.isConnected)
-            ProfileLookupSelect(
-              'Proficiency',
-              draft: draft,
-              lookup: ProfileLookup.languageProficiencies,
-              value: entry.level,
-              validator: (v) =>
-                  entry.language != null ? requiredProfile(context, v) : null,
-              onChanged: (v) {
-                entry.level = v;
-                draft.refresh();
-              },
-            )
-          else
-            ProfileSelect(
-              'Proficiency',
-              hint: 'Select proficiency',
-              value: entry.level,
-              items: draft.isConnected
-                  ? const []
-                  : const ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'],
-              validator: (v) =>
-                  entry.language != null ? requiredProfile(context, v) : null,
-              onChanged: (v) {
-                entry.level = v;
-                draft.refresh();
-              },
-            ),
-        ],
-      );
 }
 
 /// Progress and result of filling the form from the uploaded CV.

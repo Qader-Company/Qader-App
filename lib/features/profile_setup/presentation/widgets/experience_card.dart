@@ -16,6 +16,28 @@ class ExperienceCard extends StatelessWidget {
   final ExperienceEntry entry;
   final int index;
   String get prefix => 'experience_${entry.id}_';
+
+  Widget get _from => ProfileDate(
+    'From',
+    required: draft.isConnected,
+    controller: draft.text('${prefix}from'),
+    value: entry.from,
+    onChanged: (v) {
+      entry.from = v;
+      draft.refresh();
+    },
+  );
+
+  Widget get _to => ProfileDate(
+    'To',
+    controller: draft.text('${prefix}to'),
+    value: entry.to,
+    enabled: !entry.current,
+    onChanged: (v) {
+      entry.to = v;
+      draft.refresh();
+    },
+  );
   @override
   Widget build(BuildContext context) => ProfileEntryCard(
     title: '${pc(context, 'Experience')} ${index + 1}',
@@ -43,36 +65,19 @@ class ExperienceCard extends StatelessWidget {
         type: TextInputType.url,
         validator: (v) => profileUrl(context, v),
       ),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ProfileDate(
-              'From',
-              required: draft.isConnected,
-              controller: draft.text('${prefix}from'),
-              value: entry.from,
-              onChanged: (v) {
-                entry.from = v;
-                draft.refresh();
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ProfileDate(
-              'To',
-              controller: draft.text('${prefix}to'),
-              value: entry.to,
-              enabled: !entry.current,
-              onChanged: (v) {
-                entry.to = v;
-                draft.refresh();
-              },
-            ),
-          ),
-        ],
-      ),
+      // The edit design stacks the two dates; setup shows them side by side.
+      if (draft.isEditing) ...[
+        _from,
+        _to,
+      ] else
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _from),
+            const SizedBox(width: 12),
+            Expanded(child: _to),
+          ],
+        ),
       FormField<bool>(
         key: ValueKey(entry.from.toString() + entry.to.toString()),
         validator: (_) =>

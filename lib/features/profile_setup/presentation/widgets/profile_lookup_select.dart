@@ -77,12 +77,17 @@ class ProfileLookupMultiSelect extends StatelessWidget {
     required this.lookup,
     required this.selectionKey,
     this.required = false,
+    this.boxes = false,
   });
   final String label;
   final ProfileSetupCubit draft;
   final ProfileLookup lookup;
   final String selectionKey;
   final bool required;
+
+  /// Equal-width option boxes in one row (short lists such as work type)
+  /// instead of wrapping chips.
+  final bool boxes;
   @override
   Widget build(BuildContext context) {
     final selected = draft.selectedValues(selectionKey);
@@ -101,27 +106,52 @@ class ProfileLookupMultiSelect extends StatelessWidget {
         gap: 6,
         children: [
           ProfileLabel(label, required: required),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              for (final option in options)
-                FilterChip(
-                  label: Text(option.label),
-                  selected: selected.contains(option.key),
-                  onSelected: loading || failure != null
-                      ? null
-                      : (checked) {
-                          final values = Set<String>.of(selected);
-                          checked
-                              ? values.add(option.key)
-                              : values.remove(option.key);
-                          field.didChange(values);
-                          draft.selectValues(selectionKey, values);
-                        },
-                ),
-            ],
-          ),
+          if (boxes)
+            Row(
+              children: [
+                for (var i = 0; i < options.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(
+                    child: ProfileChoiceBox(
+                      label: options[i].label,
+                      selected: selected.contains(options[i].key),
+                      onPressed: loading || failure != null
+                          ? null
+                          : () {
+                              final values = Set<String>.of(selected);
+                              if (!values.remove(options[i].key)) {
+                                values.add(options[i].key);
+                              }
+                              field.didChange(values);
+                              draft.selectValues(selectionKey, values);
+                            },
+                    ),
+                  ),
+                ],
+              ],
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final option in options)
+                  FilterChip(
+                    label: Text(option.label),
+                    selected: selected.contains(option.key),
+                    onSelected: loading || failure != null
+                        ? null
+                        : (checked) {
+                            final values = Set<String>.of(selected);
+                            checked
+                                ? values.add(option.key)
+                                : values.remove(option.key);
+                            field.didChange(values);
+                            draft.selectValues(selectionKey, values);
+                          },
+                  ),
+              ],
+            ),
           if (loading) const LinearProgressIndicator(),
           if (failure != null) ...[
             Text('profile_lookup_invalid'.tr()),

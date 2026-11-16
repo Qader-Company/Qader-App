@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/widgets/default_form_field.dart';
 import '../../../../core/widgets/qader_design.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../../../core/widgets/app_page_header.dart';
 import '../../../../core/widgets/spaced_column.dart';
 export '../../../../core/widgets/spaced_column.dart';
 import '../profile_copy.dart';
@@ -32,59 +32,7 @@ class TalentProfileScaffold extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             child: ProfileStack(
               children: [
-                Row(
-                  children: [
-                    Builder(
-                      builder: (context) => IconButton(
-                        tooltip: tc(context, 'Menu'),
-                        alignment: AlignmentDirectional.centerStart,
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Scaffold.of(context).openDrawer(),
-                        icon: const QaderAsset(
-                          'menu',
-                          width: 14.6,
-                          height: 12.9,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        tc(context, 'Profile'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: tc(context, 'Notifications'),
-                      alignment: AlignmentDirectional.centerEnd,
-                      onPressed: () =>
-                          showPendingFeature(context, 'notifications'),
-                      icon: const QaderAsset(
-                        'notification',
-                        width: 17.1,
-                        height: 17.9,
-                      ),
-                    ),
-                  ],
-                ),
-                DefaultFormField(
-                  compact: true,
-                  hint: tc(context, 'Search requests, talent, companies'),
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    size: 20,
-                    color: AppColors.neutral500,
-                  ),
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => showInfoDialog(
-                    context,
-                    titleKey: 'talent_search',
-                    messageKey: 'talent_search_pending',
-                  ),
-                ),
+                AppPageHeader(title: tc(context, 'Profile')),
                 child,
               ],
             ),

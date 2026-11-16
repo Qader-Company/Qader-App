@@ -6,7 +6,6 @@ import '../../../../core/widgets/qader_asset.dart';
 import '../../domain/entities/talent_profile.dart';
 import '../profile_copy.dart';
 import 'edit_profile_sheet.dart';
-import '../../../../core/helpers/feature_dialog.dart';
 import 'profile_components.dart';
 import 'profile_sections.dart';
 import 'profile_summary_card.dart';
@@ -18,8 +17,12 @@ class ProfileContent extends StatefulWidget {
     super.key,
     required this.profile,
     required this.preview,
+    this.onEdit,
   });
   final TalentProfile profile;
+
+  /// Opens the edit flow of the live profile.
+  final VoidCallback? onEdit;
 
   /// Sample profile: edits stay local and links are not live.
   final bool preview;
@@ -36,10 +39,7 @@ class _ProfileContentState extends State<ProfileContent> {
   TalentProfile get _profile => _edited ?? widget.profile;
 
   Future<void> _edit() async {
-    if (!widget.preview) {
-      // Update Profile is not connected yet.
-      return showPendingFeature(context, 'talent_edit_profile');
-    }
+    if (!widget.preview) return widget.onEdit?.call();
     final edited = await editTalentProfile(context, _profile);
     if (edited != null && mounted) setState(() => _edited = edited);
   }

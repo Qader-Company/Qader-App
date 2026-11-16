@@ -176,6 +176,7 @@ class SkillsExperienceStep extends StatelessWidget {
           large: true,
           onAdd: draft.addExperience,
           addLabel: 'Add Experience',
+          addBelow: draft.isEditing,
           children: [
             for (var i = 0; i < draft.experiences.length; i++)
               ExperienceCard(
@@ -192,6 +193,7 @@ class SkillsExperienceStep extends StatelessWidget {
           large: true,
           onAdd: draft.addProject,
           addLabel: 'Add Project',
+          addBelow: draft.isEditing,
           children: [
             for (var i = 0; i < draft.projects.length; i++)
               ProjectCard(

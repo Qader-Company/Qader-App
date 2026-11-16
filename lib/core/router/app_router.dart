@@ -22,6 +22,7 @@ abstract class AppRouter {
   static const otp = '/otp';
   static const verifyEmail = '/verify-email';
   static const profileSetup = '/profile-setup';
+  static const profileEdit = '/profile-edit';
   static const talentProfile = '/talent-profile';
   static const profileReview = '/profile-review';
   static const profileReport = '/profile-report';

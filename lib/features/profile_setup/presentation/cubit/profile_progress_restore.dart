@@ -89,6 +89,7 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     if (personal['full_name'] == null) text('name').text = seedName;
     if (personal['email'] == null) text('email').text = seedEmail;
     birthday = DateTime.tryParse(personal['date_of_birth']?.toString() ?? '');
+    text('birthday').text = _dateText(birthday);
     selections.addAll({
       'gender': personal['gender'] as String?,
       'religion': personal['religion'] as String?,
@@ -151,10 +152,10 @@ extension ProfileProgressRestore on ProfileSetupCubit {
         'job_title': '${prefix}job',
         'company_name': '${prefix}company',
         'company_url': '${prefix}url',
-        'started_at': '${prefix}from',
-        'ended_at': '${prefix}to',
         'responsibilities': '${prefix}description',
       });
+      text('${prefix}from').text = _dateText(entry.from);
+      text('${prefix}to').text = _dateText(entry.to);
     }
     projects.clear();
     for (final item in skillsData['projects'] as List? ?? []) {
@@ -187,3 +188,8 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     refresh();
   }
 }
+
+/// Same format the date picker writes (see `ProfileDate`).
+String _dateText(DateTime? date) => date == null
+    ? ''
+    : '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}/${date.year}';

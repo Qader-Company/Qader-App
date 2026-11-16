@@ -10,6 +10,7 @@ import '../../domain/entities/profile_lookup.dart';
 import '../../domain/entities/profile_cv.dart';
 import '../../domain/repositories/onboarding_steps_repository.dart';
 import '../../domain/repositories/onboarding_progress_repository.dart';
+import '../../domain/repositories/profile_edit_repository.dart';
 import '../../domain/entities/onboarding_progress.dart';
 import '../preview/profile_setup_preview_data.dart';
 import '../../../../core/router/route_args.dart';
@@ -23,6 +24,7 @@ export 'profile_setup_state.dart';
 part 'profile_progress_restore.dart';
 part 'profile_resume_autofill.dart';
 part 'profile_lookups.dart';
+part 'profile_setup_saving.dart';
 
 class LanguageEntry {
   LanguageEntry(this.id, {this.language, this.level});
@@ -58,11 +60,13 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     ProfileLookupsRepository? lookupsRepository,
     OnboardingStepsRepository? stepsRepository,
     OnboardingProgressRepository? progressRepository,
+    ProfileEditRepository? editRepository,
   }) : _fieldsRepository = fieldsRepository,
+       _editRepository = editRepository,
        _lookupsRepository = lookupsRepository,
        _stepsRepository = stepsRepository,
        super(const ProfileSetupState()) {
-    _progressRepository = progressRepository;
+    _progressRepository = editRepository ?? progressRepository;
     text('name').text =
         seed?.name ??
         (fieldsRepository == null ? ProfileSetupPreviewData.name : '');
@@ -84,6 +88,11 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
   final ProfileLookupsRepository? _lookupsRepository;
   final OnboardingStepsRepository? _stepsRepository;
   OnboardingProgressRepository? _progressRepository;
+
+  /// Set when editing a saved profile: the form loads from and saves to
+  /// `/talent/profile` instead of the onboarding steps.
+  final ProfileEditRepository? _editRepository;
+  bool get isEditing => _editRepository != null;
 
   // ─── State (see [ProfileSetupState]) ───
   bool get progressLoading => state.progressLoading;
@@ -138,87 +147,6 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
   void selectValues(String key, Set<String> values) {
     multiSelections[key] = Set.of(values);
     refresh();
-  }
-
-  Future<bool> savePersonalInformation() async {
-    if (busy || !isConnected || isClosed) return false;
-    savingPersonalInfo = true;
-    personalFailure = null;
-    refresh();
-    try {
-      final repository = _stepsRepository;
-      if (repository == null || _field?.id == null || formFields == null) {
-        throw const FormatException('profile_step_save_failed');
-      }
-      final values = personalInformationPayload();
-      final file = cv;
-      final result = await repository.savePersonalInformation(
-        values,
-        visibleFields: {...formFields!}
-          ..removeAll(file == null && savedCv != null ? {'cv'} : <String>{}),
-        cv: file == null
-            ? null
-            : ProfileCv(name: file.name, path: file.path, bytes: file.bytes),
-      );
-      if (isClosed) return false;
-      personalFailure = result.isError ? result.getErrorOrThrow() : null;
-      return result.isSuccess;
-    } on FormatException catch (error) {
-      if (!isClosed) personalFailure = ServerFailure(message: error.message);
-      return false;
-    } on Object {
-      if (!isClosed) {
-        personalFailure = const ServerFailure(
-          message: 'profile_step_save_failed',
-        );
-      }
-      return false;
-    } finally {
-      if (!isClosed) {
-        savingPersonalInfo = false;
-        refresh();
-      }
-    }
-  }
-
-  Future<bool> saveDetails({required bool work}) async {
-    if (busy || !isConnected || isClosed) return false;
-    savingDetails = true;
-    stepFailure = null;
-    refresh();
-    try {
-      final repository = _stepsRepository;
-      if (repository == null || formFields == null) {
-        throw const FormatException('profile_step_save_failed');
-      }
-      final (:values, :images) = detailsPayload(work: work);
-      final result = work
-          ? await repository.saveWorkPreferences(
-              values,
-              visibleFields: formFields!,
-            )
-          : await repository.saveSkillsAndExperiences(
-              values,
-              visibleFields: formFields!,
-              projectImages: images,
-            );
-      if (isClosed) return false;
-      stepFailure = result.isError ? result.getErrorOrThrow() : null;
-      return result.isSuccess;
-    } on FormatException catch (error) {
-      if (!isClosed) stepFailure = ServerFailure(message: error.message);
-      return false;
-    } on Object {
-      if (!isClosed) {
-        stepFailure = const ServerFailure(message: 'profile_step_save_failed');
-      }
-      return false;
-    } finally {
-      if (!isClosed) {
-        savingDetails = false;
-        refresh();
-      }
-    }
   }
 
   final lookupOptions = <ProfileLookup, List<ProfileLookupOption>>{};

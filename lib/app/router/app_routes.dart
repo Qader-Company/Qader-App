@@ -130,6 +130,12 @@ GoRouter buildAppRouter() => GoRouter(
       ),
     ),
     GoRoute(
+      path: AppRouter.profileEdit,
+      redirect: (context, state) =>
+          sl<AppPreferences>().isLoggedIn ? null : AppRouter.talentProfile,
+      builder: (context, state) => const ProfileSetupView(edit: true),
+    ),
+    GoRoute(
       path: AppRouter.talentProfile,
       builder: (context, state) {
         // Sample profile when logged out or for the status preview links.

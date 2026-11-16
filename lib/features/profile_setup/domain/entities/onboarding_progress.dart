@@ -22,8 +22,50 @@ class OnboardingProgress {
     if (data['required_steps_completed'] is! bool || data['steps'] is! List) {
       throw const FormatException('Invalid onboarding progress');
     }
+    final steps = _steps(data['steps'] as List);
+    final field = steps[keys.first]!.data['professional_field'];
+    final hasField = field is Map && field['id'] is int && field['id'] > 0;
+    // Before field selection the API can report 100% with no required fields.
+    // Choosing a professional field is still a prerequisite for completion.
+    final completed = hasField && data['required_steps_completed'] == true;
+    final current = data['current_step'];
+    final index = keys.indexOf(current is String ? current : '');
+    if (!completed &&
+        hasField &&
+        index < 0 &&
+        current != 'professional-field') {
+      throw const FormatException('Unknown current onboarding step');
+    }
+    return OnboardingProgress(
+      completed: completed,
+      step: completed
+          ? 4
+          : !hasField || current == 'professional-field'
+          ? 0
+          : index + 1,
+      steps: steps,
+    );
+  }
+
+  /// Editable snapshot of `GET /talent/profile`: its `data.sections` use the
+  /// same shape as the onboarding steps. Opens on the first form step.
+  factory OnboardingProgress.fromProfile(dynamic raw) {
+    if (raw is! Map ||
+        raw['success'] != true ||
+        raw['data'] is! Map ||
+        (raw['data'] as Map)['sections'] is! List) {
+      throw const FormatException('Invalid profile');
+    }
+    return OnboardingProgress(
+      completed: false,
+      step: 1,
+      steps: _steps((raw['data'] as Map)['sections'] as List),
+    );
+  }
+
+  static Map<String, OnboardingProgressStep> _steps(List<dynamic> items) {
     final steps = <String, OnboardingProgressStep>{};
-    for (final item in data['steps'] as List) {
+    for (final item in items) {
       if (item is! Map ||
           !keys.contains(item['key']) ||
           steps.containsKey(item['key'])) {
@@ -52,28 +94,7 @@ class OnboardingProgress {
     if (!keys.every(steps.containsKey)) {
       throw const FormatException('Missing onboarding steps');
     }
-    final field = steps[keys.first]!.data['professional_field'];
-    final hasField = field is Map && field['id'] is int && field['id'] > 0;
-    // Before field selection the API can report 100% with no required fields.
-    // Choosing a professional field is still a prerequisite for completion.
-    final completed = hasField && data['required_steps_completed'] == true;
-    final current = data['current_step'];
-    final index = keys.indexOf(current is String ? current : '');
-    if (!completed &&
-        hasField &&
-        index < 0 &&
-        current != 'professional-field') {
-      throw const FormatException('Unknown current onboarding step');
-    }
-    return OnboardingProgress(
-      completed: completed,
-      step: completed
-          ? 4
-          : !hasField || current == 'professional-field'
-          ? 0
-          : index + 1,
-      steps: steps,
-    );
+    return steps;
   }
 }
 

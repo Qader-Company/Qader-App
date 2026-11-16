@@ -9,6 +9,7 @@ import '../features/home/domain/repositories/application_repository.dart';
 import '../features/profile_setup/domain/repositories/onboarding_progress_repository.dart';
 import '../features/profile_setup/domain/repositories/onboarding_steps_repository.dart';
 import '../features/profile_setup/domain/repositories/professional_fields_repository.dart';
+import '../features/profile_setup/domain/repositories/profile_edit_repository.dart';
 import '../features/profile_setup/domain/repositories/profile_lookups_repository.dart';
 import '../features/talent_profile/domain/repositories/talent_profile_repository.dart';
 
@@ -32,6 +33,7 @@ class AppProviders extends StatelessWidget {
       RepositoryProvider<ProfileLookupsRepository>(create: (_) => sl()),
       RepositoryProvider<OnboardingStepsRepository>(create: (_) => sl()),
       RepositoryProvider<TalentProfileRepository>(create: (_) => sl()),
+      RepositoryProvider<ProfileEditRepository>(create: (_) => sl()),
       // Optional: profile setup works without saved-progress restore.
       if (sl.isRegistered<OnboardingProgressRepository>())
         RepositoryProvider<OnboardingProgressRepository>(create: (_) => sl()),

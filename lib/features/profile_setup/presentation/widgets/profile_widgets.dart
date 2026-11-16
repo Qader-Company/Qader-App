@@ -5,6 +5,8 @@ import '../../../../core/widgets/default_dropdown.dart';
 import '../../../../core/widgets/qader_design.dart';
 import '../profile_copy.dart';
 
+export 'profile_choices.dart';
+
 String? requiredProfile(BuildContext context, String? value) =>
     value == null || value.trim().isEmpty
     ? pc(context, 'This field is required')
@@ -74,12 +76,16 @@ class ProfileSection extends StatelessWidget {
     this.onAdd,
     this.addLabel,
     this.large = false,
+    this.addBelow = false,
   });
   final String title;
   final List<Widget> children;
   final VoidCallback? onAdd;
   final String? addLabel;
   final bool large;
+
+  /// Full-width add button under the entries instead of beside the title.
+  final bool addBelow;
   @override
   Widget build(BuildContext context) => ProfileColumn(
     children: [
@@ -95,8 +101,8 @@ class ProfileSection extends StatelessWidget {
               ),
             ),
           ),
-          if (onAdd != null) const SizedBox(width: 8),
-          if (onAdd != null)
+          if (onAdd != null && !addBelow) const SizedBox(width: 8),
+          if (onAdd != null && !addBelow)
             DefaultButton.compact(
               text: pc(context, addLabel!),
               onPressed: onAdd,
@@ -121,6 +127,17 @@ class ProfileSection extends StatelessWidget {
         ],
       ),
       ...children,
+      if (onAdd != null && addBelow)
+        DefaultButton.compact(
+          text: pc(context, addLabel!),
+          onPressed: onAdd,
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          icon: const QaderAsset(
+            'profile_add',
+            width: 14.5833,
+            height: 14.5833,
+          ),
+        ),
     ],
   );
 }
@@ -261,72 +278,6 @@ class ProfileEntryCard extends StatelessWidget {
           ],
         ),
         ...children,
-      ],
-    ),
-  );
-}
-
-class ProfileChoices extends StatelessWidget {
-  const ProfileChoices(
-    this.label, {
-    super.key,
-    required this.options,
-    required this.onChanged,
-    this.value,
-    this.required = false,
-  });
-  final String label;
-  final List<String> options;
-  final String? value;
-  final bool required;
-  final ValueChanged<String> onChanged;
-  @override
-  Widget build(BuildContext context) => FormField<String>(
-    key: ValueKey(label + (value ?? '')),
-    initialValue: value,
-    validator: required ? (v) => requiredProfile(context, v) : null,
-    builder: (state) => ProfileColumn(
-      gap: 6,
-      children: [
-        ProfileLabel(label, required: required),
-        Row(
-          children: [
-            for (var i = 0; i < options.length; i++) ...[
-              if (i > 0) const SizedBox(width: 8),
-              Expanded(
-                child: Semantics(
-                  selected: value == options[i],
-                  child: DefaultButton.compact(
-                    text: pc(context, options[i]),
-                    isOutlined: true,
-                    color: value == options[i]
-                        ? QaderDesign.blue
-                        : QaderDesign.border,
-                    textColor: value == options[i]
-                        ? QaderDesign.blue
-                        : AppColors.neutral700,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    onPressed: () {
-                      state.didChange(options[i]);
-                      onChanged(options[i]);
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        if (state.hasError)
-          Text(
-            state.errorText!,
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ),
       ],
     ),
   );
