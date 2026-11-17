@@ -9,7 +9,14 @@ enum OfferStage {
   cancelledNoResponse,
   awaitingInterviewTimes,
   interviewInProgress,
+
+  /// The company cancelled the interview; the talent is still in the
+  /// interview step, waiting for new times.
   interviewCancelled,
+
+  /// The talent apologized and asked to reschedule; the interview step is
+  /// marked failed. The design reuses the company-cancelled copy here.
+  interviewApologized,
   contracted;
 
   /// The Offer / Interview / Accepted step this stage belongs to.
@@ -18,16 +25,19 @@ enum OfferStage {
     negotiating ||
     rejectedByTalent ||
     cancelledNoResponse => 0,
-    awaitingInterviewTimes || interviewInProgress || interviewCancelled => 1,
+    awaitingInterviewTimes ||
+    interviewInProgress ||
+    interviewCancelled ||
+    interviewApologized => 1,
     contracted => 2,
   };
 
   /// The current step failed (offer rejected or cancelled, interview
-  /// cancelled).
+  /// apologized).
   bool get failed => {
     rejectedByTalent,
     cancelledNoResponse,
-    interviewCancelled,
+    interviewApologized,
   }.contains(this);
 }
 

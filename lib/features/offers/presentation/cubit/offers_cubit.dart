@@ -15,7 +15,8 @@ enum OfferStatusFilter {
     OfferStage.negotiating => negotiating,
     OfferStage.awaitingInterviewTimes ||
     OfferStage.interviewInProgress ||
-    OfferStage.interviewCancelled => interview,
+    OfferStage.interviewCancelled ||
+    OfferStage.interviewApologized => interview,
     OfferStage.contracted => contracted,
     OfferStage.rejectedByTalent => rejected,
     OfferStage.cancelledNoResponse => cancelled,

@@ -117,12 +117,12 @@ void main() {
 
     // List: four cards, then the second page.
     expect(find.text('My Offers'), findsOneWidget);
-    expect(find.text('Page 1 of 2'), findsOneWidget);
+    expect(find.text('Page 1 of 3'), findsOneWidget);
     expect(find.text('Awaiting Your Response'), findsOneWidget);
     expect(find.text('Clear Filters'), findsNothing);
     await capture('offers_list', 1300);
     await tap(find.widgetWithText(OutlinedButton, 'Next'));
-    expect(find.text('Page 2 of 2'), findsOneWidget);
+    expect(find.text('Page 2 of 3'), findsOneWidget);
     expect(find.text('Contracted'), findsOneWidget);
 
     // Search and status filter, then clear both.
@@ -137,7 +137,7 @@ void main() {
       findsOneWidget,
     );
     await tap(find.text('Clear Filters'));
-    expect(find.text('Page 1 of 2'), findsOneWidget);
+    expect(find.text('Page 1 of 3'), findsOneWidget);
     expect(
       tester
           .widget<TextFormField>(find.byType(TextFormField).first)
@@ -153,6 +153,7 @@ void main() {
       '3': ('offer_details_waiting_interview', 1300.0),
       '4': ('offer_details_interview', 1300.0),
       '5': ('offer_details_interview_cancelled', 1200.0),
+      '9': ('offer_details_interview_apologized', 1200.0),
       '6': ('offer_details_contracted', 1400.0),
       '7': ('offer_details_rejected', 1500.0),
       '8': ('offer_details_cancelled', 1800.0),

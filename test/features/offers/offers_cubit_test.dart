@@ -10,13 +10,14 @@ void main() {
   test('pages the offers newest first, four per page', () async {
     final offers = cubit();
     addTearDown(offers.close);
-    expect(offers.state.pageCount, 2);
+    expect(offers.state.pageCount, 3);
     expect(offers.state.visible.map((o) => o.id), ['1', '2', '3', '4']);
     offers.goTo(2);
     expect(offers.state.page, 2);
-    expect(offers.state.visible.map((o) => o.id), ['5', '6', '8', '7']);
+    expect(offers.state.visible.map((o) => o.id), ['5', '9', '6', '8']);
     offers.goTo(9);
-    expect(offers.state.page, 2);
+    expect(offers.state.page, 3);
+    expect(offers.state.visible.map((o) => o.id), ['7']);
   });
 
   test('search matches company or position, case-insensitively', () async {
@@ -42,6 +43,7 @@ void main() {
       OfferStage.awaitingInterviewTimes,
       OfferStage.interviewInProgress,
       OfferStage.interviewCancelled,
+      OfferStage.interviewApologized,
     ]);
     offers.filterDates(OfferDateRange.last30Days);
     expect(offers.state.visible.map((o) => o.id), ['3', '4', '5']);
@@ -52,7 +54,7 @@ void main() {
     offers.clearFilters();
     expect(offers.state.filtered, isFalse);
     expect(offers.state.visible, hasLength(4));
-    expect(offers.state.pageCount, 2);
+    expect(offers.state.pageCount, 3);
   });
 
   test('every status filter matches at least one preview offer', () {
@@ -72,5 +74,12 @@ void main() {
         reason: stage.name,
       );
     }
+  });
+
+  test('company cancellation keeps the interview step; apology fails it', () {
+    expect(OfferStage.interviewCancelled.progressStep, 1);
+    expect(OfferStage.interviewCancelled.failed, isFalse);
+    expect(OfferStage.interviewApologized.progressStep, 1);
+    expect(OfferStage.interviewApologized.failed, isTrue);
   });
 }

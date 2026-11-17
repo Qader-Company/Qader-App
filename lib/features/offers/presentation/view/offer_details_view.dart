@@ -67,7 +67,10 @@ class OfferDetailsView extends StatelessWidget {
             ),
           ),
         ),
-        if (offer.stage == OfferStage.interviewCancelled &&
+        if ({
+              OfferStage.interviewCancelled,
+              OfferStage.interviewApologized,
+            }.contains(offer.stage) &&
             offer.interview != null)
           OfferAlertBanner(
             icon: Icons.warning_rounded,
@@ -167,7 +170,8 @@ class OfferDetailsView extends StatelessWidget {
             onJoin: () => showOfferActionPending(context),
           ),
       ],
-      OfferStage.interviewCancelled => [const OfferInterviewStatus()],
+      OfferStage.interviewCancelled ||
+      OfferStage.interviewApologized => [const OfferInterviewStatus()],
       OfferStage.contracted => [
         if (offer.contract case final contract?)
           OfferContractCard(contract: contract),

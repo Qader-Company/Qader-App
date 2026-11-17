@@ -109,6 +109,17 @@ abstract final class OffersPreviewData {
       ),
     ),
     _offer(
+      '9',
+      OfferStage.interviewApologized,
+      position: 'UI Developer',
+      receivedAt: DateTime(2026, 10, 10),
+      interview: OfferInterview(
+        start: DateTime(2026, 9, 1, 11),
+        end: DateTime(2026, 9, 1, 12),
+        timeZone: 'GMT+3',
+      ),
+    ),
+    _offer(
       '6',
       OfferStage.contracted,
       position: 'Frontend Engineer',
