@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Which drawer entry is highlighted.
-enum AppDrawerItem { home, profile }
+enum AppDrawerItem { home, profile, offers }
 
 /// The app's side drawer, as a slot.
 ///

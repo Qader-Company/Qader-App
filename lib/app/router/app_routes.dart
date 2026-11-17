@@ -28,6 +28,9 @@ import '../../features/talent_profile/presentation/view/profile_review_view.dart
 
 import '../../features/talent_profile/presentation/view/profile_evaluation_view.dart';
 import '../../features/talent_profile/domain/entities/talent_profile.dart';
+import '../../features/offers/presentation/preview/offers_preview_data.dart';
+import '../../features/offers/presentation/view/offer_details_view.dart';
+import '../../features/offers/presentation/view/offers_view.dart';
 import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
 import '../../core/router/app_router.dart';
 export '../../core/router/app_router.dart';
@@ -128,6 +131,25 @@ GoRouter buildAppRouter() => GoRouter(
             ? state.extra as ProfileSetupSeed
             : null,
       ),
+    ),
+    // Design preview: the offers API is not connected yet, so these show
+    // the sample offers. The drawer opens them for logged-out visitors and
+    // from its "Design previews" section.
+    GoRoute(
+      path: AppRouter.offers,
+      builder: (context, state) => OffersView(offers: OffersPreviewData.offers),
+      routes: [
+        GoRoute(
+          path: ':id',
+          redirect: (context, state) =>
+              OffersPreviewData.byId(state.pathParameters['id']!) == null
+              ? AppRouter.offers
+              : null,
+          builder: (context, state) => OfferDetailsView(
+            offer: OffersPreviewData.byId(state.pathParameters['id']!)!,
+          ),
+        ),
+      ],
     ),
     GoRoute(
       path: AppRouter.profileEdit,

@@ -131,7 +131,14 @@ class HomeDrawer extends StatelessWidget {
             _Item(
               icon: Icons.verified_outlined,
               label: 'drawer_offers'.tr(context: context),
-              onTap: () => _soon(context),
+              selected: current == AppDrawerItem.offers,
+              // Offers only have sample data until the API is connected,
+              // so a signed-in talent is told it is coming instead.
+              onTap: current == AppDrawerItem.offers
+                  ? () => Navigator.pop(context)
+                  : prefs?.isLoggedIn ?? false
+                  ? () => _soon(context)
+                  : () => _open(context, AppRouter.offers),
             ),
             const _Divider(),
             _Item(
@@ -183,6 +190,12 @@ class HomeDrawer extends StatelessWidget {
                   Navigator.pop(context);
                   showProfilePreviews(context);
                 },
+              ),
+              _Item(
+                icon: Icons.local_offer_outlined,
+                label: 'drawer_offers_preview'.tr(context: context),
+                small: true,
+                onTap: () => _open(context, AppRouter.offers),
               ),
               _Item(
                 icon: Icons.event_available_outlined,

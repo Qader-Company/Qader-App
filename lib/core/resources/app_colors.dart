@@ -55,9 +55,16 @@ abstract final class AppColors {
   static const yellow100 = Color(0xFFFEF9C3);
   static const yellow600 = Color(0xFFCA8A04);
   static const yellow700 = Color(0xFFA16207);
+  static const amber50 = Color(0xFFFFFBEB);
+  static const amber100 = Color(0xFFFEF3C7);
+  static const amber200 = Color(0xFFFDE68A);
   static const amber400 = Color(0xFFFBBF24);
   static const amber500 = Color(0xFFF59E0B);
+  static const amber700 = Color(0xFFB45309);
+  static const amber800 = Color(0xFF92400E);
+  static const orange50 = Color(0xFFFFF7ED);
   static const orange500 = Color(0xFFF97316);
+  static const orange600 = Color(0xFFEA580C);
 
   // ─── Danger (red) ───
   static const red50 = Color(0xFFFEF2F2);

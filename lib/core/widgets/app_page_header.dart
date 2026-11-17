@@ -7,12 +7,28 @@ import 'qader_asset.dart';
 import 'spaced_column.dart';
 
 /// Top of the drawer pages: menu button, centered [title], notifications
-/// and the search field. Needs a [Scaffold] with a drawer above it.
+/// and, unless [showSearch] is false, the search field. Needs a [Scaffold]
+/// with a drawer above it.
 class AppPageHeader extends StatelessWidget {
-  const AppPageHeader({super.key, required this.title});
+  const AppPageHeader({
+    super.key,
+    required this.title,
+    this.showSearch = true,
+    this.searchHint,
+    this.searchController,
+    this.onSearchChanged,
+  });
 
   /// Already translated.
   final String title;
+  final bool showSearch;
+
+  /// Already translated; defaults to the global search hint.
+  final String? searchHint;
+  final TextEditingController? searchController;
+
+  /// Searches this page. Without it, search explains it is not connected.
+  final ValueChanged<String>? onSearchChanged;
   @override
   Widget build(BuildContext context) => SpacedColumn(
     children: [
@@ -40,21 +56,28 @@ class AppPageHeader extends StatelessWidget {
           ),
         ],
       ),
-      DefaultFormField(
-        compact: true,
-        hint: 'talent_search_requests_talent_companies'.tr(context: context),
-        prefixIcon: const Icon(
-          Icons.search,
-          size: 20,
-          color: AppColors.neutral500,
+      if (showSearch)
+        DefaultFormField(
+          compact: true,
+          controller: searchController,
+          hint:
+              searchHint ??
+              'talent_search_requests_talent_companies'.tr(context: context),
+          prefixIcon: const Icon(
+            Icons.search,
+            size: 20,
+            color: AppColors.neutral500,
+          ),
+          textInputAction: TextInputAction.search,
+          onChanged: onSearchChanged,
+          onSubmitted: onSearchChanged != null
+              ? null
+              : (_) => showInfoDialog(
+                  context,
+                  titleKey: 'talent_search',
+                  messageKey: 'talent_search_pending',
+                ),
         ),
-        textInputAction: TextInputAction.search,
-        onSubmitted: (_) => showInfoDialog(
-          context,
-          titleKey: 'talent_search',
-          messageKey: 'talent_search_pending',
-        ),
-      ),
     ],
   );
 }

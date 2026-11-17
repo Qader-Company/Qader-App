@@ -26,6 +26,9 @@ abstract class AppRouter {
   static const talentProfile = '/talent-profile';
   static const profileReview = '/profile-review';
   static const profileReport = '/profile-report';
+
+  /// The list; one offer is `'$offers/<id>'`.
+  static const offers = '/offers';
   static GoRouter Function()? _build;
   static GoRouter? _router;
 
