@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../cubit/profile_setup_cubit.dart';
+import '../../../../core/widgets/skeleton.dart';
 import 'profile_widgets.dart';
 
 class ProfileLookupSelect extends StatelessWidget {
@@ -31,6 +32,9 @@ class ProfileLookupSelect extends StatelessWidget {
     final needsCountry =
         lookup == ProfileLookup.cities &&
         draft.lookupId(ProfileLookup.countries, draft.value('country')) == null;
+    if (loading && options.isEmpty) {
+      return _LoadingField(label: label, required: required);
+    }
     return ProfileColumn(
       gap: 6,
       children: [
@@ -44,7 +48,6 @@ class ProfileLookupSelect extends StatelessWidget {
           enabled: !loading && failure == null,
           onChanged: onChanged,
         ),
-        if (loading) const LinearProgressIndicator(),
         if (failure != null) ...[
           Text(
             'profile_lookup_invalid'.tr(),
@@ -106,7 +109,9 @@ class ProfileLookupMultiSelect extends StatelessWidget {
         gap: 6,
         children: [
           ProfileLabel(label, required: required),
-          if (boxes)
+          if (loading && options.isEmpty)
+            _LoadingChoices(boxes: boxes)
+          else if (boxes)
             Row(
               children: [
                 for (var i = 0; i < options.length; i++) ...[
@@ -152,7 +157,6 @@ class ProfileLookupMultiSelect extends StatelessWidget {
                   ),
               ],
             ),
-          if (loading) const LinearProgressIndicator(),
           if (failure != null) ...[
             Text('profile_lookup_invalid'.tr()),
             TextButton(
@@ -170,4 +174,47 @@ class ProfileLookupMultiSelect extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The label and a shimmering input while a dropdown's options load.
+class _LoadingField extends StatelessWidget {
+  const _LoadingField({required this.label, required this.required});
+  final String label;
+  final bool required;
+  @override
+  Widget build(BuildContext context) => ProfileColumn(
+    gap: 6,
+    children: [
+      if (label.isNotEmpty) ProfileLabel(label, required: required),
+      const Shimmer(child: SkeletonBox(height: 40, radius: 8)),
+    ],
+  );
+}
+
+/// Shimmering option boxes or chips while a multi-select's options load.
+class _LoadingChoices extends StatelessWidget {
+  const _LoadingChoices({required this.boxes});
+  final bool boxes;
+  @override
+  Widget build(BuildContext context) => Shimmer(
+    child: boxes
+        ? Row(
+            children: [
+              for (var i = 0; i < 3; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                const Expanded(child: SkeletonBox(height: 40, radius: 8)),
+              ],
+            ],
+          )
+        : const Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              SkeletonBox(width: 72, height: 32, radius: 16),
+              SkeletonBox(width: 96, height: 32, radius: 16),
+              SkeletonBox(width: 64, height: 32, radius: 16),
+              SkeletonBox(width: 88, height: 32, radius: 16),
+            ],
+          ),
+  );
 }

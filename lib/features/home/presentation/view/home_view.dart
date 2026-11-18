@@ -12,6 +12,7 @@ import 'widgets/application_submitted_notice.dart';
 import 'widgets/home_drawer.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_profile_card.dart';
+import 'widgets/home_skeleton.dart';
 import 'widgets/review_steps.dart';
 import 'widgets/review_faq.dart';
 import '../../../../core/resources/app_colors.dart';
@@ -67,10 +68,7 @@ class HomeView extends StatelessWidget {
         preview: false,
         children: [
           if (state.loading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 120),
-              child: Center(child: CircularProgressIndicator()),
-            )
+            const HomeSkeleton()
           else
             _LoadError(onRetry: cubit.load),
         ],

@@ -8,6 +8,7 @@ import '../../domain/entities/email_verification_challenge.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../cubit/email_verification_cubit.dart';
 import 'widgets/auth_layout.dart';
+import 'widgets/auth_skeletons.dart';
 import 'widgets/auth_heading.dart';
 import 'widgets/otp_code_field.dart';
 
@@ -52,7 +53,7 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
       },
       builder: (context, state) {
         if (state.status == EmailVerificationStatus.success) {
-          return const Center(child: CircularProgressIndicator());
+          return const OtpFormSkeleton();
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

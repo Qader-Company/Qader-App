@@ -17,6 +17,7 @@ import '../widgets/work_preferences_step.dart';
 import '../widgets/profile_setup_confirmation.dart';
 import '../widgets/profile_setup_header.dart';
 import '../widgets/profile_step_title.dart';
+import '../widgets/profile_form_skeleton.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../domain/repositories/professional_fields_repository.dart';
 import '../../domain/repositories/profile_lookups_repository.dart';
@@ -259,7 +260,19 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                               AppPageHeader(title: pc(context, 'Edit Profile')),
                               const SizedBox(height: 8),
                               ProfileEditBackLink(onBack: _leaveEdit),
-                              const SizedBox(height: 64),
+                              const SizedBox(height: 16),
+                              _progressStatus(),
+                            ],
+                          )
+                        : draft.progressLoading
+                        ? ListView(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                            children: [
+                              ProfileSetupHeader(
+                                showBack: false,
+                                onBack: _back,
+                              ),
+                              const SizedBox(height: 24),
                               _progressStatus(),
                             ],
                           )
@@ -376,8 +389,9 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   Widget _progressStatus() => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (draft.progressLoading) const CircularProgressIndicator(),
+      if (draft.progressLoading) const ProfileFormSkeleton(),
       if (draft.progressFailure != null) ...[
+        const SizedBox(height: 48),
         Text('profile_progress_failed'.tr(), textAlign: TextAlign.center),
         TextButton(onPressed: _resume, child: Text('auth_retry'.tr())),
       ],

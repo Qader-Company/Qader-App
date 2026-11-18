@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../resources/color_manager.dart';
+import 'skeleton.dart';
 
 class DefaultImage extends StatelessWidget {
   final String? imageUrl;
@@ -42,12 +43,12 @@ class DefaultImage extends StatelessWidget {
               width: width,
               height: height,
               fit: fit,
-              placeholder: (_, __) => Container(
-                width: width,
-                height: height,
-                color: ColorManager.shimmerBase,
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
+              // Shimmers at the image's size until it arrives.
+              placeholder: (_, _) => Shimmer(
+                child: SkeletonBox(
+                  width: width ?? double.infinity,
+                  height: height ?? 48,
+                  radius: 0,
                 ),
               ),
               errorWidget: (_, __, ___) => Container(

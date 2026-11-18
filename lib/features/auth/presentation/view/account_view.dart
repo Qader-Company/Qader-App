@@ -5,6 +5,7 @@ import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/language_toggle_button.dart';
 import '../cubit/auth_session_cubit.dart';
 import 'widgets/auth_layout.dart';
+import 'widgets/auth_skeletons.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/router/route_args.dart';
@@ -37,8 +38,7 @@ class _AccountViewState extends State<AccountView> {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 24),
-          if (state.status == AuthStatus.loading)
-            const Center(child: CircularProgressIndicator()),
+          if (state.status == AuthStatus.loading) const AccountSkeleton(),
           if (state.user case final user?) ...[
             Text(user.fullName, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),

@@ -11,6 +11,7 @@ import '../../domain/repositories/offers_repository.dart';
 import '../cubit/offers_cubit.dart';
 import '../offers_copy.dart';
 import '../widgets/offer_card.dart';
+import '../widgets/offer_card_skeleton.dart';
 import '../widgets/offer_filters.dart';
 import 'offers_scaffold.dart';
 
@@ -69,10 +70,13 @@ class _OffersViewState extends State<OffersView> {
                 a.loading != b.loading ||
                 a.failure != b.failure,
             builder: (context, state) {
-              if (state.items.isEmpty && state.loading) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 80),
-                  child: Center(child: CircularProgressIndicator()),
+              // Placeholder cards on the first load and on every page or
+              // filter change, so old results never look current.
+              if (state.loading) {
+                return OfferListSkeleton(
+                  count: state.items.isEmpty
+                      ? 3
+                      : state.items.length.clamp(1, 4),
                 );
               }
               if (state.items.isEmpty && state.failure != null) {
@@ -93,7 +97,6 @@ class _OffersViewState extends State<OffersView> {
               }
               return Column(
                 children: [
-                  if (state.loading) const LinearProgressIndicator(),
                   for (final offer in state.items) ...[
                     const SizedBox(height: 12),
                     OfferCard(

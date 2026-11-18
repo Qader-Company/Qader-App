@@ -11,6 +11,7 @@ import '../cubit/talent_profile_cubit.dart';
 import '../profile_copy.dart';
 import '../widgets/profile_components.dart';
 import '../widgets/profile_content.dart';
+import '../widgets/profile_skeleton.dart';
 
 /// The talent's profile. With a [preview] profile it shows that sample
 /// (logged out and preview routes); otherwise it loads `GET /talent/profile`.
@@ -54,10 +55,7 @@ class TalentProfileView extends StatelessWidget {
                       },
                     )
                   : state.loading
-                  ? const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 120),
-                      child: Center(child: CircularProgressIndicator()),
-                    )
+                  ? const ProfileSkeleton()
                   : _LoadError(onRetry: cubit.load),
             ),
           );

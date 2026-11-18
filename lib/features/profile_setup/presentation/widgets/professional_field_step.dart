@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'profile_form_skeleton.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/widgets/qader_design.dart';
 import '../cubit/profile_setup_cubit.dart';
@@ -44,7 +45,8 @@ class ProfessionalFieldStep extends StatelessWidget {
           ),
         ],
       ),
-      if (draft.fieldsLoading) const Center(child: CircularProgressIndicator()),
+      if (draft.fieldsLoading && draft.fields.isEmpty)
+        const ProfessionalFieldSkeleton(),
       if (draft.fieldFailure case final failure?) ...[
         Text(
           failure.message.startsWith('profile_')

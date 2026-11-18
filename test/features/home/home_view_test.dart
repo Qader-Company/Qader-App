@@ -13,6 +13,7 @@ import 'package:qader/features/home/domain/talent_application.dart';
 import 'package:qader/features/home/presentation/view/application_status_view.dart';
 import 'package:qader/features/home/presentation/view/home_view.dart';
 import 'package:qader/features/home/presentation/view/widgets/application_review_banner.dart';
+import 'package:qader/features/home/presentation/view/widgets/home_skeleton.dart';
 
 class _Translations extends AssetLoader {
   const _Translations();
@@ -136,7 +137,7 @@ void main() {
     ])..gate = Completer<void>();
     await pump(tester, repo);
     await tester.pump();
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(HomeSkeleton), findsOneWidget);
 
     repo.gate!.complete();
     repo.gate = null;
