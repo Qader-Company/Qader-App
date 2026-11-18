@@ -45,7 +45,7 @@ class OfferDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final closedAt = offer.closedAt;
     return OffersScaffold(
-      header: AppPageHeader(title: ot(context, 'my_offers'), showSearch: false),
+      header: AppPageHeader(title: ot(context, 'my_offers')),
       children: [
         Align(
           alignment: AlignmentDirectional.centerStart,

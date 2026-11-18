@@ -30,8 +30,8 @@ class ApiOffersRepository implements OffersRepository {
       query: {
         'page': query.page,
         'per_page': query.perPage,
-        if (query.search.trim().isNotEmpty) 'search': query.search.trim(),
         if (query.status case final status?) 'status[]': status,
+        if (query.sort case final sort?) 'sort': sort,
       },
     );
     return data.fold(

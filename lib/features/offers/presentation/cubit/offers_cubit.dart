@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/failure.dart';
 import '../../domain/entities/hiring_offer_options.dart';
@@ -12,9 +11,10 @@ class OffersState {
     this.loading = false,
     this.failure,
     this.statuses = const [],
+    this.sortOptions = const [],
     this.items = const [],
-    this.query = '',
     this.status,
+    this.sort,
     this.page = 1,
     this.lastPage = 1,
   });
@@ -27,49 +27,50 @@ class OffersState {
 
   /// Status filter choices (`item_statuses`).
   final List<HiringOfferOption> statuses;
+
+  /// Date order choices (`sort_options`).
+  final List<HiringOfferOption> sortOptions;
   final List<HiringOfferSummary> items;
-  final String query;
 
   /// Selected `item_statuses` value; `null` for every status.
   final String? status;
+
+  /// Selected `sort_options` value; `null` for the server default
+  /// ("All Dates").
+  final String? sort;
   final int page, lastPage;
 
-  bool get filtered => query.isNotEmpty || status != null;
+  bool get filtered => status != null || sort != null;
 
   OffersState copyWith({
     bool? loading,
     Object? failure = _keep,
     List<HiringOfferOption>? statuses,
+    List<HiringOfferOption>? sortOptions,
     List<HiringOfferSummary>? items,
-    String? query,
     Object? status = _keep,
+    Object? sort = _keep,
     int? page,
     int? lastPage,
   }) => OffersState(
     loading: loading ?? this.loading,
     failure: identical(failure, _keep) ? this.failure : failure as Failure?,
     statuses: statuses ?? this.statuses,
+    sortOptions: sortOptions ?? this.sortOptions,
     items: items ?? this.items,
-    query: query ?? this.query,
     status: identical(status, _keep) ? this.status : status as String?,
+    sort: identical(sort, _keep) ? this.sort : sort as String?,
     page: page ?? this.page,
     lastPage: lastPage ?? this.lastPage,
   );
 }
 
-/// The offers list: the server searches, filters and pages it.
+/// The offers list: the server filters, sorts and pages it.
 class OffersCubit extends Cubit<OffersState> {
-  OffersCubit(
-    this._repository, {
-    this.perPage = 10,
-    this.searchDelay = const Duration(milliseconds: 400),
-  }) : super(const OffersState(loading: true));
+  OffersCubit(this._repository, {this.perPage = 10})
+    : super(const OffersState(loading: true));
   final OffersRepository _repository;
   final int perPage;
-
-  /// Typing pause before the search request.
-  final Duration searchDelay;
-  Timer? _searchTimer;
 
   /// Only the newest page request may update the state.
   int _request = 0;
@@ -82,25 +83,18 @@ class OffersCubit extends Cubit<OffersState> {
   Future<void> reload() =>
       Future.wait([_loadOptions(), _load(page: state.page)]);
 
-  void search(String query) {
-    _searchTimer?.cancel();
-    final trimmed = query.trim();
-    if (trimmed == state.query) return;
-    _searchTimer = Timer(searchDelay, () {
-      if (isClosed) return;
-      emit(state.copyWith(query: trimmed));
-      _load(page: 1);
-    });
-  }
-
   Future<void> filterStatus(String? status) {
     emit(state.copyWith(status: status));
     return _load(page: 1);
   }
 
+  Future<void> sortBy(String? sort) {
+    emit(state.copyWith(sort: sort));
+    return _load(page: 1);
+  }
+
   Future<void> clearFilters() {
-    _searchTimer?.cancel();
-    emit(state.copyWith(query: '', status: null));
+    emit(state.copyWith(status: null, sort: null));
     return _load(page: 1);
   }
 
@@ -111,10 +105,15 @@ class OffersCubit extends Cubit<OffersState> {
   Future<void> _loadOptions() async {
     final result = await _repository.loadOptions();
     if (isClosed) return;
-    // Without options the filter only offers "All Statuses".
+    // Without options the menus only offer "All Statuses" / "All Dates".
     result.fold(
       (_) {},
-      (options) => emit(state.copyWith(statuses: options.itemStatuses)),
+      (options) => emit(
+        state.copyWith(
+          statuses: options.itemStatuses,
+          sortOptions: options.sortOptions,
+        ),
+      ),
     );
   }
 
@@ -123,8 +122,8 @@ class OffersCubit extends Cubit<OffersState> {
     emit(state.copyWith(loading: true, failure: null));
     final result = await _repository.loadOffers(
       HiringOfferQuery(
-        search: state.query,
         status: state.status,
+        sort: state.sort,
         page: page < 1 ? 1 : page,
         perPage: perPage,
       ),
@@ -141,11 +140,5 @@ class OffersCubit extends Cubit<OffersState> {
         ),
       ),
     );
-  }
-
-  @override
-  Future<void> close() {
-    _searchTimer?.cancel();
-    return super.close();
   }
 }

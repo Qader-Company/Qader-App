@@ -128,27 +128,24 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     await tester.pumpAndSettle();
 
-    // Search (after the typing pause) and status filter, then clear both.
-    await tester.enterText(find.byType(TextFormField).first, 'react');
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.pumpAndSettle();
-    expect(find.text('React Developer'), findsOneWidget);
-    expect(find.text('Senior UI Engineer'), findsNothing);
+    // No search field; status filter, then clear it.
+    expect(find.byType(TextFormField), findsNothing);
     await tap(find.byKey(const ValueKey('offers-status-filter')));
     await tap(find.text('Rejected').last);
-    expect(
-      find.text('No offers match your search or filters.'),
-      findsOneWidget,
-    );
+    expect(find.text('JavaScript Developer'), findsOneWidget);
+    expect(find.text('Senior UI Engineer'), findsNothing);
     await tap(find.text('Clear Filters'));
     expect(find.text('Senior UI Engineer'), findsOneWidget);
-    expect(
-      tester
-          .widget<TextFormField>(find.byType(TextFormField).first)
-          .controller!
-          .text,
-      isEmpty,
-    );
+
+    // Date order: oldest first, then back to the default.
+    expect(find.text('All Dates'), findsOneWidget);
+    await tap(find.byKey(const ValueKey('offers-date-sort')));
+    await tap(find.text('Oldest').last);
+    final first = tester.getTopLeft(find.text('JavaScript Developer'));
+    final later = tester.getTopLeft(find.text('Senior Frontend Developer'));
+    expect(first.dy, lessThan(later.dy));
+    await tap(find.text('Clear Filters'));
+    expect(find.text('All Dates'), findsOneWidget);
 
     // Details of each stage.
     final stages = {

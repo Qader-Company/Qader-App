@@ -119,18 +119,20 @@ class HiringOfferPage {
   }
 }
 
-/// Search, filter and page of the offers list request.
+/// Filter, sort and page of the offers list request.
 class HiringOfferQuery {
   const HiringOfferQuery({
-    this.search = '',
     this.status,
+    this.sort,
     this.page = 1,
     this.perPage = 10,
   });
-  final String search;
 
   /// One of the options' `item_statuses`; `null` for every status.
   final String? status;
+
+  /// One of the options' `sort_options`; `null` for the server default.
+  final String? sort;
   final int page, perPage;
 }
 

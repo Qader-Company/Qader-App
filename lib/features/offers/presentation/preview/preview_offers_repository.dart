@@ -43,6 +43,10 @@ class PreviewOffersRepository implements OffersRepository {
         for (final status in PreviewOfferStatus.values)
           HiringOfferOption(value: status.name, label: ''),
       ],
+      sortOptions: const [
+        HiringOfferOption(value: 'newest', label: ''),
+        HiringOfferOption(value: 'oldest', label: ''),
+      ],
     ),
   );
 
@@ -50,14 +54,10 @@ class PreviewOffersRepository implements OffersRepository {
   Future<Either<Failure, HiringOfferPage>> loadOffers(
     HiringOfferQuery query,
   ) async {
-    final search = query.search.trim().toLowerCase();
     final matches = [
-      for (final offer in _offers)
-        if ((search.isEmpty ||
-                offer.company.name.toLowerCase().contains(search) ||
-                offer.position.toLowerCase().contains(search)) &&
-            (query.status == null ||
-                PreviewOfferStatus.of(offer.stage).name == query.status))
+      for (final offer in query.sort == 'oldest' ? _offers.reversed : _offers)
+        if (query.status == null ||
+            PreviewOfferStatus.of(offer.stage).name == query.status)
           offer,
     ];
     final lastPage = matches.isEmpty

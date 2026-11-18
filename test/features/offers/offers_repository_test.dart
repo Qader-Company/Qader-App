@@ -26,6 +26,10 @@ Map<String, dynamic> _options() => {
       {'value': 'countered', 'label': 'Countered'},
       {'value': 'expired', 'label': 'Expired'},
     ],
+    'sort_options': [
+      {'value': 'newest', 'label': 'Newest'},
+      {'value': 'oldest', 'label': 'Oldest'},
+    ],
   },
 };
 
@@ -140,6 +144,10 @@ void main() {
       'countered',
       'expired',
     ]);
+    expect(options.sortOptions.map((o) => (o.value, o.label)), [
+      ('newest', 'Newest'),
+      ('oldest', 'Oldest'),
+    ]);
   });
 
   test('skips malformed entries and falls back to the value', () async {
@@ -181,12 +189,12 @@ void main() {
     ).loadOptions();
     expect(offline.getErrorOrThrow(), isA<NetworkFailure>());
   });
-  test('lists one page with search, status and paging params', () async {
+  test('lists one page with status, sort and paging params', () async {
     final api = _Api(_list());
     final result = await ApiOffersRepository(api).loadOffers(
       const HiringOfferQuery(
-        search: ' software ',
         status: 'interview',
+        sort: 'oldest',
         page: 2,
         perPage: 15,
       ),
@@ -195,8 +203,8 @@ void main() {
     expect(api.queries.single, {
       'page': 2,
       'per_page': 15,
-      'search': 'software',
       'status[]': 'interview',
+      'sort': 'oldest',
     });
     final page = result.getOrThrow();
     expect((page.page, page.lastPage, page.total), (1, 1, 1));

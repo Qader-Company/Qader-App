@@ -29,18 +29,11 @@ class OffersView extends StatefulWidget {
 
 class _OffersViewState extends State<OffersView> {
   late final _cubit = OffersCubit(widget.repository)..start();
-  final _search = TextEditingController();
 
   @override
   void dispose() {
-    _search.dispose();
     _cubit.close();
     super.dispose();
-  }
-
-  void _clear() {
-    _search.clear();
-    _cubit.clearFilters();
   }
 
   void _open(HiringOfferSummary offer) => widget.preview
@@ -56,14 +49,9 @@ class _OffersViewState extends State<OffersView> {
       onChanged: _cubit.reload,
       child: OffersScaffold(
         onRefresh: _cubit.reload,
-        header: AppPageHeader(
-          title: ot(context, 'my_offers'),
-          searchHint: ot(context, 'search_hint'),
-          searchController: _search,
-          onSearchChanged: _cubit.search,
-        ),
+        header: AppPageHeader(title: ot(context, 'my_offers')),
         children: [
-          OfferFilters(onClear: _clear),
+          const OfferFilters(),
           BlocBuilder<OffersCubit, OffersState>(
             buildWhen: (a, b) =>
                 a.items != b.items ||

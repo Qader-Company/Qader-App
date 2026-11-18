@@ -135,7 +135,8 @@ void main() {
       await tester.pumpAndSettle();
       await tap(find.widgetWithText(ElevatedButton, 'Save Changes'));
       expect(find.text('This field is required'), findsOneWidget);
-      final nameField = find.byType(TextFormField).at(1);
+      // The sheet's first field is Full Name (the page has no search field).
+      final nameField = find.byType(TextFormField).first;
       await tester.ensureVisible(nameField);
       await tester.enterText(nameField, 'Ahmed Ali');
       FocusManager.instance.primaryFocus?.unfocus();

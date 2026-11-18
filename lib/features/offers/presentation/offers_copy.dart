@@ -23,6 +23,10 @@ String offerCodeLabel(BuildContext context, String code) {
 String offerStatusText(BuildContext context, String value, String label) =>
     label.isNotEmpty ? label : ot(context, 'status_$value');
 
+/// Same as [offerStatusText] for a `sort_options` entry.
+String offerSortText(BuildContext context, String value, String label) =>
+    label.isNotEmpty ? label : ot(context, 'sort_$value');
+
 /// "$6,500" (monthly salaries are whole numbers unless [decimals]).
 String offerMoney(
   BuildContext context,

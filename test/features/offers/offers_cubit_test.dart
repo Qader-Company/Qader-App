@@ -24,6 +24,10 @@ class _Repo implements OffersRepository {
             HiringOfferOption(value: 'offer', label: 'Offer'),
             HiringOfferOption(value: 'interview', label: 'Interview'),
           ],
+          sortOptions: [
+            HiringOfferOption(value: 'newest', label: 'Newest'),
+            HiringOfferOption(value: 'oldest', label: 'Oldest'),
+          ],
         ),
       );
 
@@ -58,6 +62,7 @@ void main() {
     await offers.start();
     expect(offers.state.loading, isFalse);
     expect(offers.state.statuses.map((o) => o.value), ['offer', 'interview']);
+    expect(offers.state.sortOptions.map((o) => o.value), ['newest', 'oldest']);
     expect(offers.state.items.single.id, '1');
     expect(offers.state.lastPage, 3);
     expect(repo.queries.single.perPage, 15);
@@ -75,27 +80,14 @@ void main() {
     expect(repo.queries.last.status, 'interview');
     expect(repo.queries.last.page, 1);
     expect(offers.state.filtered, isTrue);
+    await offers.sortBy('oldest');
+    expect(repo.queries.last.sort, 'oldest');
+    expect(repo.queries.last.status, 'interview');
+    expect(repo.queries.last.page, 1);
     await offers.clearFilters();
     expect(repo.queries.last.status, isNull);
+    expect(repo.queries.last.sort, isNull);
     expect(offers.state.filtered, isFalse);
-  });
-
-  test('search waits for a typing pause and starts at page 1', () async {
-    final repo = _Repo();
-    final offers = OffersCubit(
-      repo,
-      searchDelay: const Duration(milliseconds: 20),
-    );
-    addTearDown(offers.close);
-    await offers.start();
-    await offers.goTo(3);
-    offers.search('so');
-    offers.search(' software ');
-    await Future<void>.delayed(const Duration(milliseconds: 60));
-    expect(repo.queries.where((q) => q.search.isNotEmpty), hasLength(1));
-    expect(repo.queries.last.search, 'software');
-    expect(repo.queries.last.page, 1);
-    expect(offers.state.query, 'software');
   });
 
   test(
@@ -124,7 +116,7 @@ void main() {
     },
   );
 
-  test('the preview repository searches, filters and pages samples', () async {
+  test('the preview repository filters, sorts and pages samples', () async {
     final repo = PreviewOffersRepository(OffersPreviewData.offers);
     final all = (await repo.loadOffers(
       const HiringOfferQuery(perPage: 4),
@@ -135,10 +127,14 @@ void main() {
       const HiringOfferQuery(status: 'interview'),
     )).getOrThrow();
     expect(interviews.items.map((o) => o.id), ['3', '4', '5', '9']);
-    final search = (await repo.loadOffers(
-      const HiringOfferQuery(search: 'REACT'),
+    final oldest = (await repo.loadOffers(
+      const HiringOfferQuery(sort: 'oldest', perPage: 2),
     )).getOrThrow();
-    expect(search.items.single.jobTitle, 'React Developer');
+    expect(oldest.items.map((o) => o.id), ['7', '8']);
+    final rejected = (await repo.loadOffers(
+      const HiringOfferQuery(status: 'rejected'),
+    )).getOrThrow();
+    expect(rejected.items.single.jobTitle, 'JavaScript Developer');
     final options = (await repo.loadOptions()).getOrThrow();
     expect(
       options.itemStatuses.map((o) => o.value),

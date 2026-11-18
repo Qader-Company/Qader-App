@@ -9,12 +9,13 @@ class HiringOfferOption {
   final String label;
 }
 
-/// `GET /talent/hiring-offers/options`: the filter choices of the offers
-/// list.
+/// `GET /talent/hiring-offers/options`: the filter and sort choices of the
+/// offers list.
 class HiringOfferOptions {
   const HiringOfferOptions({
     this.itemStatuses = const [],
     this.offerStatuses = const [],
+    this.sortOptions = const [],
   });
 
   /// Where the hiring process stands (`pending`, `offer`, `interview`, …).
@@ -23,11 +24,15 @@ class HiringOfferOptions {
   /// Where the offer itself stands (`pending`, `countered`, `expired`, …).
   final List<HiringOfferOption> offerStatuses;
 
+  /// Date order of the list (`newest`, `oldest`).
+  final List<HiringOfferOption> sortOptions;
+
   /// Parses `data`; skips entries without a value or label.
   factory HiringOfferOptions.fromJson(Map<String, dynamic> json) =>
       HiringOfferOptions(
         itemStatuses: _options(json['item_statuses']),
         offerStatuses: _options(json['offer_statuses']),
+        sortOptions: _options(json['sort_options']),
       );
 
   static List<HiringOfferOption> _options(Object? raw) => [

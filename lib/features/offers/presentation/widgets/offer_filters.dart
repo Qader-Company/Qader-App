@@ -4,24 +4,21 @@ import '../../../../core/resources/app_colors.dart';
 import '../cubit/offers_cubit.dart';
 import '../offers_copy.dart';
 
-/// Status filter above the offers list, with "Clear Filters".
-///
-/// The design also has a date filter; `GET /talent/hiring-offers` has no
-/// date parameter, so it is left out until the API supports it.
+/// Status filter and date order above the offers list, with
+/// "Clear Filters". Choices come from the options endpoint.
 class OfferFilters extends StatelessWidget {
-  const OfferFilters({super.key, required this.onClear});
-
-  /// Also clears the search field the page owns.
-  final VoidCallback onClear;
+  const OfferFilters({super.key});
   @override
   Widget build(BuildContext context) => BlocBuilder<OffersCubit, OffersState>(
     buildWhen: (a, b) =>
         a.status != b.status ||
+        a.sort != b.sort ||
         a.statuses != b.statuses ||
+        a.sortOptions != b.sortOptions ||
         a.filtered != b.filtered,
     builder: (context, state) {
       final cubit = context.read<OffersCubit>();
-      String label(String? value) {
+      String statusLabel(String? value) {
         if (value == null) return ot(context, 'all_statuses');
         for (final option in state.statuses) {
           if (option.value == value) {
@@ -31,15 +28,49 @@ class OfferFilters extends StatelessWidget {
         return offerStatusText(context, value, '');
       }
 
+      String sortLabel(String? value) {
+        if (value == null) return ot(context, 'all_dates');
+        for (final option in state.sortOptions) {
+          if (option.value == value) {
+            return offerSortText(context, option.value, option.label);
+          }
+        }
+        return offerSortText(context, value, '');
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _FilterMenu(
-            key: const ValueKey('offers-status-filter'),
-            label: label(state.status),
-            values: [null, for (final option in state.statuses) option.value],
-            itemLabel: label,
-            onSelected: cubit.filterStatus,
+          Row(
+            children: [
+              Expanded(
+                child: _FilterMenu(
+                  key: const ValueKey('offers-status-filter'),
+                  label: statusLabel(state.status),
+                  values: [
+                    null,
+                    for (final option in state.statuses) option.value,
+                  ],
+                  itemLabel: statusLabel,
+                  onSelected: cubit.filterStatus,
+                ),
+              ),
+              if (state.sortOptions.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _FilterMenu(
+                    key: const ValueKey('offers-date-sort'),
+                    label: sortLabel(state.sort),
+                    values: [
+                      null,
+                      for (final option in state.sortOptions) option.value,
+                    ],
+                    itemLabel: sortLabel,
+                    onSelected: cubit.sortBy,
+                  ),
+                ),
+              ],
+            ],
           ),
           if (state.filtered)
             TextButton(
@@ -47,7 +78,7 @@ class OfferFilters extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 foregroundColor: AppColors.blueStrong,
               ),
-              onPressed: onClear,
+              onPressed: cubit.clearFilters,
               child: Text(
                 ot(context, 'clear_filters'),
                 style: const TextStyle(
