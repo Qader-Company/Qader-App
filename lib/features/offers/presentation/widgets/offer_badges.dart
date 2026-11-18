@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
 import '../../../../core/resources/app_colors.dart';
-import '../cubit/offers_cubit.dart';
+import '../../../../core/widgets/default_image.dart';
 import '../offers_copy.dart';
 
-/// Initials logo of a company: a rounded square in the list, a circle on
-/// the details page.
+/// Company logo, or its initials: a rounded square in the list, a circle
+/// on the details page.
 class CompanyLogo extends StatelessWidget {
-  const CompanyLogo({super.key, required this.name, this.square = false});
+  const CompanyLogo({
+    super.key,
+    required this.name,
+    this.square = false,
+    this.imageUrl,
+  });
   final String name;
   final bool square;
+  final String? imageUrl;
   @override
   Widget build(BuildContext context) {
+    if (imageUrl case final url?) {
+      return DefaultImage(
+        imageUrl: url,
+        width: 32,
+        height: 32,
+        radius: square ? 8 : 16,
+      );
+    }
     final words = name
         .split(RegExp(r'\s+'))
         .where((part) => part.isNotEmpty)
@@ -75,22 +89,30 @@ class OfferChip extends StatelessWidget {
   );
 }
 
-/// Status of an offer in the list.
+/// Status of an offer in the list: the backend's [label] (or the
+/// translation of [value]), colored by [value].
 class OfferStatusChip extends StatelessWidget {
-  const OfferStatusChip(this.status, {super.key});
-  final OfferStatusFilter status;
+  const OfferStatusChip({super.key, required this.value, this.label = ''});
+
+  /// Backend code (`offer`, `interview`, …) or a preview status.
+  final String value;
+  final String label;
   @override
   Widget build(BuildContext context) {
-    final (background, foreground) = switch (status) {
-      OfferStatusFilter.awaitingResponse ||
-      OfferStatusFilter.contracted => (AppColors.green50, AppColors.green700),
-      OfferStatusFilter.negotiating ||
-      OfferStatusFilter.interview => (AppColors.blueSoft, AppColors.blueStrong),
-      OfferStatusFilter.rejected ||
-      OfferStatusFilter.cancelled => (AppColors.red50, AppColors.red600),
+    final (background, foreground) = switch (value) {
+      'offer' ||
+      'awaitingResponse' ||
+      'accepted' ||
+      'completed' ||
+      'contracted' => (AppColors.green50, AppColors.green700),
+      'interview' ||
+      'negotiating' => (AppColors.blueSoft, AppColors.blueStrong),
+      'on_hold' || 'pending' => (AppColors.amber50, AppColors.amber700),
+      'rejected' || 'cancelled' => (AppColors.red50, AppColors.red600),
+      _ => (AppColors.neutral100, AppColors.neutral700),
     };
     return OfferChip(
-      offerStatusLabel(context, status),
+      offerStatusText(context, value, label),
       background: background,
       foreground: foreground,
     );

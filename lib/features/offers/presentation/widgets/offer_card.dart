@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../../core/resources/app_colors.dart';
-import '../../domain/entities/talent_offer.dart';
-import '../cubit/offers_cubit.dart';
+import '../../domain/entities/hiring_offer_summary.dart';
 import '../offers_copy.dart';
 import 'offer_badges.dart';
 
 /// One offer in the "My Offers" list.
 class OfferCard extends StatelessWidget {
   const OfferCard({super.key, required this.offer, required this.onOpen});
-  final TalentOffer offer;
+  final HiringOfferSummary offer;
   final VoidCallback onOpen;
   @override
   Widget build(BuildContext context) {
-    final terms = offer.latest;
+    final salary = offer.salary;
+    final currency = offer.currency;
+    final workMode = offer.workMode;
+    final received = offer.receivedAt;
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(
@@ -29,11 +31,15 @@ class OfferCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CompanyLogo(name: offer.company.name, square: true),
+                  CompanyLogo(
+                    name: offer.companyName,
+                    imageUrl: offer.companyLogoUrl,
+                    square: true,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      offer.company.name,
+                      offer.companyName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -54,48 +60,58 @@ class OfferCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                offer.position,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  height: 1.5,
+              if (offer.jobTitle.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  offer.jobTitle,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.5,
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 6),
-              OfferStatusChip(OfferStatusFilter.of(offer.stage)),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _Fact(
-                      label: ot(context, 'salary_monthly'),
-                      value: offerMoney(context, terms.salary, terms.currency),
-                      highlight: true,
+              OfferStatusChip(value: offer.status, label: offer.statusLabel),
+              if (salary != null && currency != null || workMode != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: salary != null && currency != null
+                          ? _Fact(
+                              label: ot(context, 'salary_monthly'),
+                              value: offerMoney(context, salary, currency),
+                              highlight: true,
+                            )
+                          : const SizedBox.shrink(),
                     ),
-                  ),
-                  Expanded(
-                    child: _Fact(
-                      label: ot(context, 'work_mode'),
-                      value: offerCodeLabel(context, terms.workMode),
+                    Expanded(
+                      child: workMode != null
+                          ? _Fact(
+                              label: ot(context, 'work_mode'),
+                              value: offerCodeLabel(context, workMode),
+                            )
+                          : const SizedBox.shrink(),
                     ),
+                  ],
+                ),
+              ],
+              if (received != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  ot(
+                    context,
+                    'received_date',
+                    args: {'date': offerDate(context, received)},
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                ot(
-                  context,
-                  'received_date',
-                  args: {'date': offerDate(context, offer.receivedAt)},
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.neutral600,
+                  ),
                 ),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.neutral600,
-                ),
-              ),
+              ],
             ],
           ),
         ),

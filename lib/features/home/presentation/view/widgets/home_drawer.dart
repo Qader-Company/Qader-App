@@ -132,12 +132,8 @@ class HomeDrawer extends StatelessWidget {
               icon: Icons.verified_outlined,
               label: 'drawer_offers'.tr(context: context),
               selected: current == AppDrawerItem.offers,
-              // Offers only have sample data until the API is connected,
-              // so a signed-in talent is told it is coming instead.
               onTap: current == AppDrawerItem.offers
                   ? () => Navigator.pop(context)
-                  : prefs?.isLoggedIn ?? false
-                  ? () => _soon(context)
                   : () => _open(context, AppRouter.offers),
             ),
             const _Divider(),
@@ -195,7 +191,7 @@ class HomeDrawer extends StatelessWidget {
                 icon: Icons.local_offer_outlined,
                 label: 'drawer_offers_preview'.tr(context: context),
                 small: true,
-                onTap: () => _open(context, AppRouter.offers),
+                onTap: () => _open(context, '${AppRouter.offers}?preview=true'),
               ),
               _Item(
                 icon: Icons.event_available_outlined,

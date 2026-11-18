@@ -3,26 +3,31 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/widgets/app_drawer.dart';
 import '../../../../core/widgets/app_page_header.dart';
-import '../../domain/entities/talent_offer.dart';
+import '../../../../core/widgets/default_button.dart';
+import '../../../../core/widgets/locale_change_listener.dart';
+import '../../domain/entities/hiring_offer_summary.dart';
+import '../../domain/repositories/offers_repository.dart';
 import '../cubit/offers_cubit.dart';
 import '../offers_copy.dart';
 import '../widgets/offer_card.dart';
 import '../widgets/offer_filters.dart';
 import 'offers_scaffold.dart';
 
-/// "My Offers": the offers sent to the talent, with search, filters and
-/// paging. Shows [offers] (the preview data until the API is connected).
+/// "My Offers": the offers sent to the talent, searched, filtered and paged
+/// by [repository] (the API, or the preview data for logged-out visitors).
 class OffersView extends StatefulWidget {
-  const OffersView({super.key, required this.offers});
-  final List<TalentOffer> offers;
+  const OffersView({super.key, required this.repository, this.preview = false});
+  final OffersRepository repository;
+
+  /// Sample offers: cards open the designed details screens.
+  final bool preview;
   @override
   State<OffersView> createState() => _OffersViewState();
 }
 
 class _OffersViewState extends State<OffersView> {
-  late final _cubit = OffersCubit(widget.offers);
+  late final _cubit = OffersCubit(widget.repository)..start();
   final _search = TextEditingController();
 
   @override
@@ -37,23 +42,44 @@ class _OffersViewState extends State<OffersView> {
     _cubit.clearFilters();
   }
 
+  void _open(HiringOfferSummary offer) => widget.preview
+      ? context.push('${AppRouter.offers}/${offer.id}?preview=true')
+      // Get Hiring Offer is not connected yet.
+      : showOfferDetailsPending(context);
+
   @override
   Widget build(BuildContext context) => BlocProvider.value(
     value: _cubit,
-    child: OffersScaffold(
-      current: AppDrawerItem.offers,
-      header: AppPageHeader(
-        title: ot(context, 'my_offers'),
-        searchHint: ot(context, 'search_hint'),
-        searchController: _search,
-        onSearchChanged: _cubit.search,
-      ),
-      children: [
-        OfferFilters(onClear: _clear),
-        BlocBuilder<OffersCubit, OffersState>(
-          buildWhen: (a, b) => a.visible != b.visible,
-          builder: (context, state) => state.visible.isEmpty
-              ? Padding(
+    // Statuses and labels come localized from the backend.
+    child: LocaleChangeListener(
+      onChanged: _cubit.reload,
+      child: OffersScaffold(
+        onRefresh: _cubit.reload,
+        header: AppPageHeader(
+          title: ot(context, 'my_offers'),
+          searchHint: ot(context, 'search_hint'),
+          searchController: _search,
+          onSearchChanged: _cubit.search,
+        ),
+        children: [
+          OfferFilters(onClear: _clear),
+          BlocBuilder<OffersCubit, OffersState>(
+            buildWhen: (a, b) =>
+                a.items != b.items ||
+                a.loading != b.loading ||
+                a.failure != b.failure,
+            builder: (context, state) {
+              if (state.items.isEmpty && state.loading) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 80),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (state.items.isEmpty && state.failure != null) {
+                return _LoadError(onRetry: _cubit.retry);
+              }
+              if (state.items.isEmpty) {
+                return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 48),
                   child: Text(
                     ot(context, state.filtered ? 'no_matches' : 'empty'),
@@ -63,22 +89,54 @@ class _OffersViewState extends State<OffersView> {
                       color: AppColors.neutral600,
                     ),
                   ),
-                )
-              : Column(
-                  children: [
-                    for (final offer in state.visible) ...[
-                      OfferCard(
-                        key: ValueKey('offer-${offer.id}'),
-                        offer: offer,
-                        onOpen: () =>
-                            context.push('${AppRouter.offers}/${offer.id}'),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
+                );
+              }
+              return Column(
+                children: [
+                  if (state.loading) const LinearProgressIndicator(),
+                  for (final offer in state.items) ...[
+                    const SizedBox(height: 12),
+                    OfferCard(
+                      key: ValueKey('offer-${offer.id}'),
+                      offer: offer,
+                      onOpen: () => _open(offer),
+                    ),
                   ],
-                ),
+                ],
+              );
+            },
+          ),
+          const OfferPager(),
+        ],
+      ),
+    ),
+  );
+}
+
+class _LoadError extends StatelessWidget {
+  const _LoadError({required this.onRetry});
+  final VoidCallback onRetry;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 8),
+    child: Column(
+      children: [
+        const Icon(
+          Icons.cloud_off_outlined,
+          size: 40,
+          color: AppColors.neutral500,
         ),
-        const OfferPager(),
+        const SizedBox(height: 12),
+        Text(
+          ot(context, 'load_failed'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14, height: 20 / 14),
+        ),
+        const SizedBox(height: 16),
+        DefaultButton.compact(
+          text: ot(context, 'try_again'),
+          onPressed: onRetry,
+        ),
       ],
     ),
   );

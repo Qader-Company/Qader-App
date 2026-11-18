@@ -53,3 +53,31 @@ class ProfileSetupHeader extends StatelessWidget {
     ),
   );
 }
+
+/// "← Back to profile" under the Edit Profile header: the drawer page has
+/// no back button of its own.
+class ProfileEditBackLink extends StatelessWidget {
+  const ProfileEditBackLink({super.key, required this.onBack});
+  final VoidCallback onBack;
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: AlignmentDirectional.centerStart,
+    child: TextButton.icon(
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        foregroundColor: AppColors.neutral900,
+      ),
+      onPressed: onBack,
+      icon: Icon(
+        Directionality.of(context) == TextDirection.rtl
+            ? Icons.arrow_forward
+            : Icons.arrow_back,
+        size: 20,
+      ),
+      label: Text(
+        pc(context, 'Back to profile'),
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+    ),
+  );
+}

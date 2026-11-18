@@ -1,72 +1,149 @@
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qader/core/network/either.dart';
+import 'package:qader/core/network/failure.dart';
+import 'package:qader/features/offers/domain/entities/hiring_offer_options.dart';
+import 'package:qader/features/offers/domain/entities/hiring_offer_summary.dart';
 import 'package:qader/features/offers/domain/entities/talent_offer.dart';
+import 'package:qader/features/offers/domain/repositories/offers_repository.dart';
 import 'package:qader/features/offers/presentation/cubit/offers_cubit.dart';
 import 'package:qader/features/offers/presentation/preview/offers_preview_data.dart';
+import 'package:qader/features/offers/presentation/preview/preview_offers_repository.dart';
+
+/// Records every list request; answers from [pages] or fails.
+class _Repo implements OffersRepository {
+  final queries = <HiringOfferQuery>[];
+  Failure? failure;
+  Completer<void>? gate;
+
+  @override
+  Future<Either<Failure, HiringOfferOptions>> loadOptions() async =>
+      const Right(
+        HiringOfferOptions(
+          itemStatuses: [
+            HiringOfferOption(value: 'offer', label: 'Offer'),
+            HiringOfferOption(value: 'interview', label: 'Interview'),
+          ],
+        ),
+      );
+
+  @override
+  Future<Either<Failure, HiringOfferPage>> loadOffers(
+    HiringOfferQuery query,
+  ) async {
+    queries.add(query);
+    await gate?.future;
+    if (failure case final failure?) return Left(failure);
+    return Right(
+      HiringOfferPage(
+        page: query.page,
+        lastPage: 3,
+        items: [
+          HiringOfferSummary(
+            id: '${query.page}',
+            status: query.status ?? 'offer',
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 void main() {
-  OffersCubit cubit() =>
-      OffersCubit(OffersPreviewData.offers, now: () => DateTime(2026, 11, 17));
-
-  test('pages the offers newest first, four per page', () async {
-    final offers = cubit();
+  test('starts with the options and the first page', () async {
+    final repo = _Repo();
+    final offers = OffersCubit(repo, perPage: 15);
     addTearDown(offers.close);
-    expect(offers.state.pageCount, 3);
-    expect(offers.state.visible.map((o) => o.id), ['1', '2', '3', '4']);
-    offers.goTo(2);
+    expect(offers.state.loading, isTrue);
+    await offers.start();
+    expect(offers.state.loading, isFalse);
+    expect(offers.state.statuses.map((o) => o.value), ['offer', 'interview']);
+    expect(offers.state.items.single.id, '1');
+    expect(offers.state.lastPage, 3);
+    expect(repo.queries.single.perPage, 15);
+    expect(repo.queries.single.page, 1);
+  });
+
+  test('status, paging and clear send the right queries', () async {
+    final repo = _Repo();
+    final offers = OffersCubit(repo);
+    addTearDown(offers.close);
+    await offers.start();
+    await offers.goTo(2);
     expect(offers.state.page, 2);
-    expect(offers.state.visible.map((o) => o.id), ['5', '9', '6', '8']);
-    offers.goTo(9);
-    expect(offers.state.page, 3);
-    expect(offers.state.visible.map((o) => o.id), ['7']);
-  });
-
-  test('search matches company or position, case-insensitively', () async {
-    final offers = cubit();
-    addTearDown(offers.close);
-    offers.goTo(2);
-    offers.search('  react ');
-    expect(offers.state.page, 1);
-    expect(offers.state.visible.single.position, 'React Developer');
+    await offers.filterStatus('interview');
+    expect(repo.queries.last.status, 'interview');
+    expect(repo.queries.last.page, 1);
     expect(offers.state.filtered, isTrue);
-    offers.search('techcorp');
-    expect(offers.state.visible, hasLength(4));
-    offers.search('nobody');
-    expect(offers.state.visible, isEmpty);
-    expect(offers.state.pageCount, 1);
-  });
-
-  test('status and date filters combine; clear resets them', () async {
-    final offers = cubit();
-    addTearDown(offers.close);
-    offers.filterStatus(OfferStatusFilter.interview);
-    expect(offers.state.visible.map((o) => o.stage), [
-      OfferStage.awaitingInterviewTimes,
-      OfferStage.interviewInProgress,
-      OfferStage.interviewCancelled,
-      OfferStage.interviewApologized,
-    ]);
-    offers.filterDates(OfferDateRange.last30Days);
-    expect(offers.state.visible.map((o) => o.id), ['3', '4', '5']);
-    offers.filterDates(OfferDateRange.last7Days);
-    expect(offers.state.visible, isEmpty);
-    offers.filterStatus(null);
-    expect(offers.state.visible.map((o) => o.id), ['1', '2']);
-    offers.clearFilters();
+    await offers.clearFilters();
+    expect(repo.queries.last.status, isNull);
     expect(offers.state.filtered, isFalse);
-    expect(offers.state.visible, hasLength(4));
-    expect(offers.state.pageCount, 3);
   });
 
-  test('every status filter matches at least one preview offer', () {
-    for (final status in OfferStatusFilter.values) {
-      expect(
-        OffersPreviewData.offers.any(
-          (offer) => OfferStatusFilter.of(offer.stage) == status,
-        ),
-        isTrue,
-        reason: status.name,
-      );
-    }
+  test('search waits for a typing pause and starts at page 1', () async {
+    final repo = _Repo();
+    final offers = OffersCubit(
+      repo,
+      searchDelay: const Duration(milliseconds: 20),
+    );
+    addTearDown(offers.close);
+    await offers.start();
+    await offers.goTo(3);
+    offers.search('so');
+    offers.search(' software ');
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    expect(repo.queries.where((q) => q.search.isNotEmpty), hasLength(1));
+    expect(repo.queries.last.search, 'software');
+    expect(repo.queries.last.page, 1);
+    expect(offers.state.query, 'software');
+  });
+
+  test(
+    'a failure keeps the previous page; stale answers are ignored',
+    () async {
+      final repo = _Repo();
+      final offers = OffersCubit(repo);
+      addTearDown(offers.close);
+      await offers.start();
+      repo.failure = const NetworkFailure(message: 'offline');
+      await offers.goTo(2);
+      expect(offers.state.failure, isA<NetworkFailure>());
+      expect(offers.state.items.single.id, '1');
+
+      repo.failure = null;
+      final gate = repo.gate = Completer<void>();
+      final slow = offers.goTo(2);
+      repo.gate = null;
+      await offers.goTo(3);
+      expect(offers.state.items.single.id, '3');
+      // The older request finishes last and must not overwrite page 3.
+      gate.complete();
+      await slow;
+      expect(offers.state.items.single.id, '3');
+      expect(offers.state.page, 3);
+    },
+  );
+
+  test('the preview repository searches, filters and pages samples', () async {
+    final repo = PreviewOffersRepository(OffersPreviewData.offers);
+    final all = (await repo.loadOffers(
+      const HiringOfferQuery(perPage: 4),
+    )).getOrThrow();
+    expect(all.lastPage, 3);
+    expect(all.items.map((o) => o.id), ['1', '2', '3', '4']);
+    final interviews = (await repo.loadOffers(
+      const HiringOfferQuery(status: 'interview'),
+    )).getOrThrow();
+    expect(interviews.items.map((o) => o.id), ['3', '4', '5', '9']);
+    final search = (await repo.loadOffers(
+      const HiringOfferQuery(search: 'REACT'),
+    )).getOrThrow();
+    expect(search.items.single.jobTitle, 'React Developer');
+    final options = (await repo.loadOptions()).getOrThrow();
+    expect(
+      options.itemStatuses.map((o) => o.value),
+      PreviewOfferStatus.values.map((s) => s.name),
+    );
     for (final stage in OfferStage.values) {
       expect(
         OffersPreviewData.offers.any((offer) => offer.stage == stage),

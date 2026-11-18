@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/core/resources/theme_manager.dart';
 import 'package:qader/core/router/app_router.dart';
 import 'package:qader/features/offers/presentation/preview/offers_preview_data.dart';
+import 'package:qader/features/offers/presentation/preview/preview_offers_repository.dart';
 import 'package:qader/features/offers/presentation/view/offer_details_view.dart';
 import 'package:qader/features/offers/presentation/view/offers_view.dart';
 
@@ -32,7 +33,10 @@ GoRouter _router() => GoRouter(
   routes: [
     GoRoute(
       path: AppRouter.offers,
-      builder: (_, _) => OffersView(offers: OffersPreviewData.offers),
+      builder: (_, _) => OffersView(
+        repository: PreviewOffersRepository(OffersPreviewData.offers),
+        preview: true,
+      ),
       routes: [
         GoRoute(
           path: ':id',
@@ -115,21 +119,21 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    // List: four cards, then the second page.
+    // List: the nine sample offers fit on one page of ten.
     expect(find.text('My Offers'), findsOneWidget);
-    expect(find.text('Page 1 of 3'), findsOneWidget);
+    expect(find.text('Page 1 of 1'), findsOneWidget);
     expect(find.text('Awaiting Your Response'), findsOneWidget);
     expect(find.text('Clear Filters'), findsNothing);
-    await capture('offers_list', 1300);
-    await tap(find.widgetWithText(OutlinedButton, 'Next'));
-    expect(find.text('Page 2 of 3'), findsOneWidget);
-    expect(find.text('Contracted'), findsOneWidget);
+    await capture('offers_list', 2300);
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
 
-    // Search and status filter, then clear both.
+    // Search (after the typing pause) and status filter, then clear both.
     await tester.enterText(find.byType(TextFormField).first, 'react');
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.pumpAndSettle();
     expect(find.text('React Developer'), findsOneWidget);
-    expect(find.text('Page 1 of 1'), findsOneWidget);
+    expect(find.text('Senior UI Engineer'), findsNothing);
     await tap(find.byKey(const ValueKey('offers-status-filter')));
     await tap(find.text('Rejected').last);
     expect(
@@ -137,7 +141,7 @@ void main() {
       findsOneWidget,
     );
     await tap(find.text('Clear Filters'));
-    expect(find.text('Page 1 of 3'), findsOneWidget);
+    expect(find.text('Senior UI Engineer'), findsOneWidget);
     expect(
       tester
           .widget<TextFormField>(find.byType(TextFormField).first)

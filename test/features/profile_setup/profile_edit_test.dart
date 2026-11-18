@@ -6,6 +6,7 @@ import 'package:qader/features/profile_setup/data/repositories/api_profile_edit_
 import 'package:qader/features/profile_setup/domain/entities/onboarding_progress.dart';
 import 'package:qader/features/profile_setup/domain/repositories/professional_fields_repository.dart';
 import 'package:qader/features/profile_setup/presentation/cubit/profile_setup_cubit.dart';
+import 'package:qader/features/profile_setup/presentation/cubit/profile_setup_payloads.dart';
 
 /// Trimmed copy of a real `GET` / `PATCH /talent/profile` response (Apidog).
 Map<String, dynamic> _profileResponse() => {
@@ -246,4 +247,147 @@ void main() {
     expect(await draft.saveDetails(work: true), isFalse);
     expect(draft.stepFailure?.message, 'The notice is invalid.');
   });
+
+  test('experiences are required only when years of experience > 0', () async {
+    final draft = ProfileSetupCubit(
+      fieldsRepository: _Fields(),
+      editRepository: ApiProfileEditRepository(_Api()),
+    );
+    addTearDown(draft.close);
+    expect(await draft.restoreProgress(), isTrue);
+    expect(draft.requiredWhen['experiences']?.whenField, 'years_of_experience');
+    expect(draft.text('years').text, '5');
+    expect(draft.requiresField('experiences'), isTrue);
+    draft.text('years').text = '0';
+    expect(draft.requiresField('experiences'), isFalse);
+    draft.text('years').text = '';
+    expect(draft.requiresField('experiences'), isTrue);
+
+    draft.formFields = {'years_of_experience', 'experiences'};
+    draft.experiences.clear();
+    draft.text('years').text = '0';
+    expect(draft.detailsPayload(work: false).values['experiences'], isEmpty);
+    draft.text('years').text = '3';
+    expect(() => draft.detailsPayload(work: false), throwsFormatException);
+  });
+
+  test('malformed conditional rules are skipped', () {
+    final rules = RequiredWhen.parseAll([
+      null,
+      {'field': 'experiences'},
+      {
+        'field': 'experiences',
+        'required_when': {'field': 'years', 'operator': '>', 'value': 'x'},
+      },
+      {
+        'field': 'projects',
+        'required_when': {'field': 'years', 'operator': '>=', 'value': '2'},
+      },
+    ]);
+    expect(rules.single.field, 'projects');
+    expect(rules.single.holds(2), isTrue);
+    expect(rules.single.holds(1), isFalse);
+    expect(RequiredWhen.parseAll('none'), isEmpty);
+  });
+
+  test('a cleared optional link is sent as null only when editing', () async {
+    Future<Map<String, dynamic>> links(ProfileSetupCubit draft) async {
+      draft.formFields = {'linkedin_url', 'github_url', 'behance_url'};
+      draft.text('LinkedIn').text = 'https://linkedin.com/in/demo';
+      draft.text('GitHub').text = '';
+      draft.text('Behance').text = 'https://behance.net/demo';
+      return draft.detailsPayload(work: false).values;
+    }
+
+    final editing = ProfileSetupCubit(
+      fieldsRepository: _Fields(),
+      editRepository: ApiProfileEditRepository(_Api()),
+    );
+    addTearDown(editing.close);
+    expect(await links(editing), {
+      'linkedin_url': 'https://linkedin.com/in/demo',
+      'github_url': null,
+      'behance_url': 'https://behance.net/demo',
+    });
+
+    final onboarding = ProfileSetupCubit(fieldsRepository: _Fields());
+    addTearDown(onboarding.close);
+    expect(await links(onboarding), {
+      'linkedin_url': 'https://linkedin.com/in/demo',
+      'behance_url': 'https://behance.net/demo',
+    });
+  });
+
+  test(
+    'a current job from the server is restored and sent without end date',
+    () async {
+      // From a real GET /talent/profile response (Apidog, 2026-11-18): the
+      // job is current but the server still keeps the old end date.
+      final response = _profileResponse();
+      final sections = (response['data'] as Map)['sections'] as List;
+      sections[1] = {
+        'key': 'skills-and-experiences',
+        'visible_fields': ['years_of_experience', 'experiences'],
+        'required_fields': ['years_of_experience', 'experiences'],
+        'conditional_required_fields': [
+          {
+            'field': 'experiences',
+            'required_when': {
+              'field': 'years_of_experience',
+              'operator': '>',
+              'value': 0,
+            },
+          },
+        ],
+        'data': {
+          'years_of_experience': '5',
+          'experiences': [
+            {
+              'id': 4,
+              'job_title': 'Backend Engineer',
+              'company_name': 'Qader',
+              'company_url': 'https://qader.example.com',
+              'started_at': '2022-01-01',
+              'ended_at': '2023-01-01',
+              'currently_working': true,
+              'responsibilities':
+                  'Designed APIs and maintained backend services. v',
+              'display_order': '0',
+            },
+          ],
+        },
+      };
+      final api = _Api()..getBody = response;
+      final draft = ProfileSetupCubit(
+        fieldsRepository: _Fields(),
+        editRepository: ApiProfileEditRepository(api),
+      );
+      addTearDown(draft.close);
+      expect(await draft.restoreProgress(), isTrue);
+      final entry = draft.experiences.single;
+      expect(entry.current, isTrue);
+      expect(entry.to, isNull);
+      expect(draft.text('experience_${entry.id}_to').text, isEmpty);
+      expect(draft.requiresField('experiences'), isTrue);
+
+      final experience =
+          (draft.detailsPayload(work: false).values['experiences'] as List)
+                  .single
+              as Map;
+      expect(experience['id'], 4);
+      expect(experience['currently_working'], isTrue);
+      expect(experience.containsKey('ended_at'), isTrue);
+      expect(experience['ended_at'], isNull);
+
+      // A finished job sends its end date.
+      entry
+        ..current = false
+        ..to = DateTime(2024, 6, 30);
+      final finished =
+          (draft.detailsPayload(work: false).values['experiences'] as List)
+                  .single
+              as Map;
+      expect(finished['ended_at'], '2024-06-30');
+    },
+  );
 }

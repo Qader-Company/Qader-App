@@ -138,7 +138,23 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
   void refresh() => _set(state.copyWith(revision: state.revision + 1));
   Map<String, dynamic>? savedCv;
   final requiredFields = <String>{};
-  bool requiresField(String key) => requiredFields.contains(key);
+
+  /// Conditional rules by field; they override [requiredFields].
+  final requiredWhen = <String, RequiredWhen>{};
+
+  bool requiresField(String key) {
+    final rule = requiredWhen[key];
+    if (rule == null) return requiredFields.contains(key);
+    return rule.holds(_numberField(rule.whenField));
+  }
+
+  /// Current form value of a numeric backend field used by conditional
+  /// rules; `null` when unknown, which keeps the field required.
+  num? _numberField(String field) => switch (field) {
+    'years_of_experience' => num.tryParse(text('years').text.trim()),
+    'notice_period_days' => num.tryParse(text('noticeDays').text.trim()),
+    _ => null,
+  };
 
   int _parseRequest = 0;
   bool get busy => state.busy;
@@ -223,6 +239,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
       }
       formFields = Set.unmodifiable(schema.getOrThrow());
       requiredFields.clear();
+      requiredWhen.clear();
       return true;
     } on Object {
       if (!isClosed) {
@@ -275,6 +292,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
       selections.remove('job');
       formFields = null;
       requiredFields.clear();
+      requiredWhen.clear();
       for (final lookup in ProfileLookup.values.where(
         (item) => item.isFieldScoped,
       )) {

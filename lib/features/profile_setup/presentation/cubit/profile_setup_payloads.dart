@@ -175,7 +175,13 @@ extension ProfileSetupPayloads on ProfileSetupCubit {
       }.entries) {
         if (!showsField(entry.key)) continue;
         final link = url(entry.value, required: entry.key == 'linkedin_url');
-        if (link.isNotEmpty) values[entry.key] = link;
+        if (link.isNotEmpty) {
+          values[entry.key] = link;
+        } else if (isEditing) {
+          // PATCH keeps fields it does not receive, so a link the talent
+          // cleared is sent as null to remove it.
+          values[entry.key] = null;
+        }
       }
       if (showsField('experiences')) {
         check(!requiresField('experiences') || experiences.isNotEmpty);
@@ -196,8 +202,12 @@ extension ProfileSetupPayloads on ProfileSetupCubit {
                 'company_name': content('${prefix}company', required: true),
                 'company_url': url('${prefix}url'),
                 'started_at': date(entry.from!),
-                if (!entry.current && entry.to != null)
-                  'ended_at': date(entry.to!),
+                // Always sent (null for a current job): PATCH keeps fields
+                // it does not receive, so an old end date would stay.
+                // The onboarding multipart body drops nulls.
+                'ended_at': entry.current || entry.to == null
+                    ? null
+                    : date(entry.to!),
                 'currently_working': entry.current,
                 'responsibilities': content('${prefix}description', max: 5000),
                 'display_order': i,

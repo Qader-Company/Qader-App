@@ -388,9 +388,24 @@ void main() {
     expect(find.text('Edit Profile'), findsOneWidget);
     expect(find.text('Basic Info'), findsOneWidget);
     expect(find.text('Demo_Talent_CV.pdf'), findsOneWidget);
+    // The name can be changed; the email cannot.
+    final name = find.byWidgetPredicate(
+      (w) => w is TextField && w.controller?.text == 'Demo Talent',
+    );
+    final email = find.byWidgetPredicate(
+      (w) => w is TextField && w.controller?.text == 'talent@qader.test',
+    );
+    expect(tester.widget<TextField>(name).readOnly, isFalse);
+    expect(tester.widget<TextField>(email).readOnly, isTrue);
+    await tester.enterText(name, 'Demo Talent Renamed');
+    await tester.pumpAndSettle();
     await capture('profile_edit_basic', 1900);
     await next('Next');
     expect(api.patches.single.keys, ['personal-information']);
+    expect(
+      (api.patches.single['personal-information'] as Map)['full_name'],
+      'Demo Talent Renamed',
+    );
 
     expect(find.text('Skills & Experience'), findsOneWidget);
     await capture('profile_edit_skills', 2800);
@@ -403,5 +418,18 @@ void main() {
     expect(api.patches.last.keys, ['work-preferences']);
     expect(api.patches, hasLength(3));
     expect(popped, isTrue);
+
+    // "Back to profile" leaves from any step without saving it.
+    popped = null;
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await next('Next');
+    expect(find.text('Skills & Experience'), findsOneWidget);
+    await tester.tap(find.text('Back to profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+    expect(popped, isNull);
+    expect(api.patches, hasLength(4));
   });
 }

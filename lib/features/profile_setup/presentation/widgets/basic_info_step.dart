@@ -140,8 +140,8 @@ class BasicInfoStep extends StatelessWidget {
                 ProfileInput(
                   'Full Name',
                   controller: draft.text('name'),
-                  // The design locks the name once the profile exists.
-                  readOnly: !draft.isConnected || editing,
+                  // Editable while editing too: PATCH accepts full_name.
+                  readOnly: !draft.isConnected,
                   required: draft.isConnected,
                 ),
               if (draft.showsField('email'))

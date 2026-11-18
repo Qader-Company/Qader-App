@@ -1,138 +1,151 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/entities/talent_offer.dart';
+import '../../../../core/network/failure.dart';
+import '../../domain/entities/hiring_offer_options.dart';
+import '../../domain/entities/hiring_offer_summary.dart';
+import '../../domain/repositories/offers_repository.dart';
 
-/// Status filter of the offers list; each groups one or more stages.
-enum OfferStatusFilter {
-  awaitingResponse,
-  negotiating,
-  interview,
-  contracted,
-  rejected,
-  cancelled;
-
-  static OfferStatusFilter of(OfferStage stage) => switch (stage) {
-    OfferStage.awaitingResponse => awaitingResponse,
-    OfferStage.negotiating => negotiating,
-    OfferStage.awaitingInterviewTimes ||
-    OfferStage.interviewInProgress ||
-    OfferStage.interviewCancelled ||
-    OfferStage.interviewApologized => interview,
-    OfferStage.contracted => contracted,
-    OfferStage.rejectedByTalent => rejected,
-    OfferStage.cancelledNoResponse => cancelled,
-  };
-}
-
-/// Received-date filter of the offers list.
-enum OfferDateRange {
-  all(null),
-  last7Days(7),
-  last30Days(30),
-  last90Days(90);
-
-  const OfferDateRange(this.days);
-  final int? days;
-}
+const _keep = Object();
 
 class OffersState {
   const OffersState({
-    this.offers = const [],
+    this.loading = false,
+    this.failure,
+    this.statuses = const [],
+    this.items = const [],
     this.query = '',
     this.status,
-    this.dates = OfferDateRange.all,
     this.page = 1,
-    this.visible = const [],
-    this.pageCount = 1,
+    this.lastPage = 1,
   });
 
-  /// Every offer, newest first.
-  final List<TalentOffer> offers;
+  /// A page request is in flight.
+  final bool loading;
+
+  /// The last page request failed; [items] keeps the previous page.
+  final Failure? failure;
+
+  /// Status filter choices (`item_statuses`).
+  final List<HiringOfferOption> statuses;
+  final List<HiringOfferSummary> items;
   final String query;
 
-  /// `null` shows every status.
-  final OfferStatusFilter? status;
-  final OfferDateRange dates;
+  /// Selected `item_statuses` value; `null` for every status.
+  final String? status;
+  final int page, lastPage;
 
-  /// 1-based.
-  final int page;
+  bool get filtered => query.isNotEmpty || status != null;
 
-  /// The offers of [page] after search and filters.
-  final List<TalentOffer> visible;
-  final int pageCount;
-
-  bool get filtered =>
-      query.isNotEmpty || status != null || dates != OfferDateRange.all;
+  OffersState copyWith({
+    bool? loading,
+    Object? failure = _keep,
+    List<HiringOfferOption>? statuses,
+    List<HiringOfferSummary>? items,
+    String? query,
+    Object? status = _keep,
+    int? page,
+    int? lastPage,
+  }) => OffersState(
+    loading: loading ?? this.loading,
+    failure: identical(failure, _keep) ? this.failure : failure as Failure?,
+    statuses: statuses ?? this.statuses,
+    items: items ?? this.items,
+    query: query ?? this.query,
+    status: identical(status, _keep) ? this.status : status as String?,
+    page: page ?? this.page,
+    lastPage: lastPage ?? this.lastPage,
+  );
 }
 
-/// The offers list: search, status and date filters, and paging. Works on
-/// a list in memory until the offers API is connected.
+/// The offers list: the server searches, filters and pages it.
 class OffersCubit extends Cubit<OffersState> {
-  OffersCubit(List<TalentOffer> offers, {DateTime Function()? now})
-    : _now = now ?? DateTime.now,
-      super(const OffersState()) {
-    _apply(
-      OffersState(
-        offers: [...offers]
-          ..sort((a, b) => b.receivedAt.compareTo(a.receivedAt)),
+  OffersCubit(
+    this._repository, {
+    this.perPage = 10,
+    this.searchDelay = const Duration(milliseconds: 400),
+  }) : super(const OffersState(loading: true));
+  final OffersRepository _repository;
+  final int perPage;
+
+  /// Typing pause before the search request.
+  final Duration searchDelay;
+  Timer? _searchTimer;
+
+  /// Only the newest page request may update the state.
+  int _request = 0;
+
+  /// Filter options and the first page.
+  Future<void> start() => Future.wait([_loadOptions(), _load(page: 1)]);
+
+  /// Everything again, e.g. after the language changed (labels are
+  /// localized by the backend).
+  Future<void> reload() =>
+      Future.wait([_loadOptions(), _load(page: state.page)]);
+
+  void search(String query) {
+    _searchTimer?.cancel();
+    final trimmed = query.trim();
+    if (trimmed == state.query) return;
+    _searchTimer = Timer(searchDelay, () {
+      if (isClosed) return;
+      emit(state.copyWith(query: trimmed));
+      _load(page: 1);
+    });
+  }
+
+  Future<void> filterStatus(String? status) {
+    emit(state.copyWith(status: status));
+    return _load(page: 1);
+  }
+
+  Future<void> clearFilters() {
+    _searchTimer?.cancel();
+    emit(state.copyWith(query: '', status: null));
+    return _load(page: 1);
+  }
+
+  Future<void> goTo(int page) => _load(page: page);
+
+  Future<void> retry() => reload();
+
+  Future<void> _loadOptions() async {
+    final result = await _repository.loadOptions();
+    if (isClosed) return;
+    // Without options the filter only offers "All Statuses".
+    result.fold(
+      (_) {},
+      (options) => emit(state.copyWith(statuses: options.itemStatuses)),
+    );
+  }
+
+  Future<void> _load({required int page}) async {
+    final request = ++_request;
+    emit(state.copyWith(loading: true, failure: null));
+    final result = await _repository.loadOffers(
+      HiringOfferQuery(
+        search: state.query,
+        status: state.status,
+        page: page < 1 ? 1 : page,
+        perPage: perPage,
+      ),
+    );
+    if (isClosed || request != _request) return;
+    emit(
+      result.fold(
+        (failure) => state.copyWith(loading: false, failure: failure),
+        (page) => state.copyWith(
+          loading: false,
+          items: page.items,
+          page: page.page,
+          lastPage: page.lastPage,
+        ),
       ),
     );
   }
-  final DateTime Function() _now;
-  static const pageSize = 4;
 
-  void search(String query) => _apply(_copy(query: query.trim(), page: 1));
-
-  void filterStatus(OfferStatusFilter? status) =>
-      _apply(_copy(status: status, clearStatus: status == null, page: 1));
-
-  void filterDates(OfferDateRange dates) =>
-      _apply(_copy(dates: dates, page: 1));
-
-  void clearFilters() => _apply(OffersState(offers: state.offers));
-
-  void goTo(int page) => _apply(_copy(page: page));
-
-  OffersState _copy({
-    String? query,
-    OfferStatusFilter? status,
-    bool clearStatus = false,
-    OfferDateRange? dates,
-    int? page,
-  }) => OffersState(
-    offers: state.offers,
-    query: query ?? state.query,
-    status: clearStatus ? null : status ?? state.status,
-    dates: dates ?? state.dates,
-    page: page ?? state.page,
-  );
-
-  void _apply(OffersState next) {
-    final query = next.query.toLowerCase();
-    final days = next.dates.days;
-    final since = days == null ? null : _now().subtract(Duration(days: days));
-    final matches = [
-      for (final offer in next.offers)
-        if ((query.isEmpty ||
-                offer.company.name.toLowerCase().contains(query) ||
-                offer.position.toLowerCase().contains(query)) &&
-            (next.status == null ||
-                OfferStatusFilter.of(offer.stage) == next.status) &&
-            (since == null || !offer.receivedAt.isBefore(since)))
-          offer,
-    ];
-    final pageCount = matches.isEmpty ? 1 : (matches.length / pageSize).ceil();
-    final page = next.page.clamp(1, pageCount);
-    final start = (page - 1) * pageSize;
-    emit(
-      OffersState(
-        offers: next.offers,
-        query: next.query,
-        status: next.status,
-        dates: next.dates,
-        page: page,
-        pageCount: pageCount,
-        visible: matches.skip(start).take(pageSize).toList(),
-      ),
-    );
+  @override
+  Future<void> close() {
+    _searchTimer?.cancel();
+    return super.close();
   }
 }

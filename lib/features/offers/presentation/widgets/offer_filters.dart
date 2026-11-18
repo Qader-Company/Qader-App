@@ -4,49 +4,42 @@ import '../../../../core/resources/app_colors.dart';
 import '../cubit/offers_cubit.dart';
 import '../offers_copy.dart';
 
-/// Status and date filters above the offers list.
+/// Status filter above the offers list, with "Clear Filters".
+///
+/// The design also has a date filter; `GET /talent/hiring-offers` has no
+/// date parameter, so it is left out until the API supports it.
 class OfferFilters extends StatelessWidget {
   const OfferFilters({super.key, required this.onClear});
 
   /// Also clears the search field the page owns.
   final VoidCallback onClear;
   @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<OffersCubit>();
-    return BlocBuilder<OffersCubit, OffersState>(
-      buildWhen: (a, b) =>
-          a.status != b.status ||
-          a.dates != b.dates ||
-          a.filtered != b.filtered,
-      builder: (context, state) => Column(
+  Widget build(BuildContext context) => BlocBuilder<OffersCubit, OffersState>(
+    buildWhen: (a, b) =>
+        a.status != b.status ||
+        a.statuses != b.statuses ||
+        a.filtered != b.filtered,
+    builder: (context, state) {
+      final cubit = context.read<OffersCubit>();
+      String label(String? value) {
+        if (value == null) return ot(context, 'all_statuses');
+        for (final option in state.statuses) {
+          if (option.value == value) {
+            return offerStatusText(context, option.value, option.label);
+          }
+        }
+        return offerStatusText(context, value, '');
+      }
+
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: _FilterMenu<OfferStatusFilter?>(
-                  key: const ValueKey('offers-status-filter'),
-                  label: state.status == null
-                      ? ot(context, 'all_statuses')
-                      : offerStatusLabel(context, state.status!),
-                  values: const [null, ...OfferStatusFilter.values],
-                  itemLabel: (value) => value == null
-                      ? ot(context, 'all_statuses')
-                      : offerStatusLabel(context, value),
-                  onSelected: cubit.filterStatus,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _FilterMenu<OfferDateRange>(
-                  key: const ValueKey('offers-date-filter'),
-                  label: offerDateRangeLabel(context, state.dates),
-                  values: OfferDateRange.values,
-                  itemLabel: (value) => offerDateRangeLabel(context, value),
-                  onSelected: cubit.filterDates,
-                ),
-              ),
-            ],
+          _FilterMenu(
+            key: const ValueKey('offers-status-filter'),
+            label: label(state.status),
+            values: [null, for (final option in state.statuses) option.value],
+            itemLabel: label,
+            onSelected: cubit.filterStatus,
           ),
           if (state.filtered)
             TextButton(
@@ -64,13 +57,13 @@ class OfferFilters extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
+      );
+    },
+  );
 }
 
 /// Outlined button that opens a menu of [values].
-class _FilterMenu<T> extends StatelessWidget {
+class _FilterMenu extends StatelessWidget {
   const _FilterMenu({
     super.key,
     required this.label,
@@ -79,9 +72,9 @@ class _FilterMenu<T> extends StatelessWidget {
     required this.onSelected,
   });
   final String label;
-  final List<T> values;
-  final String Function(T) itemLabel;
-  final ValueChanged<T> onSelected;
+  final List<String?> values;
+  final String Function(String?) itemLabel;
+  final ValueChanged<String?> onSelected;
   @override
   Widget build(BuildContext context) => PopupMenuButton<int>(
     tooltip: label,
@@ -126,7 +119,8 @@ class OfferPager extends StatelessWidget {
   const OfferPager({super.key});
   @override
   Widget build(BuildContext context) => BlocBuilder<OffersCubit, OffersState>(
-    buildWhen: (a, b) => a.page != b.page || a.pageCount != b.pageCount,
+    buildWhen: (a, b) =>
+        a.page != b.page || a.lastPage != b.lastPage || a.loading != b.loading,
     builder: (context, state) {
       final cubit = context.read<OffersCubit>();
       return Container(
@@ -139,7 +133,7 @@ class OfferPager extends StatelessWidget {
           children: [
             _PagerButton(
               label: ot(context, 'previous'),
-              onPressed: state.page > 1
+              onPressed: !state.loading && state.page > 1
                   ? () => cubit.goTo(state.page - 1)
                   : null,
             ),
@@ -148,10 +142,7 @@ class OfferPager extends StatelessWidget {
                 ot(
                   context,
                   'page_of',
-                  args: {
-                    'page': '${state.page}',
-                    'count': '${state.pageCount}',
-                  },
+                  args: {'page': '${state.page}', 'count': '${state.lastPage}'},
                 ),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -162,7 +153,7 @@ class OfferPager extends StatelessWidget {
             ),
             _PagerButton(
               label: ot(context, 'next'),
-              onPressed: state.page < state.pageCount
+              onPressed: !state.loading && state.page < state.lastPage
                   ? () => cubit.goTo(state.page + 1)
                   : null,
             ),

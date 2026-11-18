@@ -163,6 +163,7 @@ void main() {
           'company_name': 'Qader',
           'company_url': '',
           'started_at': '2022-01-01',
+          'ended_at': null,
           'currently_working': true,
           'responsibilities': '',
           'display_order': 0,

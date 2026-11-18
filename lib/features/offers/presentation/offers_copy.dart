@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../core/helpers/feature_dialog.dart';
 import '../domain/entities/talent_offer.dart';
-import 'cubit/offers_cubit.dart';
 
 /// `offers_<key>` translated.
 String ot(BuildContext context, String key, {Map<String, String>? args}) =>
@@ -19,11 +18,10 @@ String offerCodeLabel(BuildContext context, String code) {
   ].join(' ');
 }
 
-String offerStatusLabel(BuildContext context, OfferStatusFilter status) =>
-    ot(context, 'status_${status.name}');
-
-String offerDateRangeLabel(BuildContext context, OfferDateRange range) =>
-    ot(context, 'dates_${range.name}');
+/// The backend's [label] for a status, or the app's translation of
+/// [value] when the label is empty (preview data).
+String offerStatusText(BuildContext context, String value, String label) =>
+    label.isNotEmpty ? label : ot(context, 'status_$value');
 
 /// "$6,500" (monthly salaries are whole numbers unless [decimals]).
 String offerMoney(
@@ -70,6 +68,13 @@ String? offerHours(BuildContext context, Duration? start, Duration? end) {
 
 String offerNotice(BuildContext context, int days) =>
     ot(context, 'notice_days', args: {'count': '$days'});
+
+/// Offer details of a live offer are not connected yet.
+Future<void> showOfferDetailsPending(BuildContext context) => showInfoDialog(
+  context,
+  titleKey: 'offers_details_pending_title',
+  messageKey: 'offers_details_pending_message',
+);
 
 /// Offer actions are designed but the offers API is not connected yet.
 Future<void> showOfferActionPending(BuildContext context) => showInfoDialog(

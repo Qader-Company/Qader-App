@@ -28,7 +28,10 @@ import '../../features/talent_profile/presentation/view/profile_review_view.dart
 
 import '../../features/talent_profile/presentation/view/profile_evaluation_view.dart';
 import '../../features/talent_profile/domain/entities/talent_profile.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/offers/domain/repositories/offers_repository.dart';
 import '../../features/offers/presentation/preview/offers_preview_data.dart';
+import '../../features/offers/presentation/preview/preview_offers_repository.dart';
 import '../../features/offers/presentation/view/offer_details_view.dart';
 import '../../features/offers/presentation/view/offers_view.dart';
 import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
@@ -132,17 +135,27 @@ GoRouter buildAppRouter() => GoRouter(
             : null,
       ),
     ),
-    // Design preview: the offers API is not connected yet, so these show
-    // the sample offers. The drawer opens them for logged-out visitors and
-    // from its "Design previews" section.
+    // Signed-in talents get their offers from the API; logged-out visitors
+    // and `?preview=true` (the drawer's design previews) get sample offers.
     GoRoute(
       path: AppRouter.offers,
-      builder: (context, state) => OffersView(offers: OffersPreviewData.offers),
+      builder: (context, state) =>
+          sl<AppPreferences>().isLoggedIn &&
+              state.uri.queryParameters['preview'] != 'true'
+          ? OffersView(repository: context.read<OffersRepository>())
+          : OffersView(
+              repository: PreviewOffersRepository(OffersPreviewData.offers),
+              preview: true,
+            ),
       routes: [
+        // Designed details screens, for the sample offers only: Get Hiring
+        // Offer is not connected yet.
         GoRoute(
           path: ':id',
           redirect: (context, state) =>
-              OffersPreviewData.byId(state.pathParameters['id']!) == null
+              OffersPreviewData.byId(state.pathParameters['id']!) == null ||
+                  sl<AppPreferences>().isLoggedIn &&
+                      state.uri.queryParameters['preview'] != 'true'
               ? AppRouter.offers
               : null,
           builder: (context, state) => OfferDetailsView(

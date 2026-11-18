@@ -88,6 +88,7 @@ class OnboardingProgress {
       steps[item['key'] as String] = OnboardingProgressStep(
         visible: fields('visible_fields'),
         required: fields('required_fields'),
+        conditional: RequiredWhen.parseAll(item['conditional_required_fields']),
         data: stepData is Map ? Map<String, dynamic>.from(stepData) : {},
       );
     }
@@ -103,8 +104,69 @@ class OnboardingProgressStep {
     required this.visible,
     required this.required,
     required this.data,
+    this.conditional = const [],
   });
   final Set<String> visible;
   final Set<String> required;
   final Map<String, dynamic> data;
+
+  /// `conditional_required_fields`: rules that make a field required only
+  /// in some cases. They take precedence over [required].
+  final List<RequiredWhen> conditional;
+}
+
+/// "[field] is required when [whenField] [operator] [value]", e.g.
+/// experiences are required when years_of_experience > 0.
+class RequiredWhen {
+  const RequiredWhen({
+    required this.field,
+    required this.whenField,
+    required this.operator,
+    required this.value,
+  });
+  final String field, whenField, operator;
+  final num value;
+
+  /// Whether the rule applies for [actual]. An unknown operator or a
+  /// missing value keeps the field required, as the server would.
+  bool holds(num? actual) {
+    if (actual == null) return true;
+    return switch (operator) {
+      '>' => actual > value,
+      '>=' => actual >= value,
+      '<' => actual < value,
+      '<=' => actual <= value,
+      '=' || '==' => actual == value,
+      '!=' => actual != value,
+      _ => true,
+    };
+  }
+
+  /// Parses the list; skips malformed rules.
+  static List<RequiredWhen> parseAll(Object? raw) => [
+    if (raw is List)
+      for (final item in raw)
+        if (item is Map && item['required_when'] is Map)
+          if (_parse(item, item['required_when'] as Map) case final rule?) rule,
+  ];
+
+  static RequiredWhen? _parse(Map item, Map when) {
+    final field = item['field'];
+    final whenField = when['field'];
+    final operator = when['operator'];
+    final value = when['value'];
+    final number = value is num ? value : num.tryParse('${value ?? ''}');
+    if (field is! String ||
+        whenField is! String ||
+        operator is! String ||
+        number == null) {
+      return null;
+    }
+    return RequiredWhen(
+      field: field,
+      whenField: whenField,
+      operator: operator,
+      value: number,
+    );
+  }
 }

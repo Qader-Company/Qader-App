@@ -56,6 +56,12 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     requiredFields
       ..clear()
       ..addAll({for (final item in progress.steps.values) ...item.required});
+    requiredWhen
+      ..clear()
+      ..addAll({
+        for (final item in progress.steps.values)
+          for (final rule in item.conditional) rule.field: rule,
+      });
     final personal = progress.steps['personal-information']!.data;
     final skillsData = progress.steps['skills-and-experiences']!.data;
     final work = progress.steps['work-preferences']!.data;
@@ -144,8 +150,11 @@ extension ProfileProgressRestore on ProfileSetupCubit {
       final entry = ExperienceEntry(_nextId++)
         ..serverId = item['id'] as int?
         ..current = item['currently_working'] == true
-        ..from = DateTime.tryParse(item['started_at']?.toString() ?? '')
-        ..to = DateTime.tryParse(item['ended_at']?.toString() ?? '');
+        ..from = DateTime.tryParse(item['started_at']?.toString() ?? '');
+      // A current job has no end date, even if the server kept an old one.
+      if (!entry.current) {
+        entry.to = DateTime.tryParse(item['ended_at']?.toString() ?? '');
+      }
       experiences.add(entry);
       final prefix = 'experience_${entry.id}_';
       texts(Map<String, dynamic>.from(item as Map), {

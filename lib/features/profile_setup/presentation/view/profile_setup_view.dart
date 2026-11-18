@@ -112,6 +112,12 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     }
   }
 
+  /// "Back to profile": leaves the edit flow from any step. Steps already
+  /// saved stay saved.
+  void _leaveEdit() {
+    if (!draft.busy) Navigator.of(context).pop();
+  }
+
   void _back() {
     if (draft.busy) return;
     if (draft.isEditing && (draft.step <= 1 || draft.progressPending)) {
@@ -244,26 +250,23 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
               child: draft.progressPending
-                  ? Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (draft.progressLoading)
-                            const CircularProgressIndicator(),
-                          if (draft.progressFailure != null) ...[
-                            Text(
-                              'profile_progress_failed'.tr(),
-                              textAlign: TextAlign.center,
-                            ),
-                            TextButton(
-                              onPressed: _resume,
-                              child: Text('auth_retry'.tr()),
-                            ),
-                          ],
-                        ],
-                      ),
-                    )
+                  ? draft.isEditing
+                        // Keep the header and a way back while loading or
+                        // after the profile failed to load.
+                        ? ListView(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                            children: [
+                              AppPageHeader(title: pc(context, 'Edit Profile')),
+                              const SizedBox(height: 8),
+                              ProfileEditBackLink(onBack: _leaveEdit),
+                              const SizedBox(height: 64),
+                              _progressStatus(),
+                            ],
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Center(child: _progressStatus()),
+                          )
                   : draft.step == 4
                   ? ProfileSetupConfirmation(
                       connected: draft.isConnected,
@@ -276,9 +279,10 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                         gap: 24,
                         children: [
                           // Edit Profile is a drawer page like the profile.
-                          if (draft.isEditing)
-                            AppPageHeader(title: pc(context, 'Edit Profile'))
-                          else
+                          if (draft.isEditing) ...[
+                            AppPageHeader(title: pc(context, 'Edit Profile')),
+                            ProfileEditBackLink(onBack: _leaveEdit),
+                          ] else
                             ProfileSetupHeader(
                               showBack: draft.step != 4,
                               onBack: _back,
@@ -367,5 +371,16 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
         ),
       ),
     ),
+  );
+
+  Widget _progressStatus() => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (draft.progressLoading) const CircularProgressIndicator(),
+      if (draft.progressFailure != null) ...[
+        Text('profile_progress_failed'.tr(), textAlign: TextAlign.center),
+        TextButton(onPressed: _resume, child: Text('auth_retry'.tr())),
+      ],
+    ],
   );
 }
