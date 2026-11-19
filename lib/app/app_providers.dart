@@ -4,6 +4,7 @@ import '../core/di/service_locator.dart';
 import '../core/storage/app_preferences.dart';
 import '../features/auth/data/repositories/password_recovery_repository.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
+import '../features/auth/domain/repositories/google_sign_in_client.dart';
 import '../features/auth/presentation/cubit/auth_session_cubit.dart';
 import '../features/home/domain/repositories/application_repository.dart';
 import '../features/profile_setup/domain/repositories/onboarding_progress_repository.dart';
@@ -29,6 +30,9 @@ class AppProviders extends StatelessWidget {
       RepositoryProvider<AuthSessionCubit>(create: (_) => sl()),
       RepositoryProvider<AuthRepository>(create: (_) => sl()),
       RepositoryProvider<PasswordRecoveryRepository>(create: (_) => sl()),
+      // Optional: without it the Google button shows "not connected yet".
+      if (sl.isRegistered<GoogleSignInClient>())
+        RepositoryProvider<GoogleSignInClient>(create: (_) => sl()),
       RepositoryProvider<ApplicationRepository>(create: (_) => sl()),
       RepositoryProvider<ProfessionalFieldsRepository>(create: (_) => sl()),
       RepositoryProvider<ProfileLookupsRepository>(create: (_) => sl()),

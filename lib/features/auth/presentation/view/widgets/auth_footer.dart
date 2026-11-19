@@ -2,8 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/helpers/feature_dialog.dart';
 import '../../../../../core/resources/qader_design.dart';
-import '../../../../../core/widgets/qader_asset.dart';
-import '../../../../../core/widgets/default_button.dart';
+import 'google_sign_in_button.dart';
 
 class AuthFooter extends StatelessWidget {
   const AuthFooter({
@@ -87,24 +86,15 @@ class AuthSocialButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      for (final provider in ['google', 'apple']) ...[
-        if (provider == 'apple') const SizedBox(width: 12),
-        Expanded(
-          child: DefaultButton.compact(
-            isOutlined: true,
-            color: QaderDesign.border,
-            onPressed: () => showPendingFeature(
-              context,
-              provider == 'google' ? 'google_sign_in' : 'apple_sign_in',
-            ),
-            child: Semantics(
-              label: (provider == 'google' ? 'google_sign_in' : 'apple_sign_in')
-                  .tr(context: context),
-              child: QaderAsset(provider, width: 20, height: 20),
-            ),
-          ),
+      const Expanded(child: GoogleSignInButton()),
+      const SizedBox(width: 12),
+      Expanded(
+        child: SocialButton(
+          provider: 'apple',
+          labelKey: 'apple_sign_in',
+          onPressed: () => showPendingFeature(context, 'apple_sign_in'),
         ),
-      ],
+      ),
     ],
   );
 }

@@ -12,6 +12,8 @@ import '../../features/auth/data/datasources/talent_auth_remote_data_source.dart
 import '../../features/auth/data/repositories/talent_auth_repository.dart';
 import '../../features/auth/data/repositories/password_recovery_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/data/repositories/plugin_google_sign_in_client.dart';
+import '../../features/auth/domain/repositories/google_sign_in_client.dart';
 import '../../features/auth/presentation/cubit/auth_session_cubit.dart';
 import '../../features/offers/data/repositories/api_offers_repository.dart';
 import '../../features/offers/domain/repositories/offers_repository.dart';
@@ -77,6 +79,9 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
       sl<TalentAuthRemoteDataSource>(),
       sl<AppPreferences>(),
     ),
+  );
+  sl.registerLazySingleton<GoogleSignInClient>(
+    () => PluginGoogleSignInClient(),
   );
   sl.registerLazySingleton<ApplicationRepository>(
     () => ApiApplicationRepository(sl<ApiConsumer>()),

@@ -99,6 +99,7 @@
     "create_account":  "إنشاء حساب",
     "sign_up":  "سجّل الآن",
     "google_sign_in":  "الدخول باستخدام Google",
+    "google_sign_in_failed":  "تعذّر تسجيل الدخول بجوجل. حاول مرة أخرى.",
     "apple_sign_in":  "الدخول باستخدام Apple",
     "service_pending":  "هذه الخدمة غير متصلة حاليًا.",
     "preview_title":  "معاينة التصميم",

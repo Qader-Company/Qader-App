@@ -99,6 +99,7 @@
     "create_account":  "Create an account",
     "sign_up":  "Sign up",
     "google_sign_in":  "Sign in with Google",
+    "google_sign_in_failed":  "Google sign-in failed. Please try again.",
     "apple_sign_in":  "Sign in with Apple",
     "service_pending":  "This service is not connected yet.",
     "preview_title":  "Preview the design",
