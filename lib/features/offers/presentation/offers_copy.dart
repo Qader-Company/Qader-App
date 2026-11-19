@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../core/helpers/feature_dialog.dart';
+import '../../../core/resources/app_colors.dart';
 import '../domain/entities/talent_offer.dart';
 
 /// `offers_<key>` translated.
@@ -62,6 +63,16 @@ String? offerWorkdays(BuildContext context, int? first, int? last) {
       '${format.format(DateTime(2024, 1, last))}';
 }
 
+/// "Thursday, Friday", or `null` when there are no days.
+String? offerDayNames(BuildContext context, List<int> days) {
+  if (days.isEmpty) return null;
+  final format = DateFormat.EEEE(context.locale.toString());
+  final separator = context.locale.languageCode == 'ar' ? '، ' : ', ';
+  return days
+      .map((day) => format.format(DateTime(2024, 1, day)))
+      .join(separator);
+}
+
 /// "9:00 AM – 6:00 PM", or `null` when a time is missing.
 String? offerHours(BuildContext context, Duration? start, Duration? end) {
   if (start == null || end == null) return null;
@@ -73,12 +84,52 @@ String? offerHours(BuildContext context, Duration? start, Duration? end) {
 String offerNotice(BuildContext context, int days) =>
     ot(context, 'notice_days', args: {'count': '$days'});
 
-/// Offer details of a live offer are not connected yet.
-Future<void> showOfferDetailsPending(BuildContext context) => showInfoDialog(
-  context,
-  titleKey: 'offers_details_pending_title',
-  messageKey: 'offers_details_pending_message',
-);
+/// Asks before an action that cannot be undone. `true` to go ahead.
+Future<bool> confirmOfferAction(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String action,
+  bool destructive = false,
+}) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(ot(dialogContext, 'cancel')),
+          ),
+          TextButton(
+            style: destructive
+                ? TextButton.styleFrom(foregroundColor: AppColors.red600)
+                : null,
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(action),
+          ),
+        ],
+      ),
+    ) ??
+    false;
+
+/// Snackbar after an action: the server's message on failure (or ours
+/// for an `offers_` key), [success] otherwise.
+void showOfferActionResult(
+  BuildContext context, {
+  required String? failure,
+  required String success,
+}) {
+  final text = failure == null
+      ? success
+      : failure.startsWith('offers_')
+      ? failure.tr(context: context)
+      : failure;
+  ScaffoldMessenger.maybeOf(context)
+    ?..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
+}
 
 /// Offer actions are designed but the offers API is not connected yet.
 Future<void> showOfferActionPending(BuildContext context) => showInfoDialog(

@@ -1,5 +1,7 @@
 import '../../../../core/network/either.dart';
 import '../../../../core/network/failure.dart';
+import '../../domain/entities/counter_offer.dart';
+import '../../domain/entities/hiring_offer_details.dart';
 import '../../domain/entities/hiring_offer_options.dart';
 import '../../domain/entities/hiring_offer_summary.dart';
 import '../../domain/entities/talent_offer.dart';
@@ -86,4 +88,22 @@ class PreviewOffersRepository implements OffersRepository {
       ),
     );
   }
+
+  /// Sample offers open the designed details screens instead.
+  @override
+  Future<Either<Failure, HiringOfferDetails>> loadOffer(String id) async =>
+      const Left(ServerFailure(message: 'offers_invalid_response'));
+
+  // Sample offers never call the API: their screens explain instead.
+  @override
+  Future<Either<Failure, void>> accept(String id) async =>
+      const Left(ServerFailure(message: 'offers_action_failed'));
+
+  @override
+  Future<Either<Failure, void>> reject(String id) async =>
+      const Left(ServerFailure(message: 'offers_action_failed'));
+
+  @override
+  Future<Either<Failure, void>> counter(String id, CounterOffer offer) async =>
+      const Left(ServerFailure(message: 'offers_action_failed'));
 }

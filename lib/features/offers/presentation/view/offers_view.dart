@@ -36,10 +36,13 @@ class _OffersViewState extends State<OffersView> {
     super.dispose();
   }
 
-  void _open(HiringOfferSummary offer) => widget.preview
-      ? context.push('${AppRouter.offers}/${offer.id}?preview=true')
-      // Get Hiring Offer is not connected yet.
-      : showOfferDetailsPending(context);
+  /// Reloads on return: an accept, reject or counter changes the list.
+  Future<void> _open(HiringOfferSummary offer) async {
+    await context.push(
+      '${AppRouter.offers}/${offer.id}${widget.preview ? '?preview=true' : ''}',
+    );
+    if (mounted && !widget.preview) await _cubit.reload();
+  }
 
   @override
   Widget build(BuildContext context) => BlocProvider.value(

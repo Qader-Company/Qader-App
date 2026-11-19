@@ -47,9 +47,10 @@ class OfferCompany {
     this.industry = '',
     this.location = '',
     this.website,
+    this.logoUrl,
   });
   final String name, industry, location;
-  final String? website;
+  final String? website, logoUrl;
 }
 
 /// Who wrote a version of the terms.
@@ -70,6 +71,13 @@ class OfferTerms {
     this.workStart,
     this.workEnd,
     this.original = false,
+    this.hoursPerDay,
+    this.workType,
+    this.location,
+    this.hybridDays = const [],
+    this.statusLabel = '',
+    this.respondBy,
+    this.currencyId,
   });
 
   /// Monthly salary.
@@ -95,6 +103,26 @@ class OfferTerms {
 
   /// The client's first offer.
   final bool original;
+
+  /// Working hours per day, when the backend sends a count instead of
+  /// [workStart] / [workEnd] (`work_hours`).
+  final num? hoursPerDay;
+
+  /// Backend codes, e.g. `full_time`.
+  final String? workType;
+  final String? location;
+
+  /// Office days of a hybrid offer (`DateTime.weekday` values).
+  final List<int> hybridDays;
+
+  /// Backend label of this version's status, e.g. "Countered".
+  final String statusLabel;
+
+  /// `response_due_at`: when the talent must answer.
+  final DateTime? respondBy;
+
+  /// Backend id of [currency].
+  final int? currencyId;
 }
 
 class OfferInterview {

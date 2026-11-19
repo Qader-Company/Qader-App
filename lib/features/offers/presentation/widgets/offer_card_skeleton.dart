@@ -56,3 +56,56 @@ class OfferListSkeleton extends StatelessWidget {
     ),
   );
 }
+
+/// Placeholder of an offer's details (company, progress and terms) while
+/// it loads.
+class OfferDetailsSkeleton extends StatelessWidget {
+  const OfferDetailsSkeleton({super.key});
+  @override
+  Widget build(BuildContext context) => Shimmer(
+    child: Column(
+      children: [
+        const SkeletonCard(
+          children: [
+            Row(
+              children: [
+                SkeletonBox.circle(size: 32),
+                SizedBox(width: 10),
+                SkeletonBox(width: 140, height: 18),
+              ],
+            ),
+            SkeletonBox(width: 200, height: 10),
+            SkeletonBox(width: 170, height: 10),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SkeletonCard(
+          children: [
+            const SkeletonBox(width: 130, height: 16),
+            Row(
+              children: [
+                for (var i = 0; i < 3; i++) ...[
+                  if (i > 0)
+                    const Expanded(child: SkeletonBox(height: 2, radius: 1)),
+                  const SkeletonBox.circle(size: 24),
+                ],
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        const SkeletonCard(
+          children: [
+            SkeletonBox(width: 120, height: 16),
+            SkeletonBox(width: 150, height: 28),
+            SkeletonBox(width: 90, height: 10),
+            SkeletonBox(height: 10),
+            SkeletonBox(width: 200, height: 10),
+            SkeletonBox(width: 180, height: 10),
+            SkeletonBox(width: 210, height: 10),
+          ],
+        ),
+      ],
+    ),
+  );
+}

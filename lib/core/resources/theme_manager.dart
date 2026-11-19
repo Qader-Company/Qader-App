@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'color_manager.dart';
 import 'qader_design.dart';
-import 'font_manager.dart';
 import 'styles_manager.dart';
 
 /// The app theme: Material base plus the Figma design ([QaderDesign.apply]).
@@ -11,8 +10,8 @@ class ThemeManager {
       QaderDesign.apply(_base(), locale);
 
   static ThemeData _base() {
+    // The font family is set per language by QaderDesign.apply.
     return ThemeData(
-      fontFamily: FontConstants.fontFamily,
       // fromSeed alone shifts the primary; pin the Figma colors.
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,

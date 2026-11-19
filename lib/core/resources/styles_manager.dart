@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-import 'font_manager.dart';
 
+/// No font family: text takes the theme's, which follows the language
+/// (Poppins in English, Rubik in Arabic; see `QaderDesign.apply`).
 TextStyle _getTextStyle(double fontSize, FontWeight fontWeight, Color color) {
-  return TextStyle(
-    fontSize: fontSize,
-    fontFamily: FontConstants.fontFamily,
-    fontWeight: fontWeight,
-    color: color,
-  );
+  return TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: color);
 }
 
 TextStyle getLightStyle({double fontSize = 12, required Color color}) =>

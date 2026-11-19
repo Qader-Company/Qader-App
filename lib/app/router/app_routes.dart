@@ -32,6 +32,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/offers/domain/repositories/offers_repository.dart';
 import '../../features/offers/presentation/preview/offers_preview_data.dart';
 import '../../features/offers/presentation/preview/preview_offers_repository.dart';
+import '../../features/offers/presentation/view/live_offer_details_view.dart';
 import '../../features/offers/presentation/view/offer_details_view.dart';
 import '../../features/offers/presentation/view/offers_view.dart';
 import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
@@ -148,19 +149,26 @@ GoRouter buildAppRouter() => GoRouter(
               preview: true,
             ),
       routes: [
-        // Designed details screens, for the sample offers only: Get Hiring
-        // Offer is not connected yet.
+        // Signed-in talents get the offer from the API; sample offers
+        // (`?preview=true`, or logged out) open the designed screens.
         GoRoute(
           path: ':id',
-          redirect: (context, state) =>
-              OffersPreviewData.byId(state.pathParameters['id']!) == null ||
-                  sl<AppPreferences>().isLoggedIn &&
-                      state.uri.queryParameters['preview'] != 'true'
-              ? AppRouter.offers
-              : null,
-          builder: (context, state) => OfferDetailsView(
-            offer: OffersPreviewData.byId(state.pathParameters['id']!)!,
-          ),
+          redirect: (context, state) {
+            final live =
+                sl<AppPreferences>().isLoggedIn &&
+                state.uri.queryParameters['preview'] != 'true';
+            return live ||
+                    OffersPreviewData.byId(state.pathParameters['id']!) != null
+                ? null
+                : AppRouter.offers;
+          },
+          builder: (context, state) {
+            final id = state.pathParameters['id']!;
+            return sl<AppPreferences>().isLoggedIn &&
+                    state.uri.queryParameters['preview'] != 'true'
+                ? LiveOfferDetailsView(offerId: id)
+                : OfferDetailsView(offer: OffersPreviewData.byId(id)!);
+          },
         ),
       ],
     ),

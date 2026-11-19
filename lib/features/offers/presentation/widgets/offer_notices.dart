@@ -38,15 +38,17 @@ class OfferAlertBanner extends StatelessWidget {
                   color: AppColors.red600,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 12,
-                  height: 1.5,
-                  color: AppColors.red500,
+              if (message.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.5,
+                    color: AppColors.red500,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/resources/app_colors.dart';
-import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_page_header.dart';
 import '../../domain/entities/talent_offer.dart';
 import '../offers_copy.dart';
 import '../widgets/apologize_dialog.dart';
+import '../widgets/offer_back_link.dart';
 import '../widgets/counter_offer_dialog.dart';
 import '../widgets/offer_contract_card.dart';
 import '../widgets/offer_notices.dart';
@@ -21,9 +19,6 @@ import 'offers_scaffold.dart';
 class OfferDetailsView extends StatelessWidget {
   const OfferDetailsView({super.key, required this.offer});
   final TalentOffer offer;
-
-  void _back(BuildContext context) =>
-      context.canPop() ? context.pop() : context.go(AppRouter.offers);
 
   Future<void> _negotiate(BuildContext context) async {
     final draft = await showCounterOfferDialog(context, offer.latest);
@@ -47,26 +42,7 @@ class OfferDetailsView extends StatelessWidget {
     return OffersScaffold(
       header: AppPageHeader(title: ot(context, 'my_offers')),
       children: [
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton.icon(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              foregroundColor: AppColors.neutral900,
-            ),
-            onPressed: () => _back(context),
-            icon: Icon(
-              Directionality.of(context) == TextDirection.rtl
-                  ? Icons.arrow_forward
-                  : Icons.arrow_back,
-              size: 20,
-            ),
-            label: Text(
-              ot(context, 'back_to_offers'),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-        ),
+        const OfferBackLink(),
         if ({
               OfferStage.interviewCancelled,
               OfferStage.interviewApologized,
@@ -91,7 +67,11 @@ class OfferDetailsView extends StatelessWidget {
               ? null
               : () => showOfferActionPending(context),
         ),
-        OfferHiringProgress(stage: offer.stage),
+        OfferHiringProgress(
+          step: offer.stage.progressStep,
+          failed: offer.stage.failed,
+          completed: offer.stage == OfferStage.contracted,
+        ),
         ..._stage(context, closedAt),
       ],
     );

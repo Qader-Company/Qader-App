@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
+import 'package:qader/features/offers/domain/entities/hiring_offer_details.dart';
 import 'package:qader/features/offers/domain/entities/hiring_offer_options.dart';
 import 'package:qader/features/offers/domain/entities/hiring_offer_summary.dart';
 import 'package:qader/features/offers/domain/entities/talent_offer.dart';
@@ -11,7 +12,7 @@ import 'package:qader/features/offers/presentation/preview/offers_preview_data.d
 import 'package:qader/features/offers/presentation/preview/preview_offers_repository.dart';
 
 /// Records every list request; answers from [pages] or fails.
-class _Repo implements OffersRepository {
+class _Repo extends Fake implements OffersRepository {
   final queries = <HiringOfferQuery>[];
   Failure? failure;
   Completer<void>? gate;
@@ -30,6 +31,10 @@ class _Repo implements OffersRepository {
           ],
         ),
       );
+
+  @override
+  Future<Either<Failure, HiringOfferDetails>> loadOffer(String id) async =>
+      throw UnimplementedError();
 
   @override
   Future<Either<Failure, HiringOfferPage>> loadOffers(

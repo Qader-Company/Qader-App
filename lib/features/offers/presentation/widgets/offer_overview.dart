@@ -72,7 +72,7 @@ class OfferCompanyCard extends StatelessWidget {
     children: [
       Row(
         children: [
-          CompanyLogo(name: company.name),
+          CompanyLogo(name: company.name, imageUrl: company.logoUrl),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -106,26 +106,43 @@ class OfferCompanyCard extends StatelessWidget {
   );
 }
 
-/// Offer → Interview → Accepted, with the current step highlighted and a
-/// failed step in red.
+/// Offer → Interview → Accepted (Offer → Accepted without an interview),
+/// with the current step highlighted and a failed step in red.
 class OfferHiringProgress extends StatelessWidget {
-  const OfferHiringProgress({super.key, required this.stage});
-  final OfferStage stage;
+  const OfferHiringProgress({
+    super.key,
+    required this.step,
+    this.failed = false,
+    this.completed = false,
+    this.withInterview = true,
+  });
+
+  /// Index of the current step among the shown steps.
+  final int step;
+
+  /// Show the Interview step.
+  final bool withInterview;
+
+  /// The current step failed (red).
+  final bool failed;
+
+  /// Every step is done.
+  final bool completed;
   @override
   Widget build(BuildContext context) {
-    final current = stage.progressStep;
+    final current = step;
     final labels = [
       ot(context, 'step_offer'),
-      ot(context, 'step_interview'),
+      if (withInterview) ot(context, 'step_interview'),
       ot(context, 'step_accepted'),
     ];
     _StepState state(int step) => step < current
         ? _StepState.done
         : step > current
         ? _StepState.pending
-        : stage.failed
+        : failed
         ? _StepState.failed
-        : stage == OfferStage.contracted
+        : completed
         ? _StepState.done
         : _StepState.current;
     return OfferPanel(
