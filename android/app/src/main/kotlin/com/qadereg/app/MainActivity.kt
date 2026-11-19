@@ -1,4 +1,4 @@
-package com.example.qader
+package com.qadereg.app
 
 import io.flutter.embedding.android.FlutterActivity
 
