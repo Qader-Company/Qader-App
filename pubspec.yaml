@@ -40,6 +40,8 @@ dependencies:
   pinput: ^6.0.2
   flutter_secure_storage: ^10.3.4
   country_picker: 2.0.28
+  firebase_core: ^5.1.0
+  firebase_messaging: ^17.0.1
 
 dev_dependencies:
   flutter_test:

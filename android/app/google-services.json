@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "722182835562",
+    "project_id": "qader-app",
+    "storage_bucket": "qader-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722182835562:android:8f55f48856844eb12b6913",
+        "android_client_info": {
+          "package_name": "com.qadereg.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "722182835562-ap903cv8jvfcl8gcb7lbkson1kmvlcsp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qadereg.app",
+            "certificate_hash": "abf1a13315f1861fcba063a8caaa8adf3a4ae35d"
+          }
+        },
+        {
+          "client_id": "722182835562-l2690ik6ecuqobejgv2g4ed4krl4ahpl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHrwEQ3wc9hfTSaBKm7RJ5DID3mUeg0d0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "722182835562-l2690ik6ecuqobejgv2g4ed4krl4ahpl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

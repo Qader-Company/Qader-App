@@ -5,6 +5,7 @@ import '../../features/home/presentation/view/widgets/home_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/network/api_consumer.dart';
 import '../../core/network/network_info.dart';
+import '../../core/notifications/push_notifications.dart';
 import '../../core/storage/app_preferences.dart';
 import '../../core/storage/secure_app_preferences.dart';
 import '../../features/auth/data/datasources/talent_auth_remote_data_source.dart';
@@ -47,6 +48,9 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
   sl.registerLazySingleton<ApiConsumer>(() => DioConsumer());
+  sl.registerLazySingleton<PushNotifications>(
+    () => FirebasePushNotifications(),
+  );
   sl.registerLazySingleton<ProfessionalFieldsRepository>(
     () => ApiProfessionalFieldsRepository(sl<ApiConsumer>()),
   );

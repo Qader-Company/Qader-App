@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/app.dart';
@@ -7,6 +8,7 @@ import 'core/bloc/bloc_observer.dart';
 import 'app/di/dependencies.dart';
 import 'core/locale/language_manager.dart';
 import 'core/storage/app_preferences.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +18,7 @@ Future<void> main() async {
     'staging' => Environment.staging,
     _ => Environment.dev,
   }, splashDuration: const Duration(milliseconds: 1800));
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Bloc.observer = AppBlocObserver();
   await EasyLocalization.ensureInitialized();
   await initServiceLocator();
