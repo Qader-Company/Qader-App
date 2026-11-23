@@ -12,6 +12,7 @@ class ApiOffersRepository implements OffersRepository {
   final ApiConsumer _api;
   static const listPath = '/talent/hiring-offers';
   static const optionsPath = '/talent/hiring-offers/options';
+  static const interviewsPath = '/talent/hiring-interviews';
 
   @override
   Future<Either<Failure, HiringOfferOptions>> loadOptions() async {
@@ -56,14 +57,39 @@ class ApiOffersRepository implements OffersRepository {
   }
 
   @override
-  Future<Either<Failure, void>> accept(String id) => _action(id, 'accept');
+  Future<Either<Failure, void>> accept(String id) => _post(_item(id, 'accept'));
 
   @override
-  Future<Either<Failure, void>> reject(String id) => _action(id, 'reject');
+  Future<Either<Failure, void>> reject(String id) => _post(_item(id, 'reject'));
 
   @override
   Future<Either<Failure, void>> counter(String id, CounterOffer offer) =>
-      _action(id, 'counter', data: counterBody(offer));
+      _post(_item(id, 'counter'), data: counterBody(offer));
+
+  @override
+  Future<Either<Failure, void>> acceptInterviewTime(String interviewId) =>
+      _post(_interview(interviewId, 'accept-schedule'));
+
+  @override
+  Future<Either<Failure, void>> requestInterviewChange(
+    String interviewId,
+    String reason,
+  ) => _post(
+    _interview(interviewId, 'request-schedule-change'),
+    data: {'reason': reason},
+  );
+
+  @override
+  Future<Either<Failure, void>> apologizeForInterview(
+    String interviewId,
+    String reason,
+  ) => _post(_interview(interviewId, 'apologize'), data: {'reason': reason});
+
+  static String _item(String id, String action) =>
+      '$listPath/${Uri.encodeComponent(id)}/$action';
+
+  static String _interview(String id, String action) =>
+      '$interviewsPath/${Uri.encodeComponent(id)}/$action';
 
   /// JSON body of Send Counter Offer.
   static Map<String, dynamic> counterBody(CounterOffer offer) => {
@@ -95,13 +121,9 @@ class ApiOffersRepository implements OffersRepository {
   static String? _dayName(int? weekday) =>
       weekday == null || weekday < 1 || weekday > 7 ? null : _days[weekday - 1];
 
-  Future<Either<Failure, void>> _action(
-    String id,
-    String action, {
-    Object? data,
-  }) async {
+  Future<Either<Failure, void>> _post(String path, {Object? data}) async {
     final result = await _api.post<Object?>(
-      '$listPath/${Uri.encodeComponent(id)}/$action',
+      path,
       data: data,
       contentType: data == null ? null : 'application/json',
       fromJson: (raw) => raw,

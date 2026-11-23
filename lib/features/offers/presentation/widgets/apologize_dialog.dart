@@ -13,15 +13,44 @@ import 'offer_dialog_frame.dart';
 Future<String?> showApologizeDialog(
   BuildContext context,
   OfferInterview interview,
-) => showDialog<String>(
+) => showInterviewReasonDialog(
+  context,
+  start: interview.start,
+  end: interview.end,
+  timeZone: interview.timeZone,
+);
+
+/// Asks why the talent cannot keep the interview at [start]–[end]: an
+/// apology ([change] false, the interview is cancelled) or a request for
+/// another time ([change] true). Returns the reason, or `null` when
+/// cancelled. Both endpoints require it.
+Future<String?> showInterviewReasonDialog(
+  BuildContext context, {
+  DateTime? start,
+  DateTime? end,
+  String timeZone = '',
+  bool change = false,
+}) => showDialog<String>(
   context: context,
   barrierColor: AppColors.barrier,
-  builder: (_) => _ApologizeDialog(interview: interview),
+  builder: (_) => _ApologizeDialog(
+    start: start,
+    end: end,
+    timeZone: timeZone,
+    change: change,
+  ),
 );
 
 class _ApologizeDialog extends StatefulWidget {
-  const _ApologizeDialog({required this.interview});
-  final OfferInterview interview;
+  const _ApologizeDialog({
+    this.start,
+    this.end,
+    this.timeZone = '',
+    this.change = false,
+  });
+  final DateTime? start, end;
+  final String timeZone;
+  final bool change;
   @override
   State<_ApologizeDialog> createState() => _ApologizeDialogState();
 }
@@ -40,9 +69,11 @@ class _ApologizeDialogState extends State<_ApologizeDialog> {
   Widget build(BuildContext context) {
     final locale = context.locale.toString();
     final time = DateFormat.jm(locale);
-    final interview = widget.interview;
+    final start = widget.start;
+    final end = widget.end;
+    final change = widget.change;
     return OfferDialogFrame(
-      title: ot(context, 'apologize_title'),
+      title: ot(context, change ? 'change_title' : 'apologize_title'),
       leading: Container(
         width: 36,
         height: 36,
@@ -62,52 +93,54 @@ class _ApologizeDialogState extends State<_ApologizeDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              ot(context, 'apologize_message'),
+              ot(context, change ? 'change_message' : 'apologize_message'),
               style: const TextStyle(
                 fontSize: 12,
                 height: 1.5,
                 color: AppColors.neutral600,
               ),
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.neutral50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.neutral200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    DateFormat(
-                      'EEEE, MMM d, y',
-                      locale,
-                    ).format(interview.start),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+            if (start != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.neutral50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.neutral200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat('EEEE, MMM d, y', locale).format(start),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${time.format(interview.start)} – ${time.format(interview.end)}'
-                    '${interview.timeZone.isEmpty ? '' : ' (${interview.timeZone})'}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.neutral600,
+                    const SizedBox(height: 4),
+                    Text(
+                      '${time.format(start)}'
+                      '${end == null ? '' : ' – ${time.format(end)}'}'
+                      '${widget.timeZone.isEmpty ? '' : ' (${widget.timeZone})'}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.neutral600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  OfferChip(
-                    ot(context, 'will_be_cancelled'),
-                    background: AppColors.red50,
-                    foreground: AppColors.red600,
-                  ),
-                ],
+                    if (!change) ...[
+                      const SizedBox(height: 8),
+                      OfferChip(
+                        ot(context, 'will_be_cancelled'),
+                        background: AppColors.red50,
+                        foreground: AppColors.red600,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
+            ],
             const SizedBox(height: 12),
             DefaultFormField(
               key: const ValueKey('apologize-reason'),
@@ -131,8 +164,8 @@ class _ApologizeDialogState extends State<_ApologizeDialog> {
             ),
             const SizedBox(height: 10),
             DefaultButton.compact(
-              text: ot(context, 'submit_apology'),
-              color: AppColors.orange600,
+              text: ot(context, change ? 'submit_change' : 'submit_apology'),
+              color: change ? AppColors.blueStrong : AppColors.orange600,
               onPressed: () {
                 if (!_form.currentState!.validate()) return;
                 Navigator.pop(context, _reason.text.trim());

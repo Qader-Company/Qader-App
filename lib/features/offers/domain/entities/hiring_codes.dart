@@ -34,6 +34,13 @@ abstract final class OfferAction {
   static const counter = 'counter_offer';
 }
 
+/// `interview.available_actions`: separate from the item's actions.
+abstract final class InterviewAction {
+  static const acceptSchedule = 'accept_schedule';
+  static const requestChange = 'request_schedule_change';
+  static const apologize = 'apologize';
+}
+
 /// `proposed_by` of an offer.
 abstract final class OfferProposer {
   static const client = 'client';

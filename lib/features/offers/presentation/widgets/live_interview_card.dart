@@ -3,17 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/resources/app_colors.dart';
+import '../../../../core/widgets/default_button.dart';
 import '../../domain/entities/hiring_interview.dart';
 import '../offers_copy.dart';
 import 'offer_badges.dart';
 import 'offer_overview.dart';
 
 /// The item's interview from the API: when, its status and the talent's
-/// answer (both labelled by the backend), the meeting link, and "Join"
-/// while `can_join` is true.
+/// answer (both labelled by the backend), the meeting link, "Join" while
+/// `can_join` is true, and the answers its `available_actions` allow.
 class LiveInterviewCard extends StatelessWidget {
-  const LiveInterviewCard({super.key, required this.interview});
+  const LiveInterviewCard({
+    super.key,
+    required this.interview,
+    this.busy = false,
+    this.onAccept,
+    this.onRequestChange,
+    this.onApologize,
+  });
   final HiringInterview interview;
+
+  /// An answer is being sent: the buttons wait.
+  final bool busy;
+
+  /// `null` hides the button (its action is not allowed).
+  final VoidCallback? onAccept, onRequestChange, onApologize;
 
   Future<void> _copy(BuildContext context, String link) async {
     await Clipboard.setData(ClipboardData(text: link));
@@ -160,6 +174,38 @@ class LiveInterviewCard extends StatelessWidget {
             ],
           ),
         ),
+        if (onAccept case final accept?) ...[
+          const SizedBox(height: 12),
+          DefaultButton.compact(
+            key: const ValueKey('interview-accept'),
+            text: ot(context, 'accept_time'),
+            isLoading: busy,
+            onPressed: busy ? null : accept,
+          ),
+        ],
+        if (onRequestChange case final change?) ...[
+          const SizedBox(height: 10),
+          DefaultButton.compact(
+            key: const ValueKey('interview-change'),
+            text: ot(context, 'request_change'),
+            isOutlined: true,
+            color: AppColors.neutral300,
+            textColor: AppColors.neutral700,
+            onPressed: busy ? null : change,
+          ),
+        ],
+        if (onApologize case final apologize?) ...[
+          const SizedBox(height: 4),
+          TextButton(
+            key: const ValueKey('interview-apologize'),
+            onPressed: busy ? null : apologize,
+            style: TextButton.styleFrom(foregroundColor: AppColors.red600),
+            child: Text(
+              ot(context, 'apologize'),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ],
     );
   }

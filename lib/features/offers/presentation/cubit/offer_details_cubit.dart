@@ -47,6 +47,25 @@ class OfferDetailsCubit extends Cubit<OfferDetailsState> {
   Future<Failure?> counter(CounterOffer offer) =>
       _run(() => _repository.counter(id, offer));
 
+  /// Interview answers go to the item's `interview`; without one there is
+  /// nothing to answer.
+  Future<Failure?> acceptInterviewTime() =>
+      _interview((id) => _repository.acceptInterviewTime(id));
+
+  Future<Failure?> requestInterviewChange(String reason) =>
+      _interview((id) => _repository.requestInterviewChange(id, reason));
+
+  Future<Failure?> apologizeForInterview(String reason) =>
+      _interview((id) => _repository.apologizeForInterview(id, reason));
+
+  Future<Failure?> _interview(
+    Future<Either<Failure, void>> Function(String interviewId) action,
+  ) async {
+    final interview = state.details?.interview;
+    if (interview == null) return null;
+    return _run(() => action(interview.id));
+  }
+
   /// Runs an action, then reloads the offer so the screen follows the
   /// backend's new status and actions. Returns the failure, if any.
   Future<Failure?> _run(Future<Either<Failure, void>> Function() action) async {

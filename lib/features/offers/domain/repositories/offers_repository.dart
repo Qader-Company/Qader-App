@@ -24,4 +24,21 @@ abstract class OffersRepository {
 
   /// `POST /talent/hiring-offers/{id}/counter`.
   Future<Either<Failure, void>> counter(String id, CounterOffer offer);
+
+  /// `POST /talent/hiring-interviews/{interviewId}/accept-schedule`.
+  Future<Either<Failure, void>> acceptInterviewTime(String interviewId);
+
+  /// `POST /talent/hiring-interviews/{interviewId}/request-schedule-change`
+  /// with the talent's [reason].
+  Future<Either<Failure, void>> requestInterviewChange(
+    String interviewId,
+    String reason,
+  );
+
+  /// `POST /talent/hiring-interviews/{interviewId}/apologize` with the
+  /// talent's [reason].
+  Future<Either<Failure, void>> apologizeForInterview(
+    String interviewId,
+    String reason,
+  );
 }

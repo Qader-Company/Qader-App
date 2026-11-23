@@ -151,5 +151,21 @@ class PreviewOffersRepository implements OffersRepository {
   Future<Either<Failure, void>> counter(String id, CounterOffer offer) async =>
       const Left(ServerFailure(message: _notConnected));
 
+  @override
+  Future<Either<Failure, void>> acceptInterviewTime(String interviewId) async =>
+      const Left(ServerFailure(message: _notConnected));
+
+  @override
+  Future<Either<Failure, void>> requestInterviewChange(
+    String interviewId,
+    String reason,
+  ) async => const Left(ServerFailure(message: _notConnected));
+
+  @override
+  Future<Either<Failure, void>> apologizeForInterview(
+    String interviewId,
+    String reason,
+  ) async => const Left(ServerFailure(message: _notConnected));
+
   static const _notConnected = 'offers_not_connected_message';
 }
