@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/notification_bell.dart';
 import '../../../../../core/widgets/qader_design.dart';
 
 class HomeHeader extends StatelessWidget {
@@ -20,10 +21,10 @@ class HomeHeader extends StatelessWidget {
             ),
           ),
           const QaderLogo(),
-          _HeaderButton(
-            asset: 'notification',
-            label: 'notifications',
-            onTap: () => showPendingFeature(context, 'notifications'),
+          const NotificationBell(
+            icon: _Circle(
+              child: QaderAsset('notification', width: 17.1, height: 17.9),
+            ),
           ),
         ],
       ),
@@ -44,20 +45,21 @@ class _HeaderButton extends StatelessWidget {
   Widget build(BuildContext context) => IconButton(
     tooltip: label.tr(context: context),
     onPressed: onTap,
-    icon: Container(
-      width: 28,
-      height: 28,
-      decoration: const BoxDecoration(
-        color: AppColors.neutral100,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: QaderAsset(
-          asset,
-          width: asset == 'menu' ? 14.6 : 17.1,
-          height: asset == 'menu' ? 12.9 : 17.9,
-        ),
-      ),
+    icon: _Circle(child: QaderAsset(asset, width: 14.6, height: 12.9)),
+  );
+}
+
+class _Circle extends StatelessWidget {
+  const _Circle({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 28,
+    height: 28,
+    decoration: const BoxDecoration(
+      color: AppColors.neutral100,
+      shape: BoxShape.circle,
     ),
+    child: Center(child: child),
   );
 }

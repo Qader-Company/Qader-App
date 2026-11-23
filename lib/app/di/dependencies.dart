@@ -5,7 +5,11 @@ import '../../features/home/presentation/view/widgets/home_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/network/api_consumer.dart';
 import '../../core/network/network_info.dart';
+import '../../core/notifications/notification_badge.dart';
 import '../../core/notifications/push_notifications.dart';
+import '../../features/notifications/data/repositories/api_notifications_repository.dart';
+import '../../features/notifications/domain/repositories/notifications_repository.dart';
+import '../../features/notifications/presentation/cubit/notification_badge_controller.dart';
 import '../../core/storage/app_preferences.dart';
 import '../../core/storage/secure_app_preferences.dart';
 import '../../features/auth/data/datasources/talent_auth_remote_data_source.dart';
@@ -91,6 +95,16 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<OffersRepository>(
     () => ApiOffersRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<NotificationsRepository>(
+    () => ApiNotificationsRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<NotificationBadge>(
+    () => NotificationBadgeController(
+      sl<NotificationsRepository>(),
+      isSignedIn: () => sl<AppPreferences>().isLoggedIn,
+    ),
+    dispose: (badge) => (badge as NotificationBadgeController).dispose(),
   );
   sl.registerLazySingleton<TalentProfileRepository>(
     () => ApiTalentProfileRepository(sl<ApiConsumer>()),

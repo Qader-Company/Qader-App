@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/di/service_locator.dart';
+import '../core/notifications/notification_badge.dart';
 import '../core/storage/app_preferences.dart';
+import '../features/notifications/domain/repositories/notifications_repository.dart';
 import '../features/auth/data/repositories/password_recovery_repository.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/repositories/google_sign_in_client.dart';
@@ -40,6 +42,9 @@ class AppProviders extends StatelessWidget {
       RepositoryProvider<TalentProfileRepository>(create: (_) => sl()),
       RepositoryProvider<OffersRepository>(create: (_) => sl()),
       RepositoryProvider<ProfileEditRepository>(create: (_) => sl()),
+      RepositoryProvider<NotificationsRepository>(create: (_) => sl()),
+      // App-wide: every header's bell shares one unread count.
+      RepositoryProvider<NotificationBadge>(create: (_) => sl()),
       // Optional: profile setup works without saved-progress restore.
       if (sl.isRegistered<OnboardingProgressRepository>())
         RepositoryProvider<OnboardingProgressRepository>(create: (_) => sl()),

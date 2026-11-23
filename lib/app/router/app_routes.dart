@@ -35,6 +35,7 @@ import '../../features/offers/presentation/preview/preview_offers_repository.dar
 import '../../features/offers/presentation/view/live_offer_details_view.dart';
 import '../../features/offers/presentation/view/preview_offer_details_view.dart';
 import '../../features/offers/presentation/view/offers_view.dart';
+import '../../features/notifications/presentation/view/notifications_view.dart';
 import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
 import '../../core/router/app_router.dart';
 export '../../core/router/app_router.dart';
@@ -171,6 +172,13 @@ GoRouter buildAppRouter() => GoRouter(
           },
         ),
       ],
+    ),
+    GoRoute(
+      path: AppRouter.notifications,
+      redirect: (context, state) => sl<AppPreferences>().isLoggedIn
+          ? null
+          : '${AppRouter.signIn}?role=talent',
+      builder: (context, state) => const NotificationsView(),
     ),
     GoRoute(
       path: AppRouter.profileEdit,

@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../helpers/feature_dialog.dart';
+import 'notification_bell.dart';
 import 'qader_asset.dart';
 
 /// Top of the drawer pages: menu button, centered [title] and
@@ -27,11 +27,9 @@ class AppPageHeader extends StatelessWidget {
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
-      IconButton(
-        tooltip: 'talent_notifications'.tr(context: context),
+      const NotificationBell(
         alignment: AlignmentDirectional.centerEnd,
-        onPressed: () => showPendingFeature(context, 'notifications'),
-        icon: const QaderAsset('notification', width: 17.1, height: 17.9),
+        icon: QaderAsset('notification', width: 17.1, height: 17.9),
       ),
     ],
   );

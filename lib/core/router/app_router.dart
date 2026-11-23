@@ -26,6 +26,7 @@ abstract class AppRouter {
   static const talentProfile = '/talent-profile';
   static const profileReview = '/profile-review';
   static const profileReport = '/profile-report';
+  static const notifications = '/notifications';
 
   /// The list; one offer is `'$offers/<id>'`.
   static const offers = '/offers';
