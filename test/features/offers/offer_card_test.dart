@@ -91,9 +91,16 @@ void main() {
       of: find.byKey(ValueKey('card-$id')),
       matching: find.text(text),
     );
+    // One chip per card: in the offer stage the newest offer replaces
+    // the item's "Offer".
     expect(inCard('1', 'Awaiting your response'), findsOneWidget);
     expect(inCard('2', 'Waiting for the company'), findsOneWidget);
     expect(inCard('3', 'Expired'), findsOneWidget);
+    for (final id in ['1', '2', '3']) {
+      expect(inCard(id, 'Offer'), findsNothing);
+    }
+    // Without the newest offer the item chip stays.
+    expect(inCard('5', 'Offer'), findsOneWidget);
     expect(inCard('4', 'Accepted'), findsNothing);
     expect(inCard('4', 'Interview'), findsOneWidget);
     for (final id in ['4', '5']) {

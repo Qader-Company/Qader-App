@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/resources/app_colors.dart';
+import '../../domain/entities/hiring_codes.dart';
 import '../../domain/entities/hiring_offer_summary.dart';
 import '../offers_copy.dart';
 import 'offer_badges.dart';
@@ -72,23 +73,19 @@ class OfferCard extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  OfferStatusChip(
-                    value: offer.status,
-                    label: offer.statusLabel,
-                  ),
-                  LatestOfferChip(
-                    key: const ValueKey('offer-latest-status'),
-                    itemStatus: offer.status,
-                    status: offer.latestStatus,
-                    label: offer.latestStatusLabel,
-                    byTalent: offer.latestByTalent,
-                  ),
-                ],
-              ),
+              // One chip, as in Figma: in the offer stage the newest offer
+              // says more than "Offer" (whose turn it is, or expired).
+              if (offer.status == ItemStatus.offer &&
+                  offer.latestStatus.isNotEmpty)
+                LatestOfferChip(
+                  key: const ValueKey('offer-latest-status'),
+                  itemStatus: offer.status,
+                  status: offer.latestStatus,
+                  label: offer.latestStatusLabel,
+                  byTalent: offer.latestByTalent,
+                )
+              else
+                OfferStatusChip(value: offer.status, label: offer.statusLabel),
               if (salary != null && currency != null || workMode != null) ...[
                 const SizedBox(height: 8),
                 Row(
