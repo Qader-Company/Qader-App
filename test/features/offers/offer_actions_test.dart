@@ -300,7 +300,8 @@ void main() {
     expect(find.text('Offer accepted'), findsOneWidget);
     expect(find.text('Accept Offer'), findsNothing);
 
-    // Counter: prefilled from the client offer; office days are required.
+    // Counter: prefilled from the client offer. Only the salary and the
+    // notice period can change; mode, office days and location are locked.
     repo
       ..status = 'offer'
       ..actions = const ['view', ..._answer];
@@ -308,22 +309,26 @@ void main() {
     await tap(find.text('Negotiate'));
     expect(find.text('Submit Counter Offer'), findsOneWidget);
     expect(find.text('Cairo, Egypt'), findsOneWidget);
-    // Office days sit beside the work mode, prefilled from the offer.
+    expect(find.text('Hybrid'), findsOneWidget);
     expect(find.text('Thu'), findsOneWidget);
-    Future<void> toggle(List<String> days) async {
-      await tap(find.byKey(const ValueKey('counter-hybrid-days')));
-      for (final day in days) {
-        await tap(find.widgetWithText(CheckboxListTile, day));
-      }
-      await tap(find.text('Done'));
+    for (final key in [
+      'counter-work-mode',
+      'counter-hybrid-days',
+      'counter-location',
+    ]) {
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(ValueKey(key)),
+                matching: find.byType(TextField),
+              ),
+            )
+            .enabled,
+        isFalse,
+        reason: key,
+      );
     }
-
-    await toggle(['Thursday']);
-    expect(find.text('Thu'), findsNothing);
-    await tap(find.text('Send Counter Offer'));
-    expect(find.text('Choose at least one office day'), findsOneWidget);
-    await toggle(['Sunday']);
-    expect(find.text('Sun'), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('counter-salary')),
       '25000',
@@ -334,7 +339,7 @@ void main() {
     expect(sent.salary, 25000);
     expect(sent.currencyId, 1);
     expect(sent.workMode, 'hybrid');
-    expect(sent.hybridDays, [DateTime.sunday]);
+    expect(sent.hybridDays, [DateTime.thursday]);
     expect(sent.noticeDays, 30);
     expect(sent.location, 'Cairo, Egypt');
     expect(find.text('Counter offer sent'), findsOneWidget);

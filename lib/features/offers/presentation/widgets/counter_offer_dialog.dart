@@ -13,8 +13,9 @@ import 'offer_dialog_frame.dart';
 /// "Submit Counter Offer", prefilled from [terms]. Returns the counter
 /// offer, or `null` when cancelled.
 ///
-/// The salary stays in the offer's currency; work type, days and hours
-/// are carried over unchanged.
+/// Only the salary and the notice period can change: work mode, office
+/// days and location are shown locked and sent as offered, like the
+/// currency, work type, days and hours.
 Future<CounterOffer?> showCounterOfferDialog(
   BuildContext context,
   OfferTerms terms,
@@ -32,8 +33,6 @@ class _CounterOfferDialog extends StatefulWidget {
 }
 
 class _CounterOfferDialogState extends State<_CounterOfferDialog> {
-  static const _modes = ['remote', 'on_site', 'hybrid'];
-
   /// Saturday first, as the work week reads in the region.
   static const _week = [
     DateTime.saturday,
@@ -52,10 +51,7 @@ class _CounterOfferDialogState extends State<_CounterOfferDialog> {
     text: widget.terms.location ?? '',
   );
   final _hybridText = TextEditingController();
-  late String _mode = _modes.contains(widget.terms.workMode)
-      ? widget.terms.workMode
-      : _modes.first;
-  late final _hybridDays = {...widget.terms.hybridDays};
+  late final _mode = TextEditingController();
   late final _notices = {
     0,
     7,
@@ -72,49 +68,33 @@ class _CounterOfferDialogState extends State<_CounterOfferDialog> {
     _salary.dispose();
     _location.dispose();
     _hybridText.dispose();
+    _mode.dispose();
     super.dispose();
   }
 
-  bool get _hybrid => _mode == 'hybrid';
+  bool get _hybrid => widget.terms.workMode == 'hybrid';
 
-  /// Shows the chosen office days in week order ("Sun, Thu"), or "-"
-  /// when the mode is not hybrid.
-  void _syncHybridText() {
-    final name = DateFormat.E(context.locale.toString());
-    _hybridText.text = _hybrid
-        ? [
-            for (final day in _week)
-              if (_hybridDays.contains(day))
-                name.format(DateTime(2024, 1, day)),
-          ].join(', ')
-        : '-';
-  }
+  /// The offer's office days in week order ("Sun, Thu"), "-" when it is
+  /// not hybrid.
+  List<int> get _officeDays => [
+    for (final day in _week)
+      if (_hybrid && widget.terms.hybridDays.contains(day)) day,
+  ];
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Also re-runs when the language changes.
-    _syncHybridText();
+    // Labels follow the language, so they are set here, not in build.
+    final terms = widget.terms;
+    _mode.text = terms.workMode.isEmpty
+        ? '-'
+        : offerCodeLabel(context, terms.workMode);
+    final name = DateFormat.E(context.locale.toString());
+    final days = _officeDays;
+    _hybridText.text = days.isEmpty
+        ? '-'
+        : days.map((day) => name.format(DateTime(2024, 1, day))).join(', ');
   }
-
-  Future<void> _pickDays() async {
-    final picked = await showDialog<Set<int>>(
-      context: context,
-      barrierColor: AppColors.barrier,
-      builder: (_) => _OfficeDaysPicker(week: _week, initial: _hybridDays),
-    );
-    if (picked == null || !mounted) return;
-    setState(() {
-      _hybridDays
-        ..clear()
-        ..addAll(picked);
-      _syncHybridText();
-    });
-  }
-
-  String? _required(String? value) => value == null || value.trim().isEmpty
-      ? ot(context, 'field_required')
-      : null;
 
   void _send() {
     if (!_form.currentState!.validate()) return;
@@ -125,15 +105,10 @@ class _CounterOfferDialogState extends State<_CounterOfferDialog> {
         salary: num.parse(_salary.text.trim()),
         currencyId: terms.currencyId,
         workType: terms.workType,
-        workMode: _mode,
+        workMode: terms.workMode,
         firstWorkday: terms.firstWorkday,
         lastWorkday: terms.lastWorkday,
-        hybridDays: _hybrid
-            ? [
-                for (final day in _week)
-                  if (_hybridDays.contains(day)) day,
-              ]
-            : const [],
+        hybridDays: _officeDays,
         hoursPerDay: terms.hoursPerDay,
         noticeDays: _notice,
         location: _location.text.trim(),
@@ -182,22 +157,18 @@ class _CounterOfferDialogState extends State<_CounterOfferDialog> {
               },
             ),
             const SizedBox(height: 12),
-            // As in Figma: office days sit beside the work mode and are
-            // only editable for a hybrid offer ("-" otherwise).
+            // As in Figma: office days sit beside the work mode. Both,
+            // and the location, are the offer's own and cannot change.
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: DefaultDropdown<String>(
+                  child: DefaultFormField(
+                    key: const ValueKey('counter-work-mode'),
                     compact: true,
+                    enabled: false,
                     label: ot(context, 'work_mode'),
-                    initialValue: _mode,
-                    items: _modes,
-                    itemLabel: (code) => offerCodeLabel(context, code),
-                    onChanged: (value) => setState(() {
-                      _mode = value ?? _mode;
-                      _syncHybridText();
-                    }),
+                    controller: _mode,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -205,33 +176,20 @@ class _CounterOfferDialogState extends State<_CounterOfferDialog> {
                   child: DefaultFormField(
                     key: const ValueKey('counter-hybrid-days'),
                     compact: true,
-                    readOnly: true,
-                    enabled: _hybrid,
+                    enabled: false,
                     label: ot(context, 'hybrid_days'),
                     controller: _hybridText,
-                    suffixIcon: const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 20,
-                      color: AppColors.neutral500,
-                    ),
-                    onTap: _pickDays,
-                    validator: (_) => _hybrid && _hybridDays.isEmpty
-                        ? ot(context, 'hybrid_days_invalid')
-                        : null,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             DefaultFormField(
+              key: const ValueKey('counter-location'),
               compact: true,
+              enabled: false,
               label: ot(context, 'work_location'),
               controller: _location,
-              hint: ot(context, 'work_location_hint'),
-              // Send Counter Offer rejects more than 500 characters; a
-              // formatter caps it without the design-less counter text.
-              inputFormatters: [LengthLimitingTextInputFormatter(500)],
-              validator: _required,
             ),
             const SizedBox(height: 12),
             DefaultDropdown<int>(
@@ -266,52 +224,6 @@ class _CounterOfferDialogState extends State<_CounterOfferDialog> {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Multi-select of the office days of a hybrid counter offer.
-class _OfficeDaysPicker extends StatefulWidget {
-  const _OfficeDaysPicker({required this.week, required this.initial});
-  final List<int> week;
-  final Set<int> initial;
-  @override
-  State<_OfficeDaysPicker> createState() => _OfficeDaysPickerState();
-}
-
-class _OfficeDaysPickerState extends State<_OfficeDaysPicker> {
-  late final _days = {...widget.initial};
-
-  @override
-  Widget build(BuildContext context) {
-    final name = DateFormat.EEEE(context.locale.toString());
-    return AlertDialog(
-      title: Text(ot(context, 'hybrid_days')),
-      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final day in widget.week)
-            CheckboxListTile(
-              dense: true,
-              title: Text(name.format(DateTime(2024, 1, day))),
-              value: _days.contains(day),
-              onChanged: (on) => setState(
-                () => on == true ? _days.add(day) : _days.remove(day),
-              ),
-            ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(ot(context, 'cancel')),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, _days),
-          child: Text(ot(context, 'done')),
-        ),
-      ],
     );
   }
 }

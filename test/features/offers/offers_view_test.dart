@@ -172,7 +172,8 @@ void main() {
       await capture(name, height);
     }
 
-    // Counter offer: validation, then the not-connected notice.
+    // Counter offer: the locked terms go as offered, then the
+    // not-connected notice.
     router.go('${AppRouter.offers}/1');
     await tester.pumpAndSettle();
     tester.view.physicalSize = const Size(390, 844);
@@ -180,12 +181,6 @@ void main() {
     await tap(find.widgetWithText(OutlinedButton, 'Negotiate'));
     expect(find.text('Submit Counter Offer'), findsOneWidget);
     await capture('offer_counter_dialog', 844);
-    await tap(find.text('Send Counter Offer'));
-    expect(find.text('This field is required'), findsOneWidget);
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'e.g. Riyadh, Saudi Arabia'),
-      'Riyadh, Saudi Arabia',
-    );
     await tap(find.text('Send Counter Offer'));
     expect(find.text('Submit Counter Offer'), findsNothing);
     // The live screen runs the preview repository, which sends nothing.
