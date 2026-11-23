@@ -774,6 +774,7 @@
     "offers_meeting_link":  "رابط الاجتماع",
     "offers_copy_link":  "نسخ الرابط",
     "offers_link_copied":  "تم نسخ رابط الاجتماع",
+    "offers_link_failed":  "تعذّر فتح رابط الاجتماع. انسخه وافتحه بنفسك.",
     "offers_join_interview":  "الانضمام للمقابلة",
     "offers_interview_cancelled_title":  "ألغت {company} المقابلة",
     "offers_interview_cancelled_message":  "تم إلغاء المقابلة المحددة بتاريخ {date}.",

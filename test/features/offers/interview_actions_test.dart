@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,8 @@ Map<String, dynamic> _interview({
   String statusLabel = 'Awaiting Responses',
   String response = 'pending',
   String responseLabel = 'Pending',
+  String? meetingUrl,
+  bool canJoin = false,
   List<String> actions = const [
     'accept_schedule',
     'request_schedule_change',
@@ -40,8 +43,8 @@ Map<String, dynamic> _interview({
     'reason': null,
     'responded_at': null,
   },
-  'meeting_url': null,
-  'can_join': false,
+  'meeting_url': meetingUrl,
+  'can_join': canJoin,
   'available_actions': actions,
 };
 
@@ -257,6 +260,45 @@ void main() {
     await tap(find.text('Submit Apology & Reschedule'));
     expect(sorry.calls, ['apologize 5: Something urgent came up.']);
     expect(find.text('Your apology was sent'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    // "Interview in progress": the link and Join open the meeting outside
+    // the app (its own app when installed).
+    final opened = <String>[];
+    const channel = MethodChannel('plugins.flutter.io/url_launcher');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
+      call,
+    ) async {
+      if (call.method == 'launch') {
+        opened.add((call.arguments as Map)['url'] as String);
+        return true;
+      }
+      return call.method == 'canLaunch';
+    });
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    final live = _Repo()
+      ..interview = _interview(
+        status: 'in_progress',
+        statusLabel: 'In Progress',
+        response: 'accepted',
+        responseLabel: 'Accepted',
+        meetingUrl: 'https://meet.google.com/abc-defg-hij',
+        canJoin: true,
+        actions: const [],
+      );
+    await pump(live);
+    await tap(find.byKey(const ValueKey('interview-meeting-link')));
+    await tap(find.text('Join Interview'));
+    expect(opened, [
+      'https://meet.google.com/abc-defg-hij',
+      'https://meet.google.com/abc-defg-hij',
+    ]);
+    expect(find.text('Accept Time'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

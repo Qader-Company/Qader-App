@@ -774,6 +774,7 @@
     "offers_meeting_link":  "Meeting Link",
     "offers_copy_link":  "Copy link",
     "offers_link_copied":  "Meeting link copied",
+    "offers_link_failed":  "Couldn't open the meeting link. Copy it and open it yourself.",
     "offers_join_interview":  "Join Interview",
     "offers_interview_cancelled_title":  "Interview Cancelled by {company}",
     "offers_interview_cancelled_message":  "The scheduled interview on {date} has been cancelled.",

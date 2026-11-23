@@ -37,9 +37,19 @@ class LiveInterviewCard extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(ot(context, 'link_copied'))));
   }
 
-  Future<void> _join(String link) async {
+  /// Opens the meeting outside the app: Android and iOS hand Zoom, Google
+  /// Meet and Teams links to their app when it is installed, otherwise to
+  /// the browser.
+  Future<void> _open(BuildContext context, String link) async {
     final uri = Uri.tryParse(link);
-    if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final opened =
+        uri != null &&
+        uri.hasScheme &&
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (opened || !context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(ot(context, 'link_failed'))));
   }
 
   @override
@@ -125,13 +135,23 @@ class LiveInterviewCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        link,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                      child: InkWell(
+                        key: const ValueKey('interview-meeting-link'),
+                        onTap: () => _open(context, link),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Text(
+                            link,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.blueStrong,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.blueStrong,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -153,7 +173,7 @@ class LiveInterviewCard extends StatelessWidget {
                   width: double.infinity,
                   height: 40,
                   child: TextButton(
-                    onPressed: () => _join(link),
+                    onPressed: () => _open(context, link),
                     style: TextButton.styleFrom(
                       backgroundColor: AppColors.blueStrong,
                       foregroundColor: AppColors.white,
