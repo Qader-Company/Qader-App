@@ -57,6 +57,19 @@ void main() {
       }
     }
 
+    // Screens load with shimmer skeletons, not spinners.
+    if (path.startsWith('lib/features/') &&
+        path.contains('/presentation/view/')) {
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].contains('CircularProgressIndicator')) {
+          errors.add(
+            '$path:${i + 1}: spinner in a screen; use a shimmer skeleton '
+            '(core/widgets/skeleton.dart).',
+          );
+        }
+      }
+    }
+
     // Imports: resolve, check layering and record module edges.
     final from = _module(path);
     for (final match in _directive.allMatches(text)) {
