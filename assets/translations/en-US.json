@@ -691,6 +691,8 @@
     "offers_from_client":  "Proposed by the company",
     "offers_from_you":  "Your counter offer",
     "offers_details_failed":  "We couldn\u0027t load this offer.",
+    "offers_unavailable_title":  "This offer is no longer available",
+    "offers_unavailable_message":  "It may have been closed or removed. Your other offers are still in My Offers.",
     "offers_accept_confirm_title":  "Accept this offer?",
     "offers_accept_confirm_message":  "The company will be told you accepted these terms.",
     "offers_reject_confirm_title":  "Reject this offer?",

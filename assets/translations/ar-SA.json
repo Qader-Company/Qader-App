@@ -691,6 +691,8 @@
     "offers_from_client":  "مقدم من الشركة",
     "offers_from_you":  "عرضك المضاد",
     "offers_details_failed":  "تعذر تحميل هذا العرض.",
+    "offers_unavailable_title":  "هذا العرض لم يعد متاحًا",
+    "offers_unavailable_message":  "ربما تم إغلاقه أو حذفه. باقي عروضك موجودة في قائمة عروضي.",
     "offers_accept_confirm_title":  "قبول هذا العرض؟",
     "offers_accept_confirm_message":  "سيتم إبلاغ الشركة بأنك قبلت هذه الشروط.",
     "offers_reject_confirm_title":  "رفض هذا العرض؟",

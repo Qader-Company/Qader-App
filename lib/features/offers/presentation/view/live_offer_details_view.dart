@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/resources/app_colors.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_page_header.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/locale_change_listener.dart';
@@ -54,6 +56,10 @@ class LiveOfferDetailsView extends StatelessWidget {
                 ..._content(context, details, cubit, busy)
               else if (state.loading)
                 const OfferDetailsSkeleton()
+              // 404: the item is gone (or a notification pointed at the
+              // wrong id); retrying cannot help.
+              else if (state.failure?.statusCode == 404)
+                const _Unavailable()
               else
                 _LoadError(onRetry: cubit.load),
             ],
@@ -288,6 +294,44 @@ class LiveOfferDetailsView extends StatelessWidget {
           ),
     ];
   }
+}
+
+class _Unavailable extends StatelessWidget {
+  const _Unavailable();
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 8),
+    child: Column(
+      children: [
+        const Icon(
+          Icons.work_off_outlined,
+          size: 40,
+          color: AppColors.neutral500,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          ot(context, 'unavailable_title'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          ot(context, 'unavailable_message'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 13,
+            height: 20 / 13,
+            color: AppColors.neutral600,
+          ),
+        ),
+        const SizedBox(height: 16),
+        DefaultButton.compact(
+          text: ot(context, 'back_to_offers'),
+          onPressed: () => context.go(AppRouter.offers),
+        ),
+      ],
+    ),
+  );
 }
 
 class _LoadError extends StatelessWidget {
