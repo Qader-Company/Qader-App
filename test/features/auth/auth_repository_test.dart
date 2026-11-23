@@ -129,6 +129,39 @@ void main() {
     });
     expect(api.credential, '');
   });
+  test('Google login sends the ID token and saves the session', () async {
+    // The backend answers Social Login like Login.
+    final result = await repository.googleLogin(
+      'google-id-token',
+      name: ' Test Talent ',
+    );
+    expect(result.getOrThrow().fullName, 'Test Talent');
+    expect(prefs.getToken(), 'access');
+    expect(prefs.getRefreshToken(), 'refresh');
+    expect(api.path, '/auth/talent/social/google/login');
+    expect(api.body, {'token': 'google-id-token', 'name': 'Test Talent'});
+    expect(api.credential, '');
+
+    // Same checks as Login: no session for an unverified or client account.
+    await prefs.logout();
+    api.response = loginResponse(verified: false);
+    expect((await repository.googleLogin('t')).isError, isTrue);
+    expect(prefs.isLoggedIn, isFalse);
+    expect(api.body, {'token': 't'});
+  });
+  test('Google login through the session cubit', () async {
+    final cubit = AuthSessionCubit(repository, prefs);
+    addTearDown(cubit.close);
+    await cubit.googleLogin('google-id-token');
+    expect(cubit.state.status, AuthStatus.authenticated);
+    expect(cubit.state.user!.email, 'talent@example.test');
+
+    await prefs.logout();
+    api.failure = const ServerFailure(message: 'auth.invalid_social_token');
+    await cubit.googleLogin('bad');
+    expect(cubit.state.status, AuthStatus.failure);
+    expect(prefs.isLoggedIn, isFalse);
+  });
   test('malformed response cannot create a session', () async {
     api.response = {
       'success': true,

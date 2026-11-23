@@ -16,6 +16,10 @@ abstract class AuthRepository {
     String otp,
   );
   Future<Either<Failure, AuthUser>> login(String email, String password);
+
+  /// Google sign-in: the backend verifies [idToken] and answers like
+  /// [login].
+  Future<Either<Failure, AuthUser>> googleLogin(String idToken, {String? name});
   Future<Either<Failure, AuthUser>> currentUser();
   Future<Either<Failure, void>> logout();
 }

@@ -14,9 +14,8 @@ class GoogleSignInState {
   final Failure? failure;
 }
 
-/// Runs Google's account picker for the auth screens' Google button.
-// TODO(auth): send `account.idToken` to POST /auth/talent/social/google/login
-// once the backend confirms the token type and the success response.
+/// Runs Google's account picker for the auth screens' Google button; the
+/// button hands the picked account to `AuthSessionCubit.googleLogin`.
 class GoogleSignInCubit extends Cubit<GoogleSignInState> {
   GoogleSignInCubit(this._client) : super(const GoogleSignInState());
 

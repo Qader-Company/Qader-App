@@ -20,6 +20,29 @@ class TalentAuthRepository implements AuthRepository {
   Future<Either<Failure, AuthUser>> login(String email, String password) async {
     final revision = _preferences.sessionRevision.value;
     final result = await _remote.login(email: email, password: password);
+    return _startSession(result, revision);
+  }
+
+  @override
+  Future<Either<Failure, AuthUser>> googleLogin(
+    String idToken, {
+    String? name,
+  }) async {
+    final revision = _preferences.sessionRevision.value;
+    final result = await _remote.socialLogin(
+      provider: 'google',
+      token: idToken,
+      name: name,
+    );
+    return _startSession(result, revision);
+  }
+
+  /// Saves the session of a login response (email or social): the same
+  /// role, activation and token checks for both.
+  Future<Either<Failure, AuthUser>> _startSession(
+    Either<Failure, Object?> result,
+    int revision,
+  ) async {
     if (revision != _preferences.sessionRevision.value) {
       return const Left(ServerFailure(message: 'auth_session_changed'));
     }

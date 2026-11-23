@@ -21,6 +21,21 @@ class TalentAuthRemoteDataSource {
     if (platform != null) 'platform': platform,
   }, credential: '');
 
+  /// Login with a [provider]'s token (Google: the ID token). Same response
+  /// as [login].
+  Future<Either<Failure, Object?>> socialLogin({
+    required String provider,
+    required String token,
+    String? name,
+    String? fcmToken,
+    String? platform,
+  }) => _post('social/${Uri.encodeComponent(provider)}/login', {
+    'token': token,
+    if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
+    if (fcmToken != null) 'fcm_token': fcmToken,
+    if (platform != null) 'platform': platform,
+  }, credential: '');
+
   Future<Either<Failure, Object?>> register({
     required String firstName,
     required String lastName,
