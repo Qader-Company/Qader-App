@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qader/features/home/domain/talent_application.dart';
+import 'package:qader/features/home/domain/entities/talent_application.dart';
 import 'package:qader/features/home/presentation/status_copy.dart';
 
 /// Trimmed copy of a real `GET /talent/application` test-env response.

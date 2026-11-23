@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../auth/presentation/cubit/auth_session_cubit.dart';
-import '../../domain/talent_application.dart';
+import '../../domain/entities/talent_application.dart';
 import '../cubit/application_cubit.dart';
 import 'application_status_view.dart';
 import 'widgets/application_review_banner.dart';

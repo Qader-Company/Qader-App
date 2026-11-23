@@ -14,6 +14,7 @@ import 'package:qader/core/router/app_router.dart';
 import 'package:qader/features/offers/presentation/preview/offers_preview_data.dart';
 import 'package:qader/features/offers/presentation/preview/preview_offers_repository.dart';
 import 'package:qader/features/offers/presentation/view/offer_details_view.dart';
+import 'package:qader/features/offers/presentation/view/preview_offer_details_view.dart';
 import 'package:qader/features/offers/presentation/view/offers_view.dart';
 
 class _Translations extends AssetLoader {
@@ -40,9 +41,8 @@ GoRouter _router() => GoRouter(
       routes: [
         GoRoute(
           path: ':id',
-          builder: (_, state) => OfferDetailsView(
-            offer: OffersPreviewData.byId(state.pathParameters['id']!)!,
-          ),
+          builder: (_, state) =>
+              PreviewOfferDetailsView(offerId: state.pathParameters['id']!),
         ),
       ],
     ),
@@ -163,6 +163,12 @@ void main() {
       router.go('${AppRouter.offers}/$id');
       await tester.pumpAndSettle();
       expect(find.text('Back to offers'), findsOneWidget);
+      // Each id shows its own offer (the live screen used to keep the
+      // first one when the id changed in place).
+      if (id == '2') expect(find.text('Talent Offer'), findsOneWidget);
+      if (id == '3') {
+        expect(find.text('Waiting for Interview Times'), findsOneWidget);
+      }
       await capture(name, height);
     }
 
@@ -182,11 +188,15 @@ void main() {
     );
     await tap(find.text('Send Counter Offer'));
     expect(find.text('Submit Counter Offer'), findsNothing);
+    // The live screen runs the preview repository, which sends nothing.
     expect(
       find.text('Offers are not connected yet, so nothing was sent.'),
       findsOneWidget,
     );
-    await tap(find.text('Confirm'));
+    ScaffoldMessenger.of(
+      tester.element(find.text('Back to offers')),
+    ).hideCurrentSnackBar();
+    await tester.pumpAndSettle();
 
     // Apologize from the interview menu.
     router.go('${AppRouter.offers}/4');

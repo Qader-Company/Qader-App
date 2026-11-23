@@ -376,6 +376,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Rejected'), findsOneWidget);
     expect(find.text('The position was filled.'), findsOneWidget);
+    // As in Figma: banner under the progress, then only the last offer.
+    expect(
+      tester.getTopLeft(find.text('Rejected')).dy,
+      greaterThan(tester.getTopLeft(find.text('Hiring Progress')).dy),
+    );
+    expect(find.text('Last Offer'), findsOneWidget);
+    expect(find.text('Talent Offer'), findsOneWidget); // its chip
+    expect(find.text('Client Offer'), findsNothing);
     expect(tester.takeException(), isNull);
 
     Future<void> capture(String name) => tester.runAsync(() async {
@@ -420,5 +428,15 @@ void main() {
     expect(find.text('Interview'), findsNothing);
     expect(find.text('Accepted'), findsWidgets);
     await capture('offer_details_live_no_interview');
+
+    await show(
+      _details(
+        status: 'rejected',
+        statusLabel: 'Rejected',
+        rejectionReason: 'The position was filled.',
+        latestStatus: 'rejected',
+      ),
+    );
+    await capture('offer_details_live_rejected');
   });
 }

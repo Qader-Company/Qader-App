@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../../../../core/widgets/default_image.dart';
 import '../offers_copy.dart';
+import '../../domain/entities/hiring_codes.dart';
 
 /// Company logo, or its initials: a rounded square in the list, a circle
 /// on the details page.
@@ -100,15 +101,18 @@ class OfferStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (background, foreground) = switch (value) {
-      'offer' ||
+      // Preview statuses: awaitingResponse, contracted, negotiating.
+      ItemStatus.offer ||
       'awaitingResponse' ||
-      'accepted' ||
-      'completed' ||
+      ItemStatus.accepted ||
+      ItemStatus.completed ||
       'contracted' => (AppColors.green50, AppColors.green700),
-      'interview' ||
+      ItemStatus.interview ||
       'negotiating' => (AppColors.blueSoft, AppColors.blueStrong),
-      'on_hold' || 'pending' => (AppColors.amber50, AppColors.amber700),
-      'rejected' || 'cancelled' => (AppColors.red50, AppColors.red600),
+      ItemStatus.onHold ||
+      OfferStatus.pending => (AppColors.amber50, AppColors.amber700),
+      ItemStatus.rejected ||
+      ItemStatus.cancelled => (AppColors.red50, AppColors.red600),
       _ => (AppColors.neutral100, AppColors.neutral700),
     };
     return OfferChip(

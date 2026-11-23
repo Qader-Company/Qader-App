@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qader/core/resources/qader_design.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:qader/features/home/domain/talent_application.dart';
+import 'package:qader/features/home/domain/entities/talent_application.dart';
 import 'package:qader/features/home/presentation/status_copy.dart';
 import 'package:qader/features/home/presentation/view/application_status_view.dart';
 

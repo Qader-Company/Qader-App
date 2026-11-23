@@ -33,7 +33,7 @@ import '../../features/offers/domain/repositories/offers_repository.dart';
 import '../../features/offers/presentation/preview/offers_preview_data.dart';
 import '../../features/offers/presentation/preview/preview_offers_repository.dart';
 import '../../features/offers/presentation/view/live_offer_details_view.dart';
-import '../../features/offers/presentation/view/offer_details_view.dart';
+import '../../features/offers/presentation/view/preview_offer_details_view.dart';
 import '../../features/offers/presentation/view/offers_view.dart';
 import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
 import '../../core/router/app_router.dart';
@@ -150,7 +150,7 @@ GoRouter buildAppRouter() => GoRouter(
             ),
       routes: [
         // Signed-in talents get the offer from the API; sample offers
-        // (`?preview=true`, or logged out) open the designed screens.
+        // (`?preview=true`, or logged out) open the preview screens.
         GoRoute(
           path: ':id',
           redirect: (context, state) {
@@ -167,7 +167,7 @@ GoRouter buildAppRouter() => GoRouter(
             return sl<AppPreferences>().isLoggedIn &&
                     state.uri.queryParameters['preview'] != 'true'
                 ? LiveOfferDetailsView(offerId: id)
-                : OfferDetailsView(offer: OffersPreviewData.byId(id)!);
+                : PreviewOfferDetailsView(offerId: id);
           },
         ),
       ],

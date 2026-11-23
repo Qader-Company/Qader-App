@@ -17,6 +17,7 @@ import '../widgets/offer_overview.dart';
 import '../widgets/offer_progress_sections.dart';
 import '../widgets/offer_terms_card.dart';
 import 'offers_scaffold.dart';
+import '../../domain/entities/hiring_codes.dart';
 
 /// A signed-in talent's offer from `GET /talent/hiring-offers/{id}`:
 /// company, hiring progress, status notice and every version of the terms.
@@ -28,6 +29,9 @@ class LiveOfferDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
+    // A new offer id needs a new cubit: without the key, going from one
+    // offer to another in place keeps showing the first one.
+    key: ValueKey(offerId),
     create: (context) =>
         OfferDetailsCubit(context.read<OffersRepository>(), offerId)..load(),
     child: BlocBuilder<OfferDetailsCubit, OfferDetailsState>(
@@ -120,13 +124,13 @@ class LiveOfferDetailsView extends StatelessWidget {
         .firstOrNull;
     final actions = OfferActions(
       busy: busy,
-      onAccept: details.allows('accept_offer')
+      onAccept: details.allows(OfferAction.accept)
           ? () => _accept(context, cubit)
           : null,
-      onReject: details.allows('reject_offer')
+      onReject: details.allows(OfferAction.reject)
           ? () => _reject(context, cubit)
           : null,
-      onNegotiate: details.allows('counter_offer') && base != null
+      onNegotiate: details.allows(OfferAction.counter) && base != null
           ? () => _counter(context, cubit, base)
           : null,
     );
@@ -142,17 +146,12 @@ class LiveOfferDetailsView extends StatelessWidget {
     final terms = details.terms;
     final actions = _actions(context, details, cubit, busy);
     final reason = switch (details.status) {
-      'rejected' => details.rejectionReason,
-      'cancelled' => details.cancellationReason,
+      ItemStatus.rejected => details.rejectionReason,
+      ItemStatus.cancelled => details.cancellationReason,
       _ => null,
     };
     return [
-      if (details.failed)
-        OfferAlertBanner(
-          title: offerStatusText(context, details.status, details.statusLabel),
-          message: reason ?? '',
-        ),
-      if (details.status == 'on_hold')
+      if (details.status == ItemStatus.onHold)
         OfferInfoBox(
           details.holdReason ??
               offerStatusText(context, details.status, details.statusLabel),
@@ -164,6 +163,24 @@ class LiveOfferDetailsView extends StatelessWidget {
         completed: details.completed,
         withInterview: details.interviewRequired,
       ),
+      // As in Figma: a closed offer shows its banner under the progress,
+      // then only the last offer.
+      if (details.failed) ...[
+        OfferAlertBanner(
+          title: offerStatusText(context, details.status, details.statusLabel),
+          message: reason ?? '',
+        ),
+        if (terms.firstOrNull case final last?)
+          OfferTermsCard(
+            terms: last,
+            heading: OfferCardTitle(ot(context, 'last_offer')),
+            chip: last.original
+                ? ot(context, 'original')
+                : last.party == OfferParty.client
+                ? ot(context, 'client_counter')
+                : last.party.title(context),
+          ),
+      ],
       if (details.expired)
         OfferAlertBanner(
           icon: Icons.schedule,
@@ -180,7 +197,9 @@ class LiveOfferDetailsView extends StatelessWidget {
         ),
       // As in Figma: once accepted, the scheduling section replaces the
       // terms until the interview exists.
-      if (details.awaitingInterviewTimes)
+      if (details.failed)
+        ...const []
+      else if (details.awaitingInterviewTimes)
         OfferAwaitingInterview(company: details.company.name)
       else if (terms.length == 1)
         OfferTermsCard(

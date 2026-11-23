@@ -1,4 +1,5 @@
 import 'talent_offer.dart';
+import 'hiring_codes.dart';
 
 /// `GET /talent/hiring-offers/{item}`: one offer and its terms history.
 ///
@@ -63,28 +64,33 @@ class HiringOfferDetails {
   int get progressStep {
     final accepted = interviewRequired ? 2 : 1;
     return switch (status) {
-      'interview' => 1,
-      'accepted' || 'completed' => accepted,
-      'rejected' ||
-      'cancelled' ||
-      'on_hold' => hasInterview && interviewRequired ? 1 : 0,
+      ItemStatus.interview => 1,
+      ItemStatus.accepted || ItemStatus.completed => accepted,
+      ItemStatus.rejected ||
+      ItemStatus.cancelled ||
+      ItemStatus.onHold => hasInterview && interviewRequired ? 1 : 0,
       _ => 0,
     };
   }
 
   /// The client's offer ran out of time; the talent can no longer answer
   /// it until a new offer arrives.
-  bool get expired => status == 'offer' && latestStatus == 'expired';
+  bool get expired =>
+      status == ItemStatus.offer && latestStatus == OfferStatus.expired;
 
   /// The talent's counter offer waits for the company.
   bool get awaitingCompany =>
-      status == 'offer' && latestStatus == 'pending' && latestByTalent;
+      status == ItemStatus.offer &&
+      latestStatus == OfferStatus.pending &&
+      latestByTalent;
 
   /// Offer accepted; the company has not proposed interview times yet.
-  bool get awaitingInterviewTimes => status == 'interview' && !hasInterview;
+  bool get awaitingInterviewTimes =>
+      status == ItemStatus.interview && !hasInterview;
 
-  bool get failed => status == 'rejected' || status == 'cancelled';
-  bool get completed => status == 'completed';
+  bool get failed =>
+      status == ItemStatus.rejected || status == ItemStatus.cancelled;
+  bool get completed => status == ItemStatus.completed;
 
   /// Parses `data`; `null` when it has no id.
   static HiringOfferDetails? fromJson(Map<String, dynamic> json) {
@@ -119,7 +125,7 @@ class HiringOfferDetails {
       hasInterview: json['interview'] != null,
       interviewRequired: json['interview_required'] != false,
       latestStatus: _string(latest?['status']) ?? '',
-      latestByTalent: latest?['proposed_by'] == 'talent',
+      latestByTalent: latest?['proposed_by'] == OfferProposer.talent,
       rejectionReason: _string(json['rejection_reason']),
       holdReason: _string(json['hold_reason']),
       cancellationReason: _string(json['cancellation_reason']),
@@ -139,7 +145,7 @@ class HiringOfferDetails {
       workMode: _string(raw['work_mode']) ?? '',
       sentAt: sentAt,
       by: '',
-      party: raw['proposed_by'] == 'talent'
+      party: raw['proposed_by'] == OfferProposer.talent
           ? OfferParty.talent
           : OfferParty.client,
       noticeDays: _num(raw['notice_period_days'])?.toInt(),

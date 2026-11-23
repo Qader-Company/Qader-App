@@ -4,7 +4,6 @@ import '../../domain/entities/talent_offer.dart';
 import '../offers_copy.dart';
 import '../widgets/apologize_dialog.dart';
 import '../widgets/offer_back_link.dart';
-import '../widgets/counter_offer_dialog.dart';
 import '../widgets/offer_contract_card.dart';
 import '../widgets/offer_notices.dart';
 import '../widgets/offer_overview.dart';
@@ -12,20 +11,16 @@ import '../widgets/offer_progress_sections.dart';
 import '../widgets/offer_terms_card.dart';
 import 'offers_scaffold.dart';
 
-/// One offer: company, hiring progress and the section of its stage.
+/// Designed screen of a sample offer in a stage the live details screen
+/// cannot show yet (interview, closed, contracted). Offer, negotiation and
+/// waiting-for-interview previews use [LiveOfferDetailsView] instead (see
+/// `PreviewOfferDetailsView`).
 ///
-/// Actions open their dialogs, then explain that the offers API is not
-/// connected yet; nothing is sent.
+/// Actions open their dialogs, then explain that the API is not connected
+/// yet; nothing is sent.
 class OfferDetailsView extends StatelessWidget {
   const OfferDetailsView({super.key, required this.offer});
   final TalentOffer offer;
-
-  Future<void> _negotiate(BuildContext context) async {
-    final draft = await showCounterOfferDialog(context, offer.latest);
-    if (draft != null && context.mounted) {
-      await showOfferActionPending(context);
-    }
-  }
 
   Future<void> _apologize(BuildContext context) async {
     final interview = offer.interview;
@@ -78,39 +73,16 @@ class OfferDetailsView extends StatelessWidget {
   }
 
   List<Widget> _stage(BuildContext context, DateTime? closedAt) {
-    final actions = OfferActions(
-      onAccept: () => showOfferActionPending(context),
-      onReject: () => showOfferActionPending(context),
-      onNegotiate: () => _negotiate(context),
-    );
     Widget lastOffer() => OfferTermsCard(
       terms: offer.latest,
       heading: OfferCardTitle(ot(context, 'last_offer')),
       chip: ot(context, 'client_counter'),
     );
     return switch (offer.stage) {
-      OfferStage.awaitingResponse => [
-        OfferTermsCard(
-          terms: offer.latest,
-          heading: OfferCardTitle(ot(context, 'offer_details')),
-          actions: actions,
-        ),
-      ],
-      OfferStage.negotiating => [
-        for (var i = 0; i < offer.terms.length; i++)
-          OfferTermsCard(
-            terms: offer.terms[i],
-            heading: OfferVersionHeading(
-              number: offer.terms.length - i,
-              party: offer.terms[i].party,
-            ),
-            chip: offer.terms[i].original ? ot(context, 'original') : null,
-            // Only the newest client offer can be answered.
-            actions: i == 0 && offer.terms[i].party == OfferParty.client
-                ? actions
-                : null,
-          ),
-      ],
+      // Shown by LiveOfferDetailsView.
+      OfferStage.awaitingResponse ||
+      OfferStage.negotiating ||
+      OfferStage.awaitingInterviewTimes => const [],
       OfferStage.rejectedByTalent => [
         OfferAlertBanner(
           title: ot(context, 'rejected_title'),
@@ -138,9 +110,6 @@ class OfferDetailsView extends StatelessWidget {
         lastOffer(),
         if (offer.noResponseChancesLeft case final chances?)
           OfferNoResponseWarning(chancesLeft: chances),
-      ],
-      OfferStage.awaitingInterviewTimes => [
-        OfferAwaitingInterview(company: offer.company.name),
       ],
       OfferStage.interviewInProgress => [
         if (offer.interview case final interview?)

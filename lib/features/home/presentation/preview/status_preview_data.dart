@@ -1,4 +1,4 @@
-import '../../domain/talent_application.dart';
+import '../../domain/entities/talent_application.dart';
 
 /// Sample data for the status screen previews (`/status-preview`), used when
 /// no application is loaded. Preview data only: never real account data.

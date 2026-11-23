@@ -308,10 +308,22 @@ void main() {
     await tap(find.text('Negotiate'));
     expect(find.text('Submit Counter Offer'), findsOneWidget);
     expect(find.text('Cairo, Egypt'), findsOneWidget);
-    await tap(find.widgetWithText(FilterChip, 'Thu'));
+    // Office days sit beside the work mode, prefilled from the offer.
+    expect(find.text('Thu'), findsOneWidget);
+    Future<void> toggle(List<String> days) async {
+      await tap(find.byKey(const ValueKey('counter-hybrid-days')));
+      for (final day in days) {
+        await tap(find.widgetWithText(CheckboxListTile, day));
+      }
+      await tap(find.text('Done'));
+    }
+
+    await toggle(['Thursday']);
+    expect(find.text('Thu'), findsNothing);
     await tap(find.text('Send Counter Offer'));
     expect(find.text('Choose at least one office day'), findsOneWidget);
-    await tap(find.widgetWithText(FilterChip, 'Sun'));
+    await toggle(['Sunday']);
+    expect(find.text('Sun'), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('counter-salary')),
       '25000',

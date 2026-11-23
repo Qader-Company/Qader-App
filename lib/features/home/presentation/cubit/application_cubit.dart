@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/either.dart';
 import '../../../../core/network/failure.dart';
 import '../../domain/repositories/application_repository.dart';
-import '../../domain/talent_application.dart';
+import '../../domain/entities/talent_application.dart';
 
 class ApplicationState {
   const ApplicationState({

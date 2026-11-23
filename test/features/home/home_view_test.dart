@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
 import 'package:qader/features/home/domain/repositories/application_repository.dart';
-import 'package:qader/features/home/domain/talent_application.dart';
+import 'package:qader/features/home/domain/entities/talent_application.dart';
 import 'package:qader/features/home/presentation/view/application_status_view.dart';
 import 'package:qader/features/home/presentation/view/home_view.dart';
 import 'package:qader/features/home/presentation/view/widgets/application_review_banner.dart';

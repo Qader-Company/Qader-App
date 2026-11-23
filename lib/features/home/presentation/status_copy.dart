@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
-import '../domain/application_status.dart';
-export '../domain/application_status.dart';
+import '../domain/entities/application_status.dart';
+export '../domain/entities/application_status.dart';
 
 extension ApplicationStatusLabel on ApplicationStatus {
   String label(BuildContext context) => switch (this) {

@@ -6,15 +6,20 @@ abstract class PushNotifications {
   /// Asks the user for notification permission (Android 13+ shows a prompt).
   Future<bool> requestPermission();
 
-  /// Registers this device for pushes; the token arrives on [onToken].
-  Future<void> register();
+  /// The FCM registration token the backend sends pushes to; `null` when
+  /// Firebase cannot provide one yet.
+  Future<String?> token();
 
-  /// Emits the device token the backend needs, on registration and whenever
-  /// Firebase rotates it.
-  Stream<String> get onToken;
+  /// Emits a new token whenever Firebase rotates it.
+  Stream<String> get onTokenRefresh;
 }
 
 /// [PushNotifications] backed by Firebase Cloud Messaging.
+///
+/// Uses the classic registration token rather than v17's `register()`,
+/// which returns a Firebase Installation ID for the opt-in "direct send"
+/// API: the Firebase console test message and server SDKs send to the
+/// registration token.
 class FirebasePushNotifications implements PushNotifications {
   FirebasePushNotifications([FirebaseMessaging? messaging])
     : _messaging = messaging;
@@ -32,8 +37,10 @@ class FirebasePushNotifications implements PushNotifications {
   }
 
   @override
-  Future<void> register() => _fcm.register();
+  // ignore: deprecated_member_use
+  Future<String?> token() => _fcm.getToken();
 
   @override
-  Stream<String> get onToken => _fcm.onRegistered;
+  // ignore: deprecated_member_use
+  Stream<String> get onTokenRefresh => _fcm.onTokenRefresh;
 }

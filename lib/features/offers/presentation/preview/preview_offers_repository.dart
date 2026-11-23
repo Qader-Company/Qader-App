@@ -1,6 +1,7 @@
 import '../../../../core/network/either.dart';
 import '../../../../core/network/failure.dart';
 import '../../domain/entities/counter_offer.dart';
+import '../../domain/entities/hiring_codes.dart';
 import '../../domain/entities/hiring_offer_details.dart';
 import '../../domain/entities/hiring_offer_options.dart';
 import '../../domain/entities/hiring_offer_summary.dart';
@@ -89,21 +90,66 @@ class PreviewOffersRepository implements OffersRepository {
     );
   }
 
-  /// Sample offers open the designed details screens instead.
+  /// Whether sample offer [id] is shown by the live details screen: the
+  /// stages it can render from the API shape. The interview, closed and
+  /// contracted stages keep their designed screens until those parts of
+  /// the API are known.
+  bool servesDetails(String id) => _details(id) != null;
+
   @override
   Future<Either<Failure, HiringOfferDetails>> loadOffer(String id) async =>
-      const Left(ServerFailure(message: 'offers_invalid_response'));
+      switch (_details(id)) {
+        final details? => Right(details),
+        null => const Left(ServerFailure(message: 'offers_invalid_response')),
+      };
 
-  // Sample offers never call the API: their screens explain instead.
+  /// A sample offer as the API would return it, for the stages the live
+  /// screen renders; `null` for the others.
+  HiringOfferDetails? _details(String id) {
+    final offer = _offers.where((offer) => offer.id == id).firstOrNull;
+    if (offer == null) return null;
+    final (status, latestStatus) = switch (offer.stage) {
+      OfferStage.awaitingResponse ||
+      OfferStage.negotiating => (ItemStatus.offer, OfferStatus.pending),
+      OfferStage.awaitingInterviewTimes => (
+        ItemStatus.interview,
+        OfferStatus.accepted,
+      ),
+      _ => (null, null),
+    };
+    if (status == null || latestStatus == null) return null;
+    return HiringOfferDetails(
+      id: offer.id,
+      status: status,
+      company: offer.company,
+      jobTitle: offer.position,
+      terms: offer.terms,
+      latestStatus: latestStatus,
+      latestByTalent: offer.latest.party == OfferParty.talent,
+      actions: [
+        OfferAction.view,
+        if (status == ItemStatus.offer &&
+            offer.latest.party == OfferParty.client) ...[
+          OfferAction.accept,
+          OfferAction.reject,
+          OfferAction.counter,
+        ],
+      ],
+    );
+  }
+
+  // Sample offers never call the API: the screen explains instead.
   @override
   Future<Either<Failure, void>> accept(String id) async =>
-      const Left(ServerFailure(message: 'offers_action_failed'));
+      const Left(ServerFailure(message: _notConnected));
 
   @override
   Future<Either<Failure, void>> reject(String id) async =>
-      const Left(ServerFailure(message: 'offers_action_failed'));
+      const Left(ServerFailure(message: _notConnected));
 
   @override
   Future<Either<Failure, void>> counter(String id, CounterOffer offer) async =>
-      const Left(ServerFailure(message: 'offers_action_failed'));
+      const Left(ServerFailure(message: _notConnected));
+
+  static const _notConnected = 'offers_not_connected_message';
 }

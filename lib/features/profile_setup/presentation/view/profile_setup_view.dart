@@ -3,8 +3,6 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_router.dart';
-import '../../../../core/widgets/qader_design.dart';
-import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../../../core/widgets/app_page_header.dart';
 import '../cubit/profile_setup_cubit.dart';
@@ -17,6 +15,7 @@ import '../widgets/work_preferences_step.dart';
 import '../widgets/profile_setup_confirmation.dart';
 import '../widgets/profile_setup_header.dart';
 import '../widgets/profile_step_title.dart';
+import '../widgets/profile_step_footer.dart';
 import '../widgets/profile_form_skeleton.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../domain/repositories/professional_fields_repository.dart';
@@ -316,62 +315,10 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                                     _ => WorkPreferencesStep(draft: draft),
                                   },
                                 ),
-                                if (draft.step == 1 &&
-                                    draft.personalFailure != null)
-                                  Text(
-                                    draft.personalFailure!.message.tr(),
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                    ),
-                                  ),
-                                if (draft.step >= 2 &&
-                                    draft.stepFailure != null)
-                                  Text(
-                                    draft.stepFailure!.message.tr(),
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                    ),
-                                  ),
-                                Row(
-                                  children: [
-                                    if (draft.step >= 2) ...[
-                                      Expanded(
-                                        child: DefaultButton.compact(
-                                          text: pc(context, 'Back'),
-                                          isOutlined: true,
-                                          color: QaderDesign.border,
-                                          textColor: AppColors.neutral700,
-                                          onPressed: _back,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                    ],
-                                    Expanded(
-                                      child: DefaultButton.compact(
-                                        text: pc(
-                                          context,
-                                          draft.step == 0
-                                              ? 'Continue'
-                                              : draft.step == 3
-                                              ? draft.isConnected
-                                                    ? 'Save Profile'
-                                                    : 'Submit'
-                                              : 'Next',
-                                        ),
-                                        isLoading: draft.busy,
-                                        onPressed:
-                                            draft.step == 0 &&
-                                                (draft.fieldsLoading ||
-                                                    draft.selectedField == null)
-                                            ? null
-                                            : _next,
-                                      ),
-                                    ),
-                                  ],
+                                ProfileStepFooter(
+                                  draft: draft,
+                                  onBack: _back,
+                                  onNext: _next,
                                 ),
                               ],
                             ),

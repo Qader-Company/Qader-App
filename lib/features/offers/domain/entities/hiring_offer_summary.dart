@@ -1,3 +1,5 @@
+import 'hiring_codes.dart';
+
 /// One row of `GET /talent/hiring-offers`: what the offers list shows.
 ///
 /// Built from the item and its `offers` history only; `offer` and
@@ -62,7 +64,9 @@ class HiringOfferSummary {
       }
     }
     // "Received" is when the client first proposed; any offer otherwise.
-    final clientOffers = history.where((o) => o['proposed_by'] == 'client');
+    final clientOffers = history.where(
+      (o) => o['proposed_by'] == OfferProposer.client,
+    );
     DateTime? received;
     for (final offer in clientOffers.isEmpty ? history : clientOffers) {
       final at = sent(offer);
