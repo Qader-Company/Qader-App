@@ -72,7 +72,23 @@ class OfferCard extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 6),
-              OfferStatusChip(value: offer.status, label: offer.statusLabel),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  OfferStatusChip(
+                    value: offer.status,
+                    label: offer.statusLabel,
+                  ),
+                  LatestOfferChip(
+                    key: const ValueKey('offer-latest-status'),
+                    itemStatus: offer.status,
+                    status: offer.latestStatus,
+                    label: offer.latestStatusLabel,
+                    byTalent: offer.latestByTalent,
+                  ),
+                ],
+              ),
               if (salary != null && currency != null || workMode != null) ...[
                 const SizedBox(height: 8),
                 Row(

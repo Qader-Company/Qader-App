@@ -2,8 +2,8 @@ import 'hiring_codes.dart';
 
 /// One row of `GET /talent/hiring-offers`: what the offers list shows.
 ///
-/// Built from the item and its `offers` history only; `offer` and
-/// `contract_configuration` are not used yet.
+/// Built from the item, its `offers` history and the newest `offer`'s
+/// status; `contract_configuration` is not used yet.
 class HiringOfferSummary {
   const HiringOfferSummary({
     required this.id,
@@ -18,6 +18,9 @@ class HiringOfferSummary {
     this.workMode,
     this.receivedAt,
     this.actions = const [],
+    this.latestStatus = '',
+    this.latestStatusLabel = '',
+    this.latestByTalent = false,
   });
   final String id;
 
@@ -44,13 +47,26 @@ class HiringOfferSummary {
   /// `available_actions`, e.g. `view`.
   final List<String> actions;
 
+  /// `offer.status` of the newest offer (`pending`, `expired`, …), not the
+  /// item [status]; empty when the item has no offer.
+  final String latestStatus;
+
+  /// Backend label for [latestStatus].
+  final String latestStatusLabel;
+
+  /// The newest offer is the talent's own counter (`proposed_by`).
+  final bool latestByTalent;
+
   /// Parses one entry of `data.items`; `null` when it has no id.
   static HiringOfferSummary? fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     if (id is! int && (id is! String || id.isEmpty)) return null;
+    final latest = _map(json['offer']);
+    // Without the `offers` history, the newest `offer` stands in for it.
     final history = [
       for (final item in _list(json['offers']))
         if (_map(item) case final offer?) offer,
+      if (_list(json['offers']).isEmpty && latest != null) latest,
     ];
     DateTime? sent(Map<String, dynamic> offer) =>
         _date(offer['sent_at']) ?? _date(offer['created_at']);
@@ -89,6 +105,9 @@ class HiringOfferSummary {
       workMode: _string(newest?['work_mode']),
       receivedAt: received,
       actions: _list(json['available_actions']).whereType<String>().toList(),
+      latestStatus: _string(latest?['status']) ?? '',
+      latestStatusLabel: _string(latest?['status_label']) ?? '',
+      latestByTalent: latest?['proposed_by'] == OfferProposer.talent,
     );
   }
 }

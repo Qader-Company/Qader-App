@@ -62,7 +62,7 @@ class OfferTerms {
     required this.salary,
     required this.currency,
     required this.workMode,
-    required this.sentAt,
+    this.sentAt,
     required this.by,
     required this.party,
     this.noticeDays,
@@ -88,7 +88,10 @@ class OfferTerms {
 
   /// Backend code, e.g. `remote`, `on_site`, `hybrid`.
   final String workMode;
-  final DateTime sentAt;
+
+  /// `null` when the backend sends the offer without `sent_at` (e.g. the
+  /// newest `offer` of a closed item).
+  final DateTime? sentAt;
 
   /// Name of the recruiter or talent who sent these terms.
   final String by;

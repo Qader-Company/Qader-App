@@ -122,3 +122,47 @@ class OfferStatusChip extends StatelessWidget {
     );
   }
 }
+
+/// Where the newest offer of an item in the `offer` stage stands
+/// (`offer.status`, not the item status): whose turn it is, or that it
+/// expired. Nothing outside that stage, where the item chip says it all.
+class LatestOfferChip extends StatelessWidget {
+  const LatestOfferChip({
+    super.key,
+    required this.itemStatus,
+    required this.status,
+    this.label = '',
+    this.byTalent = false,
+  });
+  final String itemStatus, status, label;
+  final bool byTalent;
+  @override
+  Widget build(BuildContext context) {
+    if (itemStatus != ItemStatus.offer || status.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final (text, background, foreground) = switch (status) {
+      OfferStatus.pending when byTalent => (
+        ot(context, 'latest_waiting_company'),
+        AppColors.blueSoft,
+        AppColors.blueStrong,
+      ),
+      OfferStatus.pending => (
+        ot(context, 'latest_your_turn'),
+        AppColors.amber50,
+        AppColors.amber700,
+      ),
+      OfferStatus.expired => (
+        label.isEmpty ? ot(context, 'expired_title') : label,
+        AppColors.red50,
+        AppColors.red600,
+      ),
+      _ => (
+        label.isEmpty ? offerCodeLabel(context, status) : label,
+        AppColors.neutral100,
+        AppColors.neutral700,
+      ),
+    };
+    return OfferChip(text, background: background, foreground: foreground);
+  }
+}

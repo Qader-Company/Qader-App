@@ -10,6 +10,7 @@ import '../../domain/repositories/offers_repository.dart';
 import '../cubit/offer_details_cubit.dart';
 import '../offers_copy.dart';
 import '../widgets/counter_offer_dialog.dart';
+import '../widgets/live_interview_card.dart';
 import '../widgets/offer_back_link.dart';
 import '../widgets/offer_card_skeleton.dart';
 import '../widgets/offer_notices.dart';
@@ -196,11 +197,16 @@ class LiveOfferDetailsView extends StatelessWidget {
           ),
         ),
       // As in Figma: once accepted, the scheduling section replaces the
-      // terms until the interview exists.
+      // terms until the interview exists; then the interview leads.
       if (details.failed)
         ...const []
       else if (details.awaitingInterviewTimes)
-        OfferAwaitingInterview(company: details.company.name)
+        OfferAwaitingInterview(
+          company: details.company.name,
+          statusLabel: details.interviewStatusLabel,
+        )
+      else if (details.interview case final interview?)
+        LiveInterviewCard(interview: interview)
       else if (terms.length == 1)
         OfferTermsCard(
           terms: terms.single,

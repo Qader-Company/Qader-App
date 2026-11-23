@@ -228,6 +228,9 @@ class _CounterOfferDialogState extends State<_CounterOfferDialog> {
               label: ot(context, 'work_location'),
               controller: _location,
               hint: ot(context, 'work_location_hint'),
+              // Send Counter Offer rejects more than 500 characters; a
+              // formatter caps it without the design-less counter text.
+              inputFormatters: [LengthLimitingTextInputFormatter(500)],
               validator: _required,
             ),
             const SizedBox(height: 12),

@@ -114,10 +114,8 @@ class OfferTermsCard extends StatelessWidget {
             ot(context, 'notice_period'),
             offerNotice(context, notice),
           ),
-        OfferLabeledValue(
-          ot(context, 'sent'),
-          offerDateTime(context, terms.sentAt),
-        ),
+        if (terms.sentAt case final sent?)
+          OfferLabeledValue(ot(context, 'sent'), offerDateTime(context, sent)),
         if (days != null) OfferLabeledValue(ot(context, 'working_days'), days),
         if (hours != null)
           OfferLabeledValue(ot(context, 'working_hours'), hours),

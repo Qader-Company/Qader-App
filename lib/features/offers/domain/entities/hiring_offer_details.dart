@@ -1,11 +1,12 @@
 import 'talent_offer.dart';
 import 'hiring_codes.dart';
+import 'hiring_interview.dart';
 
 /// `GET /talent/hiring-offers/{item}`: one offer and its terms history.
 ///
-/// Built from the item, its `offers` history and the newest `offer`'s
-/// status; `contract_configuration` is not used yet. The interview shape is
-/// not known yet either, so `interview` is not read.
+/// Built from the item, its `offers` history (or the newest `offer` when the
+/// history is not sent), the newest `offer`'s status and the `interview`;
+/// `contract_configuration` is not used yet.
 class HiringOfferDetails {
   const HiringOfferDetails({
     required this.id,
@@ -16,6 +17,8 @@ class HiringOfferDetails {
     this.jobTitle = '',
     this.terms = const [],
     this.hasInterview = false,
+    this.interview,
+    this.interviewStatusLabel = '',
     this.interviewRequired = true,
     this.latestStatus = '',
     this.latestByTalent = false,
@@ -37,6 +40,13 @@ class HiringOfferDetails {
 
   /// `interview` is not null.
   final bool hasInterview;
+
+  /// The parsed `interview`; `null` when absent or without an id.
+  final HiringInterview? interview;
+
+  /// `interview_status_label`: the backend's text for where scheduling
+  /// stands while there is no [interview] yet, e.g. "Awaiting Scheduling".
+  final String interviewStatusLabel;
 
   /// `interview_required`; without it, accepting goes straight to
   /// `accepted`. Missing means required (the usual flow).
@@ -102,7 +112,12 @@ class HiringOfferDetails {
       for (final item in _list(json['offers']))
         if (_map(item) case final raw?)
           if (_terms(raw) case final terms?) terms,
-    ]..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    ]..sort(_newestFirst);
+    // Some responses send only the newest `offer`, without the history:
+    // it is then the only version (and the one the actions answer).
+    if (versions.isEmpty && latest != null) {
+      if (_terms(latest) case final terms?) versions.add(terms);
+    }
     // The oldest client proposal is the original offer.
     final originalIndex = versions.lastIndexWhere(
       (terms) => terms.party == OfferParty.client,
@@ -123,6 +138,8 @@ class HiringOfferDetails {
           i == originalIndex ? _asOriginal(versions[i]) : versions[i],
       ],
       hasInterview: json['interview'] != null,
+      interview: HiringInterview.fromJson(json['interview']),
+      interviewStatusLabel: _string(json['interview_status_label']) ?? '',
       interviewRequired: json['interview_required'] != false,
       latestStatus: _string(latest?['status']) ?? '',
       latestByTalent: latest?['proposed_by'] == OfferProposer.talent,
@@ -133,12 +150,22 @@ class HiringOfferDetails {
     );
   }
 
-  /// One entry of `offers`; `null` without a salary, currency or date.
+  /// Undated versions go last.
+  static int _newestFirst(OfferTerms a, OfferTerms b) =>
+      switch ((a.sentAt, b.sentAt)) {
+        (final x?, final y?) => y.compareTo(x),
+        (null, null) => 0,
+        (null, _) => 1,
+        (_, null) => -1,
+      };
+
+  /// One offer; `null` without a salary or currency. Closed items send
+  /// their newest `offer` without `sent_at` or the work terms.
   static OfferTerms? _terms(Map<String, dynamic> raw) {
     final salary = _num(raw['salary_amount']);
     final currency = _string(_map(raw['currency'])?['code']);
     final sentAt = _date(raw['sent_at']) ?? _date(raw['created_at']);
-    if (salary == null || currency == null || sentAt == null) return null;
+    if (salary == null || currency == null) return null;
     return OfferTerms(
       salary: salary,
       currency: currency,

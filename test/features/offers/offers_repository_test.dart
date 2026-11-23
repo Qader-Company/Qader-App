@@ -91,6 +91,13 @@ Map<String, dynamic> _list() => {
             'created_at': '2026-11-18T09:40:51.000000Z',
           },
         ],
+        // The newest offer (the talent's counter), trimmed.
+        'offer': {
+          'id': 13,
+          'proposed_by': 'talent',
+          'status': 'pending',
+          'status_label': 'Pending',
+        },
         'interview': null,
         'available_actions': ['view'],
         'updated_at': '2026-11-18T09:41:22.000000Z',
@@ -222,6 +229,10 @@ void main() {
     // Received when the client first proposed.
     expect(offer.receivedAt, DateTime.utc(2026, 11, 18, 9, 41, 22).toLocal());
     expect(offer.actions, ['view']);
+    // `offer.status` of the newest offer, apart from the item status.
+    expect(offer.latestStatus, 'pending');
+    expect(offer.latestStatusLabel, 'Pending');
+    expect(offer.latestByTalent, isTrue);
   });
 
   test('no filters send only paging; bad items are skipped', () async {

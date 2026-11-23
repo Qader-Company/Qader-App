@@ -10,8 +10,16 @@ import 'offer_overview.dart';
 
 /// The offer was accepted; the company is preparing interview slots.
 class OfferAwaitingInterview extends StatelessWidget {
-  const OfferAwaitingInterview({super.key, required this.company});
+  const OfferAwaitingInterview({
+    super.key,
+    required this.company,
+    this.statusLabel = '',
+  });
   final String company;
+
+  /// The backend's scheduling status (`interview_status_label`); hidden
+  /// when empty (preview data).
+  final String statusLabel;
   @override
   Widget build(BuildContext context) => Column(
     children: [
@@ -58,6 +66,14 @@ class OfferAwaitingInterview extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                if (statusLabel.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  OfferChip(
+                    statusLabel,
+                    background: AppColors.blueSoft,
+                    foreground: AppColors.blueStrong,
+                  ),
+                ],
                 const SizedBox(height: 6),
                 Text(
                   ot(
