@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/widgets/app_drawer.dart';
@@ -26,11 +27,7 @@ class HomeDrawer extends StatelessWidget {
 
   void _soon(BuildContext context) {
     Navigator.pop(context);
-    ScaffoldMessenger.maybeOf(context)
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text('drawer_coming_soon'.tr(context: context))),
-      );
+    showAppToast(context, 'drawer_coming_soon'.tr(context: context));
   }
 
   void _open(BuildContext context, String route) {

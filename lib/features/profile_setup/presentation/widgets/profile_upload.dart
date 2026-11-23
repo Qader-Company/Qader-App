@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/qader_design.dart';
 import '../profile_copy.dart';
@@ -67,9 +68,8 @@ class _ProfileUploadState extends State<ProfileUpload> {
     }
   }
 
-  void _error(String text) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(pc(context, text))));
+  void _error(String text) =>
+      showAppToast(context, pc(context, text), type: ToastType.error);
   @override
   Widget build(BuildContext context) => FormField<List<PlatformFile>>(
     initialValue: widget.files,

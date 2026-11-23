@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/failure.dart';
@@ -58,9 +59,7 @@ class _NotificationsViewState extends State<NotificationsView> {
 
   void _showFailure(Failure? failure) {
     if (failure == null || !mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(_message(failure))));
+    showAppToast(context, _message(failure), type: ToastType.error);
   }
 
   String _message(Failure failure) =>

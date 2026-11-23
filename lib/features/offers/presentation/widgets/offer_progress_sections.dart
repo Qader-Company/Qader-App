@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/resources/app_colors.dart';
@@ -134,9 +135,7 @@ class OfferInterviewCard extends StatelessWidget {
   Future<void> _copy(BuildContext context, String link) async {
     await Clipboard.setData(ClipboardData(text: link));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(ot(context, 'link_copied'))));
+    showAppToast(context, ot(context, 'link_copied'), type: ToastType.success);
   }
 
   @override

@@ -107,6 +107,7 @@ A new feature needs:
 - Text: every user-facing string is a key in BOTH `assets/translations/en-US.json` and `ar-SA.json`, used with `.tr(context: context)` (with `namedArgs` for variables). Never put English/Arabic pairs inline in Dart.
 - Arabic is RTL: for anything one-sided (padding, alignment, positioning) use `EdgeInsetsDirectional`, `AlignmentDirectional` and `start`/`end`, never left/right. Symmetric values (same left and right) and gradient directions are fine.
 - Sample or mock data lives only in `presentation/preview/` and is used only when there is no real data (logged out or preview routes). Never show sample data to a logged-in user.
+- Short messages (success, failure, info) use `showAppToast(context, message, type: ToastType.success | error | info)` from `core/widgets/app_toast.dart`, so every message looks the same. Never build a `SnackBar` or call `showSnackBar` anywhere else.
 - Loading content shows a shimmer skeleton, never a spinner: build it from `Shimmer`, `SkeletonCard` and `SkeletonBox` (`core/widgets/skeleton.dart`) in the shape of the real content, in `presentation/widgets/<thing>_skeleton.dart`. Use it for the first load, reloads and filter changes, and one placeholder item while a list loads its next page. Small spinners are only for an action in progress inside a button or a single field (`DefaultButton(isLoading:)`, an upload).
 
 ## 5. Performance
@@ -142,7 +143,7 @@ CI (`.github/workflows/ci.yml`) runs steps 1–4 on every push and pull request;
 
 1. `dart format lib test tool`
 2. `flutter analyze`: must print "No issues found!"
-3. `dart run tool/check_rules.dart`: checks colors, `sl` in features, spinners in screens, layer imports, cycles and file size. It must print "Rules OK".
+3. `dart run tool/check_rules.dart`: checks colors, `sl` in features, spinners in screens, snackbars outside the app toast, layer imports, cycles and file size. It must print "Rules OK".
 4. `flutter test`: all tests pass.
 5. New logic gets tests in `test/features/<feature>/` (or `test/core/`, `test/app/`), mirroring `lib/`. Use `Fake implements …` for repositories and `ApiConsumer`. Build fixtures from real Apidog examples.
 6. UI or refactor work: run `flutter test` then `dart run tool/compare_screenshots.dart save` BEFORE the change, and `flutter test` then `dart run tool/compare_screenshots.dart compare` after. Screens that should not change must be identical. Look at the PNGs of screens that should change.

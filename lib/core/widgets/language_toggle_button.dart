@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'app_toast.dart';
 import 'package:flutter/material.dart';
 
 import '../di/service_locator.dart';
@@ -36,8 +37,10 @@ class _LanguageToggleButtonState extends State<LanguageToggleButton> {
     } catch (_) {
       await preferences.setAppLanguage(previous.languageCode);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('language_change_failed'.tr(context: context))),
+      showAppToast(
+        context,
+        'language_change_failed'.tr(context: context),
+        type: ToastType.error,
       );
     } finally {
       if (mounted) setState(() => _changing = false);

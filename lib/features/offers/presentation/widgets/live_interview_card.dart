@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -32,9 +33,7 @@ class LiveInterviewCard extends StatelessWidget {
   Future<void> _copy(BuildContext context, String link) async {
     await Clipboard.setData(ClipboardData(text: link));
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(ot(context, 'link_copied'))));
+    showAppToast(context, ot(context, 'link_copied'), type: ToastType.success);
   }
 
   /// Opens the meeting outside the app: Android and iOS hand Zoom, Google
@@ -47,9 +46,7 @@ class LiveInterviewCard extends StatelessWidget {
         uri.hasScheme &&
         await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (opened || !context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(ot(context, 'link_failed'))));
+    showAppToast(context, ot(context, 'link_failed'), type: ToastType.error);
   }
 
   @override

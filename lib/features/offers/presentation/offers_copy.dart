@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import '../../../core/helpers/feature_dialog.dart';
 import '../../../core/resources/app_colors.dart';
@@ -126,9 +127,11 @@ void showOfferActionResult(
       : failure.startsWith('offers_')
       ? failure.tr(context: context)
       : failure;
-  ScaffoldMessenger.maybeOf(context)
-    ?..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(text)));
+  showAppToast(
+    context,
+    text,
+    type: failure == null ? ToastType.success : ToastType.error,
+  );
 }
 
 /// Offer actions are designed but the offers API is not connected yet.

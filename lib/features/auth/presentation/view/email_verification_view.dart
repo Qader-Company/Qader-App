@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -46,9 +47,11 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
           previous.status != current.status &&
           current.status == EmailVerificationStatus.success,
       listener: (context, state) {
-        ScaffoldMessenger.maybeOf(context)
-          ?..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('auth_email_verified'.tr())));
+        showAppToast(
+          context,
+          'auth_email_verified'.tr(context: context),
+          type: ToastType.success,
+        );
         context.go('${AppRouter.signIn}?role=talent');
       },
       builder: (context, state) {

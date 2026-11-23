@@ -70,6 +70,18 @@ void main() {
       }
     }
 
+    // One message style: only the app toast builds snackbars.
+    if (path != 'lib/core/widgets/app_toast.dart') {
+      for (var i = 0; i < lines.length; i++) {
+        if (RegExp(r'\bSnackBar\(|\.showSnackBar\(').hasMatch(lines[i])) {
+          errors.add(
+            '$path:${i + 1}: SnackBar outside the app toast; use '
+            'showAppToast (core/widgets/app_toast.dart).',
+          );
+        }
+      }
+    }
+
     // Imports: resolve, check layering and record module edges.
     final from = _module(path);
     for (final match in _directive.allMatches(text)) {

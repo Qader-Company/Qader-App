@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/resources/qader_design.dart';
@@ -41,8 +42,10 @@ class _OnboardingViewState extends State<OnboardingView> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _finishing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('intro_save_failed'.tr(context: context))),
+      showAppToast(
+        context,
+        'intro_save_failed'.tr(context: context),
+        type: ToastType.error,
       );
     }
   }

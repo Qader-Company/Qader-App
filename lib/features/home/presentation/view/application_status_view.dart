@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/widgets/app_toast.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -126,14 +127,10 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
     if (action == null) return notConnected();
     if (_busy) return;
     setState(() => _busy = true);
-    final messenger = ScaffoldMessenger.maybeOf(context);
     final error = await action();
-    if (mounted) setState(() => _busy = false);
-    if (error != null) {
-      messenger
-        ?..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(error)));
-    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (error != null) showAppToast(context, error, type: ToastType.error);
   }
 
   @override
