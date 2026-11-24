@@ -1,11 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/widgets/default_button.dart';
-import '../../../auth/presentation/cubit/auth_session_cubit.dart';
 import '../../domain/entities/talent_application.dart';
 import '../cubit/application_cubit.dart';
+import '../current_talent.dart';
 import 'application_status_view.dart';
 import 'widgets/application_review_banner.dart';
 import 'widgets/application_submitted_notice.dart';
@@ -17,7 +16,6 @@ import 'widgets/review_steps.dart';
 import 'widgets/review_faq.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../../domain/repositories/application_repository.dart';
-import '../../../../core/di/maybe_read.dart';
 import '../../../../core/widgets/locale_change_listener.dart';
 
 /// Talent home. In [preview] it shows the static "Under Review" design;
@@ -88,7 +86,7 @@ class HomeView extends StatelessWidget {
         key: ValueKey(status),
         initialStatus: status,
         application: application,
-        userName: _userName(context),
+        userName: currentTalentName(context),
         onRefresh: cubit.load,
         onSelectSlot: (slotId) async =>
             (await cubit.selectSlot(slotId))?.message,
@@ -111,7 +109,7 @@ class HomeView extends StatelessWidget {
   ) {
     final faqs = application.screenFaqs;
     return [
-      ApplicationReviewBanner(name: _userName(context)),
+      ApplicationReviewBanner(name: currentTalentName(context)),
       const SizedBox(height: 24),
       const ReviewSteps(),
       const SizedBox(height: 24),
@@ -128,12 +126,6 @@ class HomeView extends StatelessWidget {
       ],
     ];
   }
-}
-
-String _userName(BuildContext context) {
-  final user = context.maybeRead<AuthSessionCubit>()?.state.user;
-  if (user != null && user.fullName.isNotEmpty) return user.fullName;
-  return context.maybeRead<AppPreferences>()?.getUserName() ?? '';
 }
 
 class _Dashboard extends StatelessWidget {
