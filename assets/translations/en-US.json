@@ -523,7 +523,6 @@
     "talent_final_feedback":  "Final Feedback",
     "talent_personalized_expert_tips_guidance":  "Personalized Expert Tips \u0026 Guidance",
     "talent_high_priority":  "High Priority",
-    "talent_evaluation_unavailable":  "Your evaluation isn't ready yet. You'll see it here once the review is done.",
     "talent_evaluation_failed":  "We couldn't load your evaluation",
     "talent_interview_round":  "Round {round}",
     "talent_overall_score":  "Overall score: {score}%",

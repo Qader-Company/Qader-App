@@ -13,6 +13,7 @@ import 'package:qader/features/talent_profile/data/repositories/api_talent_evalu
 import 'package:qader/features/talent_profile/domain/entities/talent_evaluation.dart';
 import 'package:qader/features/talent_profile/domain/repositories/talent_evaluation_repository.dart';
 import 'package:qader/features/talent_profile/presentation/view/profile_evaluation_view.dart';
+import 'package:qader/features/talent_profile/presentation/view/profile_review_view.dart';
 import 'package:qader/features/talent_profile/presentation/widgets/evaluation_report_widgets.dart';
 import 'package:qader/features/talent_profile/presentation/widgets/evaluation_skeleton.dart';
 
@@ -278,34 +279,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('no evaluation yet, then a failure that can be retried', (
-    tester,
-  ) async {
-    await _pump(tester, _Repo([const Right(null)]));
-    await tester.pumpAndSettle();
-    expect(
-      find.text(
-        "Your evaluation isn't ready yet. You'll see it here once the "
-        'review is done.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Try again'), findsNothing);
+  testWidgets(
+    'no evaluation yet offers the paid review; a failure can be retried',
+    (tester) async {
+      await _pump(tester, _Repo([const Right(null)]));
+      await tester.pumpAndSettle();
+      // No evaluation yet: the paid expert review is offered instead.
+      expect(find.byType(ProfileReviewView), findsOneWidget);
+      expect(find.text('Try again'), findsNothing);
 
-    final repo = _Repo([
-      const Left(NetworkFailure(message: 'offline')),
-      Right(
-        TalentEvaluation.fromJson(_example()['data'] as Map<String, dynamic>),
-      ),
-    ]);
-    // A fresh screen, so a new cubit reads the new repository.
-    await tester.pumpWidget(const SizedBox());
-    await _pump(tester, repo);
-    await tester.pumpAndSettle();
-    expect(find.text("We couldn't load your evaluation"), findsOneWidget);
-    await tester.tap(find.text('Try again'));
-    await tester.pumpAndSettle();
-    expect(repo.loads, 2);
-    expect(find.byType(EvaluationMetricCard), findsNWidgets(4));
-  });
+      final repo = _Repo([
+        const Left(NetworkFailure(message: 'offline')),
+        Right(
+          TalentEvaluation.fromJson(_example()['data'] as Map<String, dynamic>),
+        ),
+      ]);
+      // A fresh screen, so a new cubit reads the new repository.
+      await tester.pumpWidget(const SizedBox());
+      await _pump(tester, repo);
+      await tester.pumpAndSettle();
+      expect(find.text("We couldn't load your evaluation"), findsOneWidget);
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      expect(repo.loads, 2);
+      expect(find.byType(EvaluationMetricCard), findsNWidgets(4));
+    },
+  );
 }

@@ -53,12 +53,15 @@ class _ProfileContentState extends State<ProfileContent> {
         ProfileSummaryCard(
           profile: profile,
           preview: widget.preview,
+          // A live talent always opens the evaluation, which offers the
+          // paid review while there is none. The sample profiles keep one
+          // screen per status.
           onEvaluation: () => context.push(
-            status == null || status == TalentProfileStatus.accepted
+            !widget.preview
+                ? AppRouter.profileReport
+                : status == null || status == TalentProfileStatus.accepted
                 ? AppRouter.profileReview
-                : widget.preview
-                ? '${AppRouter.profileReport}?preview=true'
-                : AppRouter.profileReport,
+                : '${AppRouter.profileReport}?preview=true',
           ),
           onEdit: _edit,
         ),

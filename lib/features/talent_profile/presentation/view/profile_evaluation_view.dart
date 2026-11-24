@@ -11,6 +11,7 @@ import '../profile_copy.dart';
 import '../widgets/evaluation_content.dart';
 import '../widgets/evaluation_skeleton.dart';
 import '../widgets/profile_components.dart';
+import 'profile_review_view.dart';
 
 /// The talent's evaluation report. In [preview] it shows a sample (signed
 /// out and preview screens); otherwise it loads
@@ -32,6 +33,8 @@ class ProfileEvaluationView extends StatelessWidget {
             ..load(),
       child: BlocBuilder<TalentEvaluationCubit, TalentEvaluationState>(
         builder: (context, state) {
+          // No evaluation yet: offer the paid expert review instead.
+          if (state.unavailable) return const ProfileReviewView();
           final cubit = context.read<TalentEvaluationCubit>();
           final evaluation = state.evaluation;
           // Reports come in the app language: reload when it changes.
@@ -43,11 +46,6 @@ class ProfileEvaluationView extends StatelessWidget {
                   ? EvaluationContent(evaluation: evaluation)
                   : state.loading
                   ? const EvaluationSkeleton()
-                  : state.unavailable
-                  ? const _Message(
-                      icon: Icons.hourglass_empty_rounded,
-                      text: 'talent_evaluation_unavailable',
-                    )
                   : _Message(
                       icon: Icons.cloud_off_outlined,
                       text: 'talent_evaluation_failed',
@@ -62,12 +60,16 @@ class ProfileEvaluationView extends StatelessWidget {
 }
 
 class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.text, this.onRetry});
+  const _Message({
+    required this.icon,
+    required this.text,
+    required this.onRetry,
+  });
   final IconData icon;
 
   /// Translation key.
   final String text;
-  final VoidCallback? onRetry;
+  final VoidCallback onRetry;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 96, horizontal: 8),
@@ -80,13 +82,11 @@ class _Message extends StatelessWidget {
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 14, height: 20 / 14),
         ),
-        if (onRetry != null) ...[
-          const SizedBox(height: 16),
-          DefaultButton.compact(
-            text: tc(context, 'Try again'),
-            onPressed: onRetry,
-          ),
-        ],
+        const SizedBox(height: 16),
+        DefaultButton.compact(
+          text: tc(context, 'Try again'),
+          onPressed: onRetry,
+        ),
       ],
     ),
   );

@@ -523,7 +523,6 @@
     "talent_final_feedback":  "الملاحظات النهائية",
     "talent_personalized_expert_tips_guidance":  "نصائح وإرشادات مخصصة من الخبراء",
     "talent_high_priority":  "أولوية عالية",
-    "talent_evaluation_unavailable":  "تقييمك غير جاهز بعد، وسيظهر هنا فور انتهاء المراجعة.",
     "talent_evaluation_failed":  "تعذر تحميل تقييمك",
     "talent_interview_round":  "الجولة {round}",
     "talent_overall_score":  "التقييم العام: {score}%",

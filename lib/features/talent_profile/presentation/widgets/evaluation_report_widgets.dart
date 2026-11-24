@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_button.dart';
+import '../../../../core/widgets/text_direction_of.dart';
 import '../../domain/entities/talent_evaluation.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
@@ -183,6 +184,8 @@ class EvaluationTextCard extends StatelessWidget {
         ),
         child: Text(
           text,
+          textDirection: textDirectionOf(text, Directionality.of(context)),
+          textAlign: TextAlign.start,
           style: const TextStyle(
             fontSize: 12,
             height: 1.5,
@@ -247,6 +250,10 @@ class ExpertTipCard extends StatelessWidget {
           if (tip.title.isNotEmpty)
             Text(
               tip.title,
+              textDirection: textDirectionOf(
+                tip.title,
+                Directionality.of(context),
+              ),
               style: const TextStyle(
                 fontSize: 14,
                 height: 1.5,
@@ -256,6 +263,10 @@ class ExpertTipCard extends StatelessWidget {
           if (tip.description.isNotEmpty)
             Text(
               tip.description,
+              textDirection: textDirectionOf(
+                tip.description,
+                Directionality.of(context),
+              ),
               style: const TextStyle(
                 fontSize: 12,
                 height: 1.5,
