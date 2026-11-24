@@ -1,9 +1,13 @@
 import '../../../../core/network/failure.dart';
+import '../../domain/entities/profile_lookup.dart';
 
 const _keep = Object();
 
 /// What the profile setup screens render from: the current step, what is
 /// loading or saving, and the last failure of each operation.
+///
+/// It also holds the master-data lists (unmodifiable) with their loading
+/// and failure state.
 ///
 /// Form inputs (text controllers, selections, entries) live on the cubit as
 /// form state; every change to them emits a new [revision].
@@ -24,6 +28,9 @@ class ProfileSetupState {
     this.cvParseFailure,
     this.cvAutofilled = false,
     this.revision = 0,
+    this.lookupOptions = const {},
+    this.lookupLoading = const {},
+    this.lookupFailures = const {},
   });
 
   final int step;
@@ -43,6 +50,15 @@ class ProfileSetupState {
 
   /// Bumped whenever form inputs change so listeners rebuild.
   final int revision;
+
+  /// Loaded options of each master-data list.
+  final Map<ProfileLookup, List<ProfileLookupOption>> lookupOptions;
+
+  /// Lists being loaded.
+  final Set<ProfileLookup> lookupLoading;
+
+  /// The last failure of each list that failed to load.
+  final Map<ProfileLookup, Failure> lookupFailures;
 
   bool get busy =>
       progressLoading ||
@@ -67,6 +83,9 @@ class ProfileSetupState {
     Object? cvParseFailure = _keep,
     bool? cvAutofilled,
     int? revision,
+    Map<ProfileLookup, List<ProfileLookupOption>>? lookupOptions,
+    Set<ProfileLookup>? lookupLoading,
+    Map<ProfileLookup, Failure>? lookupFailures,
   }) => ProfileSetupState(
     step: step ?? this.step,
     fieldsLoading: fieldsLoading ?? this.fieldsLoading,
@@ -93,5 +112,8 @@ class ProfileSetupState {
         : cvParseFailure as Failure?,
     cvAutofilled: cvAutofilled ?? this.cvAutofilled,
     revision: revision ?? this.revision,
+    lookupOptions: lookupOptions ?? this.lookupOptions,
+    lookupLoading: lookupLoading ?? this.lookupLoading,
+    lookupFailures: lookupFailures ?? this.lookupFailures,
   );
 }

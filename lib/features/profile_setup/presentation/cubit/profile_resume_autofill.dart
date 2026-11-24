@@ -77,7 +77,7 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
       selections.remove('city');
       if (showsField('residence_city_id')) {
         // Cities depend on the country; load them so the city can show.
-        lookupOptions.remove(ProfileLookup.cities);
+        _setLookups(options: {...lookupOptions}..remove(ProfileLookup.cities));
         await loadLookup(ProfileLookup.cities, retry: true);
         if (isClosed) return;
       }

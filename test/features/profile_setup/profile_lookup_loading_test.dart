@@ -32,7 +32,7 @@ void main() {
     final draft = ProfileSetupCubit(fieldsRepository: _Fields());
     addTearDown(draft.close);
     draft.selectValues('skill_ids', {});
-    draft.lookupLoading.addAll({ProfileLookup.countries, ProfileLookup.skills});
+    draft.setLookups(loading: {ProfileLookup.countries, ProfileLookup.skills});
 
     Future<void> pump() async {
       await tester.pumpWidget(
@@ -81,15 +81,17 @@ void main() {
     expect(find.byType(DropdownButtonFormField<String>), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsNothing);
 
-    draft.lookupLoading.clear();
-    draft.lookupOptions.addAll({
-      ProfileLookup.countries: const [
-        ProfileLookupOption(value: 1, label: 'Egypt'),
-      ],
-      ProfileLookup.skills: const [
-        ProfileLookupOption(value: 3, label: 'JavaScript'),
-      ],
-    });
+    draft.setLookups(
+      loading: {},
+      options: {
+        ProfileLookup.countries: const [
+          ProfileLookupOption(value: 1, label: 'Egypt'),
+        ],
+        ProfileLookup.skills: const [
+          ProfileLookupOption(value: 3, label: 'JavaScript'),
+        ],
+      },
+    );
     await pump();
     await tester.pumpAndSettle();
     expect(find.byType(Shimmer), findsNothing);

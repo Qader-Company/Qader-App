@@ -200,32 +200,35 @@ void main() {
       );
       addTearDown(draft.close);
       await draft.restoreProgress();
-      for (final lookup in [
-        ProfileLookup.jobTitles,
-        ProfileLookup.skills,
-        ProfileLookup.industries,
-        ProfileLookup.tools,
-        ProfileLookup.countries,
-        ProfileLookup.cities,
-        ProfileLookup.languages,
-      ]) {
-        draft.lookupOptions[lookup] = [
-          const ProfileLookupOption(value: 1, label: 'One'),
-          const ProfileLookupOption(value: 8, label: 'Eight'),
-        ];
-      }
-      draft.lookupOptions[ProfileLookup.seniorityLevels] = [
-        const ProfileLookupOption(value: 'mid_level', label: 'Mid'),
-      ];
-      draft.lookupOptions[ProfileLookup.genders] = [
-        const ProfileLookupOption(value: 'male', label: 'Male'),
-      ];
-      draft.lookupOptions[ProfileLookup.religions] = [
-        const ProfileLookupOption(value: 'islam', label: 'Islam'),
-      ];
-      draft.lookupOptions[ProfileLookup.languageProficiencies] = [
-        const ProfileLookupOption(value: 'a1', label: 'A1'),
-      ];
+      draft.setLookups(
+        options: {
+          for (final lookup in [
+            ProfileLookup.jobTitles,
+            ProfileLookup.skills,
+            ProfileLookup.industries,
+            ProfileLookup.tools,
+            ProfileLookup.countries,
+            ProfileLookup.cities,
+            ProfileLookup.languages,
+          ])
+            lookup: const [
+              ProfileLookupOption(value: 1, label: 'One'),
+              ProfileLookupOption(value: 8, label: 'Eight'),
+            ],
+          ProfileLookup.seniorityLevels: const [
+            ProfileLookupOption(value: 'mid_level', label: 'Mid'),
+          ],
+          ProfileLookup.genders: const [
+            ProfileLookupOption(value: 'male', label: 'Male'),
+          ],
+          ProfileLookup.religions: const [
+            ProfileLookupOption(value: 'islam', label: 'Islam'),
+          ],
+          ProfileLookup.languageProficiencies: const [
+            ProfileLookupOption(value: 'a1', label: 'A1'),
+          ],
+        },
+      );
       expect(
         await draft.saveDetails(work: false),
         isFalse,

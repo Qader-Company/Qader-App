@@ -19,19 +19,21 @@ ProfileSetupCubit _form(Set<String> visible) {
   List<ProfileLookupOption> codes(List<String> items) => [
     for (final code in items) ProfileLookupOption(value: code, label: code),
   ];
-  form.lookupOptions.addAll({
-    ProfileLookup.countries: ids({1: 'Egypt', 2: 'Saudi Arabia'}),
-    ProfileLookup.cities: ids({10: 'Cairo'}),
-    ProfileLookup.languages: ids({1: 'Arabic', 2: 'English'}),
-    ProfileLookup.languageProficiencies: codes(['b1', 'native']),
-    ProfileLookup.genders: codes(['male', 'female']),
-    ProfileLookup.jobTitles: ids({13: 'UI/UX Designer'}),
-    ProfileLookup.seniorityLevels: codes(['junior', 'senior']),
-    ProfileLookup.skills: ids({16: 'User Research', 18: 'Visual Design'}),
-    ProfileLookup.workTypes: codes(['full_time']),
-    ProfileLookup.workModes: codes(['remote']),
-    ProfileLookup.currencies: ids({1: 'EGP'}),
-  });
+  form.setLookups(
+    options: {
+      ProfileLookup.countries: ids({1: 'Egypt', 2: 'Saudi Arabia'}),
+      ProfileLookup.cities: ids({10: 'Cairo'}),
+      ProfileLookup.languages: ids({1: 'Arabic', 2: 'English'}),
+      ProfileLookup.languageProficiencies: codes(['b1', 'native']),
+      ProfileLookup.genders: codes(['male', 'female']),
+      ProfileLookup.jobTitles: ids({13: 'UI/UX Designer'}),
+      ProfileLookup.seniorityLevels: codes(['junior', 'senior']),
+      ProfileLookup.skills: ids({16: 'User Research', 18: 'Visual Design'}),
+      ProfileLookup.workTypes: codes(['full_time']),
+      ProfileLookup.workModes: codes(['remote']),
+      ProfileLookup.currencies: ids({1: 'EGP'}),
+    },
+  );
   return form;
 }
 

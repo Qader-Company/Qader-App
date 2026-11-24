@@ -37,9 +37,10 @@ extension ProfileLookups on ProfileSetupCubit {
     if (lookup.isFieldScoped && _field?.id == null) return;
     final request = (_lookupRequests[lookup] ?? 0) + 1;
     _lookupRequests[lookup] = request;
-    lookupLoading.add(lookup);
-    lookupFailures.remove(lookup);
-    refresh();
+    _setLookups(
+      loading: {...lookupLoading, lookup},
+      failures: {...lookupFailures}..remove(lookup),
+    );
     try {
       final result = await _lookupsRepository.load(
         lookup,
@@ -48,19 +49,22 @@ extension ProfileLookups on ProfileSetupCubit {
       );
       if (isClosed || _lookupRequests[lookup] != request) return;
       result.fold(
-        (failure) => lookupFailures[lookup] = failure,
-        (items) => lookupOptions[lookup] = items,
+        (failure) =>
+            _setLookups(failures: {...lookupFailures, lookup: failure}),
+        (items) => _setLookups(options: {...lookupOptions, lookup: items}),
       );
     } on Object {
       if (!isClosed && _lookupRequests[lookup] == request) {
-        lookupFailures[lookup] = const ServerFailure(
-          message: 'profile_lookup_invalid',
+        _setLookups(
+          failures: {
+            ...lookupFailures,
+            lookup: const ServerFailure(message: 'profile_lookup_invalid'),
+          },
         );
       }
     } finally {
       if (!isClosed && _lookupRequests[lookup] == request) {
-        lookupLoading.remove(lookup);
-        refresh();
+        _setLookups(loading: {...lookupLoading}..remove(lookup));
       }
     }
   }
@@ -72,10 +76,11 @@ extension ProfileLookups on ProfileSetupCubit {
     selections.remove('city');
     _lookupRequests[ProfileLookup.cities] =
         (_lookupRequests[ProfileLookup.cities] ?? 0) + 1;
-    lookupOptions.remove(ProfileLookup.cities);
-    lookupFailures.remove(ProfileLookup.cities);
-    lookupLoading.remove(ProfileLookup.cities);
-    refresh();
+    _setLookups(
+      options: {...lookupOptions}..remove(ProfileLookup.cities),
+      failures: {...lookupFailures}..remove(ProfileLookup.cities),
+      loading: {...lookupLoading}..remove(ProfileLookup.cities),
+    );
     if (showsField('residence_city_id')) await loadLookup(ProfileLookup.cities);
   }
 }

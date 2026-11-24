@@ -165,10 +165,34 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     refresh();
   }
 
-  final lookupOptions = <ProfileLookup, List<ProfileLookupOption>>{};
-  final lookupLoading = <ProfileLookup>{};
-  final lookupFailures = <ProfileLookup, Failure>{};
+  Map<ProfileLookup, List<ProfileLookupOption>> get lookupOptions =>
+      state.lookupOptions;
+  Set<ProfileLookup> get lookupLoading => state.lookupLoading;
+  Map<ProfileLookup, Failure> get lookupFailures => state.lookupFailures;
   final _lookupRequests = <ProfileLookup, int>{};
+
+  /// Emits new, unmodifiable lookup collections; `null` keeps one as is.
+  void _setLookups({
+    Map<ProfileLookup, List<ProfileLookupOption>>? options,
+    Set<ProfileLookup>? loading,
+    Map<ProfileLookup, Failure>? failures,
+  }) => _set(
+    state.copyWith(
+      lookupOptions: options == null ? null : Map.unmodifiable(options),
+      lookupLoading: loading == null ? null : Set.unmodifiable(loading),
+      lookupFailures: failures == null ? null : Map.unmodifiable(failures),
+    ),
+  );
+
+  /// Puts lists in place as if they had loaded (tests only).
+  @visibleForTesting
+  void setLookups({
+    Map<ProfileLookup, List<ProfileLookupOption>>? options,
+    Set<ProfileLookup>? loading,
+  }) => _setLookups(
+    options: options == null ? null : {...lookupOptions, ...options},
+    loading: loading,
+  );
 
   List<ProfileLookupOption> options(ProfileLookup lookup) =>
       lookupOptions[lookup] ?? const [];
@@ -293,14 +317,20 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
       formFields = null;
       requiredFields.clear();
       requiredWhen.clear();
-      for (final lookup in ProfileLookup.values.where(
-        (item) => item.isFieldScoped,
-      )) {
+      final scoped = {
+        for (final lookup in ProfileLookup.values)
+          if (lookup.isFieldScoped) lookup,
+      };
+      for (final lookup in scoped) {
         _lookupRequests[lookup] = (_lookupRequests[lookup] ?? 0) + 1;
-        lookupOptions.remove(lookup);
-        lookupFailures.remove(lookup);
-        lookupLoading.remove(lookup);
       }
+      _setLookups(
+        options: {...lookupOptions}
+          ..removeWhere((lookup, _) => scoped.contains(lookup)),
+        failures: {...lookupFailures}
+          ..removeWhere((lookup, _) => scoped.contains(lookup)),
+        loading: {...lookupLoading}..removeAll(scoped),
+      );
       multiSelections.remove('skill_ids');
       multiSelections.remove('tool_ids');
     }

@@ -208,19 +208,21 @@ void main() {
     expect(draft.selectedValues('work_types'), {'full_time', 'part_time'});
 
     // Lookups normally come from the master-data endpoints.
-    draft.lookupOptions.addAll({
-      ProfileLookup.workTypes: const [
-        ProfileLookupOption(value: 'full_time', label: 'Full Time'),
-        ProfileLookupOption(value: 'part_time', label: 'Part Time'),
-      ],
-      ProfileLookup.workModes: const [
-        ProfileLookupOption(value: 'hybrid', label: 'Hybrid'),
-        ProfileLookupOption(value: 'remote', label: 'Remote'),
-      ],
-      ProfileLookup.currencies: const [
-        ProfileLookupOption(value: 1, label: 'EGP'),
-      ],
-    });
+    draft.setLookups(
+      options: {
+        ProfileLookup.workTypes: const [
+          ProfileLookupOption(value: 'full_time', label: 'Full Time'),
+          ProfileLookupOption(value: 'part_time', label: 'Part Time'),
+        ],
+        ProfileLookup.workModes: const [
+          ProfileLookupOption(value: 'hybrid', label: 'Hybrid'),
+          ProfileLookupOption(value: 'remote', label: 'Remote'),
+        ],
+        ProfileLookup.currencies: const [
+          ProfileLookupOption(value: 1, label: 'EGP'),
+        ],
+      },
+    );
     draft.text('noticeDays').text = '14';
     draft.selectValues('work_types', {'full_time'});
 

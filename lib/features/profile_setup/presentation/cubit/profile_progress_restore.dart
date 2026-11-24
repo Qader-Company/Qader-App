@@ -42,9 +42,7 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     for (final lookup in ProfileLookup.values) {
       _lookupRequests[lookup] = (_lookupRequests[lookup] ?? 0) + 1;
     }
-    lookupOptions.clear();
-    lookupLoading.clear();
-    lookupFailures.clear();
+    _setLookups(options: {}, loading: {}, failures: {});
     selections.clear();
     multiSelections.clear();
     final seedName = text('name').text;
