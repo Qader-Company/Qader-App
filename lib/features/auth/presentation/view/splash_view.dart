@@ -7,6 +7,15 @@ import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/widgets/qader_design.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// Where the splash goes: a signed-in talent resumes profile setup (which
+/// moves on by itself once the profile is done), a returning visitor picks
+/// a role, and a first visit starts the intro.
+String splashDestination(AppPreferences preferences) => preferences.isLoggedIn
+    ? AppRouter.profileSetup
+    : preferences.isOnBoardingViewed()
+    ? AppRouter.chooseRole
+    : AppRouter.onboarding;
+
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
   @override
@@ -20,14 +29,7 @@ class _SplashViewState extends State<SplashView> {
     super.initState();
     _timer = Timer(AppEnv.instance.splashDuration, () {
       if (!mounted) return;
-      final preferences = context.read<AppPreferences>();
-      context.go(
-        preferences.isLoggedIn
-            ? AppRouter.profileSetup
-            : preferences.isOnBoardingViewed()
-            ? AppRouter.chooseRole
-            : AppRouter.onboarding,
-      );
+      context.go(splashDestination(context.read<AppPreferences>()));
     });
   }
 
