@@ -57,13 +57,13 @@ void main() {
       form.text('phone').text = '106 527-5078';
       form.selectAll({'gender': 'male', 'country': '1', 'city': '10'});
       form.birthday = DateTime(1998, 3, 7);
-      form.languages
-        ..clear()
-        ..addAll([
+      form.setEntries(
+        languages: const [
           LanguageEntry(1, language: '1', level: 'native'),
           LanguageEntry(2, language: '2', level: 'b1'),
           LanguageEntry(3),
-        ]);
+        ],
+      );
       return form;
     }
 
@@ -98,13 +98,23 @@ void main() {
         _fails('profile_personal_required'),
       );
       form.text('name').text = 'Ahmed';
-      form.languages.add(LanguageEntry(4, language: '1', level: 'b1'));
+      form.setEntries(
+        languages: [
+          ...form.languages,
+          const LanguageEntry(4, language: '1', level: 'b1'),
+        ],
+      );
       expect(
         form.personalInformationPayload,
         _fails('profile_languages_duplicate'),
       );
-      form.languages.removeLast();
-      form.languages.add(LanguageEntry(5, language: '2'));
+      form.removeLanguage(4);
+      form.setEntries(
+        languages: [
+          ...form.languages,
+          const LanguageEntry(5, language: '2'),
+        ],
+      );
       expect(
         form.personalInformationPayload,
         _fails('profile_language_incomplete'),
@@ -139,9 +149,11 @@ void main() {
       form.selectAll({'job': '13', 'level': 'senior'});
       form.selectValues('skill_ids', {'16', '18'});
       form.addExperience();
-      final job = form.experiences.single
-        ..from = DateTime(2022)
-        ..current = true;
+      form.updateExperience(
+        form.experiences.single.id,
+        (e) => e.copyWith(from: DateTime(2022), current: true),
+      );
+      final job = form.experiences.single;
       form.text('experience_${job.id}_job').text = 'Designer';
       form.text('experience_${job.id}_company').text = 'Qader';
       form.addProject();
@@ -178,12 +190,18 @@ void main() {
     test('rejects missing start dates, bad links and years', () {
       final form = filled();
       addTearDown(form.close);
-      form.experiences.single.from = null;
+      form.updateExperience(
+        form.experiences.single.id,
+        (e) => e.copyWith(from: null),
+      );
       expect(
         () => form.detailsPayload(work: false),
         _fails('profile_details_invalid'),
       );
-      form.experiences.single.from = DateTime(2022);
+      form.updateExperience(
+        form.experiences.single.id,
+        (e) => e.copyWith(from: DateTime(2022)),
+      );
       form.text('LinkedIn').text = 'linkedin.com/in/ahmed';
       expect(
         () => form.detailsPayload(work: false),

@@ -18,10 +18,7 @@ class LanguageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ProfileEntryCard(
     title: '${pc(context, 'Language')} ${index + 1}',
-    onRemove: () {
-      draft.languages.remove(entry);
-      draft.refresh();
-    },
+    onRemove: () => draft.removeLanguage(entry.id),
     children: [
       if (draft.isConnected)
         ProfileLookupSelect(
@@ -31,10 +28,8 @@ class LanguageCard extends StatelessWidget {
           value: entry.language,
           validator: (v) =>
               entry.level != null ? requiredProfile(context, v) : null,
-          onChanged: (v) {
-            entry.language = v;
-            draft.refresh();
-          },
+          onChanged: (v) =>
+              draft.updateLanguage(entry.id, (e) => e.copyWith(language: v)),
         )
       else
         ProfileSelect(
@@ -51,10 +46,8 @@ class LanguageCard extends StatelessWidget {
           ],
           validator: (v) =>
               entry.level != null ? requiredProfile(context, v) : null,
-          onChanged: (v) {
-            entry.language = v;
-            draft.refresh();
-          },
+          onChanged: (v) =>
+              draft.updateLanguage(entry.id, (e) => e.copyWith(language: v)),
         ),
       if (draft.isConnected)
         ProfileLookupSelect(
@@ -64,10 +57,8 @@ class LanguageCard extends StatelessWidget {
           value: entry.level,
           validator: (v) =>
               entry.language != null ? requiredProfile(context, v) : null,
-          onChanged: (v) {
-            entry.level = v;
-            draft.refresh();
-          },
+          onChanged: (v) =>
+              draft.updateLanguage(entry.id, (e) => e.copyWith(level: v)),
         )
       else
         ProfileSelect(
@@ -77,10 +68,8 @@ class LanguageCard extends StatelessWidget {
           items: const ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Native'],
           validator: (v) =>
               entry.language != null ? requiredProfile(context, v) : null,
-          onChanged: (v) {
-            entry.level = v;
-            draft.refresh();
-          },
+          onChanged: (v) =>
+              draft.updateLanguage(entry.id, (e) => e.copyWith(level: v)),
         ),
     ],
   );

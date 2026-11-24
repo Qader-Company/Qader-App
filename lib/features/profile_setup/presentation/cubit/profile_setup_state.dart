@@ -3,6 +3,7 @@ import '../../../../core/network/failure.dart';
 import '../../domain/entities/onboarding_progress.dart';
 import '../../domain/entities/professional_field.dart';
 import '../../domain/entities/profile_lookup.dart';
+import 'profile_entries.dart';
 
 const _keep = Object();
 
@@ -11,7 +12,8 @@ const _keep = Object();
 ///
 /// It also holds the professional fields with the chosen one and the
 /// form schema the backend sends for it, the talent's choices (dropdowns,
-/// chips, CV, birthday), and the master-data lists (unmodifiable) with their loading
+/// chips, CV, birthday, skills and the repeating entries), and the
+/// master-data lists (unmodifiable) with their loading
 /// and failure state.
 ///
 /// Form inputs (text controllers, selections, entries) live on the cubit as
@@ -46,6 +48,10 @@ class ProfileSetupState {
     this.cv,
     this.savedCv,
     this.birthday,
+    this.skills = const [],
+    this.languages = const [],
+    this.experiences = const [],
+    this.projects = const [],
   });
 
   final int step;
@@ -104,6 +110,12 @@ class ProfileSetupState {
 
   final DateTime? birthday;
 
+  /// Free-text skills (offline preview of the skills step).
+  final List<String> skills;
+  final List<LanguageEntry> languages;
+  final List<ExperienceEntry> experiences;
+  final List<ProjectEntry> projects;
+
   bool get busy =>
       progressLoading ||
       savingField ||
@@ -140,6 +152,10 @@ class ProfileSetupState {
     Object? cv = _keep,
     Object? savedCv = _keep,
     Object? birthday = _keep,
+    List<String>? skills,
+    List<LanguageEntry>? languages,
+    List<ExperienceEntry>? experiences,
+    List<ProjectEntry>? projects,
   }) => ProfileSetupState(
     step: step ?? this.step,
     fieldsLoading: fieldsLoading ?? this.fieldsLoading,
@@ -185,5 +201,9 @@ class ProfileSetupState {
     birthday: identical(birthday, _keep)
         ? this.birthday
         : birthday as DateTime?,
+    skills: skills ?? this.skills,
+    languages: languages ?? this.languages,
+    experiences: experiences ?? this.experiences,
+    projects: projects ?? this.projects,
   );
 }

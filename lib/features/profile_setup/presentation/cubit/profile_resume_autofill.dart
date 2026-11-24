@@ -97,14 +97,14 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
           ),
     ].where((item) => !known.contains(item.id)).toList();
     if (suggested.isNotEmpty) {
-      languages.removeWhere(
-        (entry) => entry.language == null && entry.level == null,
+      _setEntries(
+        languages: [
+          for (final entry in languages)
+            if (entry.language != null || entry.level != null) entry,
+          for (final item in suggested)
+            LanguageEntry(_nextId++, language: item.id, level: item.level),
+        ],
       );
-      for (final item in suggested) {
-        languages.add(
-          LanguageEntry(_nextId++, language: item.id, level: item.level),
-        );
-      }
     }
 
     // Skills & experience step.
@@ -133,13 +133,15 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
     final suggestedExperiences = skills['experiences'] as List? ?? const [];
     if (suggestedExperiences.isNotEmpty &&
         experiences.every(_emptyExperience)) {
-      experiences.clear();
+      final suggestedEntries = <ExperienceEntry>[];
       for (final item in suggestedExperiences.whereType<Map>()) {
-        final entry = ExperienceEntry(_nextId++)
-          ..current = item['currently_working'] == true
-          ..from = DateTime.tryParse(item['started_at']?.toString() ?? '')
-          ..to = DateTime.tryParse(item['ended_at']?.toString() ?? '');
-        experiences.add(entry);
+        final entry = ExperienceEntry(
+          _nextId++,
+          current: item['currently_working'] == true,
+          from: DateTime.tryParse(item['started_at']?.toString() ?? ''),
+          to: DateTime.tryParse(item['ended_at']?.toString() ?? ''),
+        );
+        suggestedEntries.add(entry);
         final prefix = 'experience_${entry.id}_';
         fill('${prefix}job', item['job_title']);
         fill('${prefix}company', item['company_name']);
@@ -150,19 +152,21 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
         fill('${prefix}to', item['ended_at']);
         fill('${prefix}description', item['responsibilities']);
       }
+      _setEntries(experiences: suggestedEntries);
     }
     final suggestedProjects = skills['projects'] as List? ?? const [];
     if (suggestedProjects.isNotEmpty && projects.every(_emptyProject)) {
-      projects.clear();
+      final suggestedEntries = <ProjectEntry>[];
       for (final item in suggestedProjects.whereType<Map>()) {
         final entry = ProjectEntry(_nextId++);
-        projects.add(entry);
+        suggestedEntries.add(entry);
         final prefix = 'project_${entry.id}_';
         fill('${prefix}name', item['name']);
         fill('${prefix}description', item['description']);
         // Parsers may return labels like "Google Play"; keep only real links.
         if (_isWebUrl(item['url'])) fill('${prefix}url', item['url']);
       }
+      _setEntries(projects: suggestedEntries);
     }
     refresh();
   }

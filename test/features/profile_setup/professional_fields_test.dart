@@ -227,15 +227,26 @@ void main() {
       await draft.saveProfessionalField();
       draft.formFields = {'languages'};
       await draft.loadRelevantLookups();
-      draft.languages.first.language = '9';
+      draft.updateLanguage(
+        draft.languages.first.id,
+        (e) => e.copyWith(language: '9'),
+      );
       expect(await draft.savePersonalInformation(), isFalse);
       expect(draft.personalFailure?.message, 'profile_language_incomplete');
-      draft.languages.first.level = 'b1';
-      draft.languages.add(LanguageEntry(2, language: '9', level: 'native'));
+      draft.updateLanguage(
+        draft.languages.first.id,
+        (e) => e.copyWith(level: 'b1'),
+      );
+      draft.setEntries(
+        languages: [
+          ...draft.languages,
+          const LanguageEntry(99, language: '9', level: 'native'),
+        ],
+      );
       expect(await draft.savePersonalInformation(), isFalse);
       expect(draft.personalFailure?.message, 'profile_languages_duplicate');
       expect(api.personalSaves, 0);
-      draft.languages.removeLast();
+      draft.removeLanguage(99);
       api.personalGate = Completer<void>();
       final pending = draft.savePersonalInformation();
       expect(draft.savingPersonalInfo, isTrue);

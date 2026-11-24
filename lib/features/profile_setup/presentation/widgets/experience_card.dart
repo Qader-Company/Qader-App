@@ -22,10 +22,8 @@ class ExperienceCard extends StatelessWidget {
     required: draft.isConnected,
     controller: draft.text('${prefix}from'),
     value: entry.from,
-    onChanged: (v) {
-      entry.from = v;
-      draft.refresh();
-    },
+    onChanged: (v) =>
+        draft.updateExperience(entry.id, (e) => e.copyWith(from: v)),
   );
 
   Widget get _to => ProfileDate(
@@ -33,18 +31,13 @@ class ExperienceCard extends StatelessWidget {
     controller: draft.text('${prefix}to'),
     value: entry.to,
     enabled: !entry.current,
-    onChanged: (v) {
-      entry.to = v;
-      draft.refresh();
-    },
+    onChanged: (v) =>
+        draft.updateExperience(entry.id, (e) => e.copyWith(to: v)),
   );
   @override
   Widget build(BuildContext context) => ProfileEntryCard(
     title: '${pc(context, 'Experience')} ${index + 1}',
-    onRemove: () {
-      draft.experiences.remove(entry);
-      draft.refresh();
-    },
+    onRemove: () => draft.removeExperience(entry.id),
     children: [
       ProfileInput(
         'Job Title',
@@ -97,12 +90,16 @@ class ExperienceCard extends StatelessWidget {
                   child: Checkbox(
                     value: entry.current,
                     onChanged: (v) {
-                      entry.current = v ?? false;
-                      if (entry.current) {
-                        entry.to = null;
-                        draft.text('${prefix}to').clear();
-                      }
-                      draft.refresh();
+                      final current = v ?? false;
+                      // A current job has no end date.
+                      if (current) draft.text('${prefix}to').clear();
+                      draft.updateExperience(
+                        entry.id,
+                        (e) => e.copyWith(
+                          current: current,
+                          to: current ? null : e.to,
+                        ),
+                      );
                     },
                   ),
                 ),

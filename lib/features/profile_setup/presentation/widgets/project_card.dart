@@ -20,10 +20,7 @@ class ProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ProfileEntryCard(
     title: '${pc(context, 'Project')} ${index + 1}',
-    onRemove: () {
-      draft.projects.remove(entry);
-      draft.refresh();
-    },
+    onRemove: () => draft.removeProject(entry.id),
     children: [
       ProfileInput(
         'Project Name',
@@ -73,12 +70,8 @@ class ProjectCard extends StatelessWidget {
         ProfileUpload(
           images: true,
           files: entry.images,
-          onChanged: (files) {
-            entry.images
-              ..clear()
-              ..addAll(files);
-            draft.refresh();
-          },
+          onChanged: (files) =>
+              draft.updateProject(entry.id, (e) => e.copyWith(images: files)),
         ),
       for (final image in entry.savedImages)
         Text(

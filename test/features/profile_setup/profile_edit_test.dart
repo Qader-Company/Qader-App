@@ -266,7 +266,7 @@ void main() {
     expect(draft.requiresField('experiences'), isTrue);
 
     draft.formFields = {'years_of_experience', 'experiences'};
-    draft.experiences.clear();
+    draft.setEntries(experiences: []);
     draft.text('years').text = '0';
     expect(draft.detailsPayload(work: false).values['experiences'], isEmpty);
     draft.text('years').text = '3';
@@ -382,9 +382,10 @@ void main() {
       expect(experience['ended_at'], isNull);
 
       // A finished job sends its end date.
-      entry
-        ..current = false
-        ..to = DateTime(2024, 6, 30);
+      draft.updateExperience(
+        entry.id,
+        (e) => e.copyWith(current: false, to: DateTime(2024, 6, 30)),
+      );
       final finished =
           (draft.detailsPayload(work: false).values['experiences'] as List)
                   .single

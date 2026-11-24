@@ -17,38 +17,17 @@ import '../../../../core/router/route_args.dart';
 export '../../../../core/router/route_args.dart';
 export '../../domain/entities/profile_lookup.dart';
 export '../../domain/entities/professional_field.dart';
+import 'profile_entries.dart';
 import 'profile_setup_payloads.dart';
 import 'profile_setup_state.dart';
+export 'profile_entries.dart';
 export 'profile_setup_state.dart';
 
 part 'profile_progress_restore.dart';
 part 'profile_resume_autofill.dart';
 part 'profile_lookups.dart';
 part 'profile_setup_saving.dart';
-
-class LanguageEntry {
-  LanguageEntry(this.id, {this.language, this.level});
-  final int id;
-  String? language;
-  String? level;
-}
-
-class ExperienceEntry {
-  ExperienceEntry(this.id);
-  final int id;
-  int? serverId;
-  bool current = false;
-  DateTime? from;
-  DateTime? to;
-}
-
-class ProjectEntry {
-  ProjectEntry(this.id);
-  final int id;
-  int? serverId;
-  final savedImages = <Map<String, dynamic>>[];
-  final images = <PlatformFile>[];
-}
+part 'profile_entries_editing.dart';
 
 /// Profile setup (onboarding) state. Field selection and every step persist
 /// through the onboarding APIs; [ProfileSetupState] holds the step, loading
@@ -71,6 +50,27 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
            field: fieldsRepository == null
                ? ProfessionalField.values.first
                : null,
+           // The offline preview starts from a sample; the live form from
+           // one empty language.
+           skills: fieldsRepository == null
+               ? List.unmodifiable(ProfileSetupPreviewData.skills)
+               : const [],
+           languages: fieldsRepository == null
+               ? const [
+                   LanguageEntry(
+                     1,
+                     language: ProfileSetupPreviewData.language,
+                     level: ProfileSetupPreviewData.languageLevel,
+                   ),
+                   LanguageEntry(2),
+                 ]
+               : const [LanguageEntry(1)],
+           experiences: fieldsRepository == null
+               ? const [ExperienceEntry(1)]
+               : const [],
+           projects: fieldsRepository == null
+               ? const [ProjectEntry(1)]
+               : const [],
          ),
        ) {
     _progressRepository = editRepository ?? progressRepository;
@@ -80,14 +80,6 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     text('email').text =
         seed?.email ??
         (fieldsRepository == null ? ProfileSetupPreviewData.email : '');
-    if (fieldsRepository != null) {
-      skills.clear();
-      experiences.clear();
-      projects.clear();
-      languages
-        ..clear()
-        ..add(LanguageEntry(1));
-    }
   }
   final ProfessionalFieldsRepository? _fieldsRepository;
   final ProfileLookupsRepository? _lookupsRepository;
@@ -311,17 +303,26 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
   int _nextId = 3;
   final _text = <String, TextEditingController>{};
   Map<String, String?> get selections => state.selections;
-  final skills = [...ProfileSetupPreviewData.skills];
-  final languages = [
-    LanguageEntry(
-      1,
-      language: ProfileSetupPreviewData.language,
-      level: ProfileSetupPreviewData.languageLevel,
+  List<String> get skills => state.skills;
+  List<LanguageEntry> get languages => state.languages;
+  List<ExperienceEntry> get experiences => state.experiences;
+  List<ProjectEntry> get projects => state.projects;
+
+  /// Emits new, unmodifiable entry lists; `null` keeps one as is.
+  void _setEntries({
+    List<String>? skills,
+    List<LanguageEntry>? languages,
+    List<ExperienceEntry>? experiences,
+    List<ProjectEntry>? projects,
+  }) => _set(
+    state.copyWith(
+      skills: skills == null ? null : List.unmodifiable(skills),
+      languages: languages == null ? null : List.unmodifiable(languages),
+      experiences: experiences == null ? null : List.unmodifiable(experiences),
+      projects: projects == null ? null : List.unmodifiable(projects),
     ),
-    LanguageEntry(2),
-  ];
-  final experiences = [ExperienceEntry(1)];
-  final projects = [ProjectEntry(1)];
+  );
+
   PlatformFile? get cv => state.cv;
   set cv(PlatformFile? value) => _set(state.copyWith(cv: value));
   DateTime? get birthday => state.birthday;
@@ -372,21 +373,6 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     }
     _field = value;
     fieldFailure = null;
-    refresh();
-  }
-
-  void addLanguage() {
-    languages.add(LanguageEntry(_nextId++));
-    refresh();
-  }
-
-  void addExperience() {
-    experiences.add(ExperienceEntry(_nextId++));
-    refresh();
-  }
-
-  void addProject() {
-    projects.add(ProjectEntry(_nextId++));
     refresh();
   }
 

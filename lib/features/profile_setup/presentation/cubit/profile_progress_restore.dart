@@ -112,17 +112,19 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     savedCv = personal['cv'] is Map
         ? Map<String, dynamic>.from(personal['cv'] as Map)
         : null;
-    languages.clear();
-    for (final language in personal['languages'] as List? ?? []) {
-      languages.add(
+    final restoredLanguages = [
+      for (final language in personal['languages'] as List? ?? [])
         LanguageEntry(
           _nextId++,
           language: id(language),
           level: language['proficiency_level'] as String?,
         ),
-      );
-    }
-    if (languages.isEmpty) languages.add(LanguageEntry(_nextId++));
+    ];
+    _setEntries(
+      languages: restoredLanguages.isEmpty
+          ? [LanguageEntry(_nextId++)]
+          : restoredLanguages,
+    );
     texts(skillsData, {
       'professional_summary': 'summary',
       'years_of_experience': 'years',
@@ -141,17 +143,20 @@ extension ProfileProgressRestore on ProfileSetupCubit {
           if (id(item) != null) id(item)!,
       });
     }
-    experiences.clear();
+    final restoredExperiences = <ExperienceEntry>[];
     for (final item in skillsData['experiences'] as List? ?? []) {
-      final entry = ExperienceEntry(_nextId++)
-        ..serverId = item['id'] as int?
-        ..current = item['currently_working'] == true
-        ..from = DateTime.tryParse(item['started_at']?.toString() ?? '');
-      // A current job has no end date, even if the server kept an old one.
-      if (!entry.current) {
-        entry.to = DateTime.tryParse(item['ended_at']?.toString() ?? '');
-      }
-      experiences.add(entry);
+      final current = item['currently_working'] == true;
+      final entry = ExperienceEntry(
+        _nextId++,
+        serverId: item['id'] as int?,
+        current: current,
+        from: DateTime.tryParse(item['started_at']?.toString() ?? ''),
+        // A current job has no end date, even if the server kept an old one.
+        to: current
+            ? null
+            : DateTime.tryParse(item['ended_at']?.toString() ?? ''),
+      );
+      restoredExperiences.add(entry);
       final prefix = 'experience_${entry.id}_';
       texts(Map<String, dynamic>.from(item as Map), {
         'job_title': '${prefix}job',
@@ -162,15 +167,18 @@ extension ProfileProgressRestore on ProfileSetupCubit {
       text('${prefix}from').text = _dateText(entry.from);
       text('${prefix}to').text = _dateText(entry.to);
     }
-    projects.clear();
+    _setEntries(experiences: restoredExperiences);
+    final restoredProjects = <ProjectEntry>[];
     for (final item in skillsData['projects'] as List? ?? []) {
-      final entry = ProjectEntry(_nextId++)..serverId = item['id'] as int?;
-      for (final media in item['images'] as List? ?? []) {
-        if (media is Map) {
-          entry.savedImages.add(Map<String, dynamic>.from(media));
-        }
-      }
-      projects.add(entry);
+      final entry = ProjectEntry(
+        _nextId++,
+        serverId: item['id'] as int?,
+        savedImages: List.unmodifiable([
+          for (final media in item['images'] as List? ?? [])
+            if (media is Map) Map<String, dynamic>.from(media),
+        ]),
+      );
+      restoredProjects.add(entry);
       final prefix = 'project_${entry.id}_';
       texts(Map<String, dynamic>.from(item as Map), {
         'name': '${prefix}name',
@@ -178,6 +186,7 @@ extension ProfileProgressRestore on ProfileSetupCubit {
         'url': '${prefix}url',
       });
     }
+    _setEntries(projects: restoredProjects);
     for (final key in ['work_types', 'work_modes']) {
       selectValues(key, Set<String>.from(work[key] as List? ?? []));
     }

@@ -56,9 +56,8 @@ class SkillsInput extends StatelessWidget {
                         message: '${pc(context, 'Remove')} $skill',
                         child: InkWell(
                           onTap: () {
-                            draft.skills.remove(skill);
-                            field.didChange([...draft.skills]);
-                            draft.refresh();
+                            draft.removeSkill(skill);
+                            field.didChange(draft.skills);
                           },
                           child: const QaderAsset(
                             'profile_close',
@@ -100,11 +99,8 @@ class SkillsInput extends StatelessWidget {
   void _add(FormFieldState<List<String>> field) {
     final skill = draft.text('newSkill').text.trim();
     if (skill.isEmpty) return;
-    if (!draft.skills.any((s) => s.toLowerCase() == skill.toLowerCase())) {
-      draft.skills.add(skill);
-    }
+    draft.addSkill(skill);
     draft.text('newSkill').clear();
-    field.didChange([...draft.skills]);
-    draft.refresh();
+    field.didChange(draft.skills);
   }
 }
