@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qader/app/push_startup.dart';
 import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
+import 'package:qader/core/notifications/local_notifications.dart';
 import 'package:qader/core/notifications/notification_badge.dart';
 import 'package:qader/core/notifications/push_notifications.dart';
 import 'package:qader/core/storage/app_preferences.dart';
@@ -72,6 +73,20 @@ class _Devices implements DeviceTokenRepository {
     if (failure case final failure?) return Left(failure);
     return const Right(null);
   }
+}
+
+class _Local implements LocalNotifications {
+  final shown = <PushMessage>[];
+  void Function(Map<String, dynamic>)? tap;
+  Map<String, dynamic>? launch;
+  @override
+  Future<void> init({
+    required void Function(Map<String, dynamic>) onTap,
+  }) async => tap = onTap;
+  @override
+  Future<void> show(PushMessage message) async => shown.add(message);
+  @override
+  Future<Map<String, dynamic>?> launchData() async => launch;
 }
 
 class _Prefs extends Fake implements AppPreferences {
@@ -177,6 +192,52 @@ void main() {
       await push.close();
     },
   );
+
+  test('a push received while open is shown; tapping it opens it', () async {
+    final push = _Push();
+    final local = _Local();
+    final opened = <PushMessage>[];
+    await startPushNotifications(
+      push,
+      badge: _Badge(),
+      devices: _Devices(),
+      preferences: _Prefs(),
+      local: local,
+      platform: 'android',
+      log: (_) {},
+      onOpened: opened.add,
+    );
+    const message = PushMessage(
+      title: 'Offer',
+      data: {'type': 'hiring_offer_received', 'target_id': '13'},
+    );
+    push.messages.add(message);
+    await pumpEventQueue();
+    expect(local.shown, [message]);
+    expect(opened, isEmpty);
+
+    local.tap!(message.data);
+    expect(opened.single.data['target_id'], '13');
+    await push.close();
+  });
+
+  test('a shown push that launches the app is opened', () async {
+    final push = _Push();
+    final local = _Local()..launch = {'type': 'hiring_offer_received'};
+    final opened = <PushMessage>[];
+    await startPushNotifications(
+      push,
+      badge: _Badge(),
+      devices: _Devices(),
+      preferences: _Prefs(),
+      local: local,
+      platform: 'android',
+      log: (_) {},
+      onOpened: opened.add,
+    );
+    expect(opened.single.data['type'], 'hiring_offer_received');
+    await push.close();
+  });
 
   test('a token failure is logged, not thrown', () async {
     final push = _Push(fail: true);

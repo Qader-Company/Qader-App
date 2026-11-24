@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import '../core/notifications/local_notifications.dart';
 import '../core/notifications/notification_badge.dart';
 import '../core/notifications/push_notifications.dart';
 import '../core/router/app_router.dart';
@@ -15,6 +16,7 @@ Future<void> startAppPushNotifications() => startPushNotifications(
   badge: sl<NotificationBadge>(),
   devices: sl<DeviceTokenRepository>(),
   preferences: sl<AppPreferences>(),
+  local: sl<LocalNotifications>(),
   onOpened: (message) => openPushTarget(
     AppRouter.router,
     message,
@@ -22,8 +24,9 @@ Future<void> startAppPushNotifications() => startPushNotifications(
   ),
 );
 
-/// Push setup at startup: asks for notification permission, refreshes the
-/// bell when a push arrives in the foreground, calls [onOpened] for a tapped
+/// Push setup at startup: asks for notification permission, shows a push
+/// that arrives in the foreground through [local] (Firebase shows only
+/// background ones) and refreshes the bell, calls [onOpened] for a tapped
 /// push (also the one that launched the app), and keeps the backend's copy
 /// of this device's FCM token current.
 ///
@@ -37,6 +40,7 @@ Future<void> startPushNotifications(
   required NotificationBadge badge,
   required DeviceTokenRepository devices,
   required AppPreferences preferences,
+  LocalNotifications? local,
   void Function(PushMessage message)? onOpened,
   @visibleForTesting String? platform,
   @visibleForTesting void Function(String message)? log,
@@ -68,15 +72,25 @@ Future<void> startPushNotifications(
     '[FCM] $event: ${message.title} | data: ${jsonEncode(message.data)}',
   );
 
+  void open(String event, PushMessage message) {
+    logMessage(event, message);
+    onOpened?.call(message);
+  }
+
+  try {
+    await local?.init(onTap: (data) => open('opened', PushMessage(data: data)));
+  } catch (error) {
+    write('[FCM] local notifications failed: $error');
+  }
+
   // App-lifetime listeners.
   push.onForegroundMessage.listen((message) {
     logMessage('received', message);
     badge.refresh();
+    // Without this, a push is invisible while the app is open.
+    if (local != null) unawaited(local.show(message));
   });
-  push.onMessageOpened.listen((message) {
-    logMessage('opened', message);
-    onOpened?.call(message);
-  });
+  push.onMessageOpened.listen((message) => open('opened', message));
   push.onTokenRefresh.listen((value) {
     write('[FCM] token: $value');
     token = value;
@@ -94,8 +108,10 @@ Future<void> startPushNotifications(
   }
   try {
     if (await push.initialMessage() case final message?) {
-      logMessage('launched app', message);
-      onOpened?.call(message);
+      open('launched app', message);
+    } else if (await local?.launchData() case final data?) {
+      // The app was closed after showing a foreground push; its tap opens it.
+      open('launched app', PushMessage(data: data));
     }
   } catch (_) {
     // Logging only; a missing initial message changes nothing.

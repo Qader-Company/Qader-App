@@ -5,6 +5,7 @@ import '../../features/home/presentation/view/widgets/home_drawer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/network/api_consumer.dart';
 import '../../core/network/network_info.dart';
+import '../../core/notifications/local_notifications.dart';
 import '../../core/notifications/notification_badge.dart';
 import '../../core/notifications/push_notifications.dart';
 import '../../features/notifications/data/repositories/api_device_token_repository.dart';
@@ -60,6 +61,9 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   sl.registerLazySingleton<ApiConsumer>(() => DioConsumer());
   sl.registerLazySingleton<PushNotifications>(
     () => FirebasePushNotifications(),
+  );
+  sl.registerLazySingleton<LocalNotifications>(
+    () => PluginLocalNotifications(),
   );
   sl.registerLazySingleton<ProfessionalFieldsRepository>(
     () => ApiProfessionalFieldsRepository(sl<ApiConsumer>()),
