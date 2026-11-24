@@ -9,6 +9,7 @@ import 'core/env/app_env.dart';
 import 'core/bloc/bloc_observer.dart';
 import 'app/di/dependencies.dart';
 import 'core/locale/language_manager.dart';
+import 'core/notifications/notification_badge.dart';
 import 'core/notifications/push_notifications.dart';
 import 'core/storage/app_preferences.dart';
 import 'firebase_options.dart';
@@ -25,7 +26,12 @@ Future<void> main() async {
   Bloc.observer = AppBlocObserver();
   await EasyLocalization.ensureInitialized();
   await initServiceLocator();
-  unawaited(startPushNotifications(sl<PushNotifications>()));
+  unawaited(
+    startPushNotifications(
+      sl<PushNotifications>(),
+      badge: sl<NotificationBadge>(),
+    ),
+  );
   runApp(
     EasyLocalization(
       supportedLocales: const [englishLocale, arabicLocale],

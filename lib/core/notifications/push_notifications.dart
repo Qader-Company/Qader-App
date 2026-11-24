@@ -12,6 +12,9 @@ abstract class PushNotifications {
 
   /// Emits a new token whenever Firebase rotates it.
   Stream<String> get onTokenRefresh;
+
+  /// Emits when a push arrives while the app is in the foreground.
+  Stream<void> get onForegroundMessage;
 }
 
 /// [PushNotifications] backed by Firebase Cloud Messaging.
@@ -43,4 +46,7 @@ class FirebasePushNotifications implements PushNotifications {
   @override
   // ignore: deprecated_member_use
   Stream<String> get onTokenRefresh => _fcm.onTokenRefresh;
+
+  @override
+  Stream<void> get onForegroundMessage => FirebaseMessaging.onMessage;
 }
