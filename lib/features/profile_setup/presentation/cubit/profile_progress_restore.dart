@@ -51,15 +51,13 @@ extension ProfileProgressRestore on ProfileSetupCubit {
       controller.clear();
     }
     formFields = {for (final item in progress.steps.values) ...item.visible};
-    requiredFields
-      ..clear()
-      ..addAll({for (final item in progress.steps.values) ...item.required});
-    requiredWhen
-      ..clear()
-      ..addAll({
+    _setRequired(
+      {for (final item in progress.steps.values) ...item.required},
+      {
         for (final item in progress.steps.values)
           for (final rule in item.conditional) rule.field: rule,
-      });
+      },
+    );
     final personal = progress.steps['personal-information']!.data;
     final skillsData = progress.steps['skills-and-experiences']!.data;
     final work = progress.steps['work-preferences']!.data;

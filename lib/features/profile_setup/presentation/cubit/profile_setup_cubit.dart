@@ -65,7 +65,14 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
        _editRepository = editRepository,
        _lookupsRepository = lookupsRepository,
        _stepsRepository = stepsRepository,
-       super(const ProfileSetupState()) {
+       super(
+         ProfileSetupState(
+           fields: fieldsRepository == null ? ProfessionalField.values : [],
+           field: fieldsRepository == null
+               ? ProfessionalField.values.first
+               : null,
+         ),
+       ) {
     _progressRepository = editRepository ?? progressRepository;
     text('name').text =
         seed?.name ??
@@ -81,8 +88,6 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
         ..clear()
         ..add(LanguageEntry(1));
     }
-    fields = fieldsRepository == null ? ProfessionalField.values : [];
-    _field = fieldsRepository == null ? fields.first : null;
   }
   final ProfessionalFieldsRepository? _fieldsRepository;
   final ProfileLookupsRepository? _lookupsRepository;
@@ -137,10 +142,19 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
   /// Form inputs changed: rebuild listeners.
   void refresh() => _set(state.copyWith(revision: state.revision + 1));
   Map<String, dynamic>? savedCv;
-  final requiredFields = <String>{};
+  Set<String> get requiredFields => state.requiredFields;
 
   /// Conditional rules by field; they override [requiredFields].
-  final requiredWhen = <String, RequiredWhen>{};
+  Map<String, RequiredWhen> get requiredWhen => state.requiredWhen;
+
+  /// Replaces the required-field rules (empty until a schema is known).
+  void _setRequired(Set<String> fields, Map<String, RequiredWhen> rules) =>
+      _set(
+        state.copyWith(
+          requiredFields: Set.unmodifiable(fields),
+          requiredWhen: Map.unmodifiable(rules),
+        ),
+      );
 
   bool requiresField(String key) {
     final rule = requiredWhen[key];
@@ -203,11 +217,17 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     return null;
   }
 
-  late List<ProfessionalField> fields;
-  ProfessionalField? _field;
+  List<ProfessionalField> get fields => state.fields;
+  set fields(List<ProfessionalField> value) =>
+      _set(state.copyWith(fields: List.unmodifiable(value)));
+  ProfessionalField? get _field => state.field;
+  set _field(ProfessionalField? value) => _set(state.copyWith(field: value));
   ProfessionalField? get selectedField => _field;
   ProfessionalField get field => _field!;
-  Set<String>? formFields;
+  Set<String>? get formFields => state.formFields;
+  set formFields(Set<String>? value) => _set(
+    state.copyWith(formFields: value == null ? null : Set.unmodifiable(value)),
+  );
   bool get isConnected => _fieldsRepository != null;
   bool showsField(String key) =>
       !isConnected || (formFields?.contains(key) ?? false);
@@ -221,12 +241,9 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
       final result = await _fieldsRepository.load();
       if (isClosed) return;
       result.fold((failure) => fieldFailure = failure, (value) {
-        fields = value;
         final previousId = _field?.id;
-        _field = null;
-        for (final candidate in fields) {
-          if (candidate.id == previousId) _field = candidate;
-        }
+        fields = value;
+        _field = value.where((item) => item.id == previousId).lastOrNull;
       });
     } on Object {
       if (!isClosed) {
@@ -261,9 +278,8 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
         fieldFailure = schema.getErrorOrThrow();
         return false;
       }
-      formFields = Set.unmodifiable(schema.getOrThrow());
-      requiredFields.clear();
-      requiredWhen.clear();
+      formFields = schema.getOrThrow();
+      _setRequired({}, {});
       return true;
     } on Object {
       if (!isClosed) {
@@ -315,8 +331,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     if (_field != value) {
       selections.remove('job');
       formFields = null;
-      requiredFields.clear();
-      requiredWhen.clear();
+      _setRequired({}, {});
       final scoped = {
         for (final lookup in ProfileLookup.values)
           if (lookup.isFieldScoped) lookup,

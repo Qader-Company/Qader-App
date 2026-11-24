@@ -1,4 +1,6 @@
 import '../../../../core/network/failure.dart';
+import '../../domain/entities/onboarding_progress.dart';
+import '../../domain/entities/professional_field.dart';
 import '../../domain/entities/profile_lookup.dart';
 
 const _keep = Object();
@@ -6,7 +8,8 @@ const _keep = Object();
 /// What the profile setup screens render from: the current step, what is
 /// loading or saving, and the last failure of each operation.
 ///
-/// It also holds the master-data lists (unmodifiable) with their loading
+/// It also holds the professional fields with the chosen one and the
+/// form schema the backend sends for it, and the master-data lists (unmodifiable) with their loading
 /// and failure state.
 ///
 /// Form inputs (text controllers, selections, entries) live on the cubit as
@@ -31,6 +34,11 @@ class ProfileSetupState {
     this.lookupOptions = const {},
     this.lookupLoading = const {},
     this.lookupFailures = const {},
+    this.fields = const [],
+    this.field,
+    this.formFields,
+    this.requiredFields = const {},
+    this.requiredWhen = const {},
   });
 
   final int step;
@@ -60,6 +68,21 @@ class ProfileSetupState {
   /// The last failure of each list that failed to load.
   final Map<ProfileLookup, Failure> lookupFailures;
 
+  /// Professional fields the talent can choose from.
+  final List<ProfessionalField> fields;
+
+  /// The chosen professional field.
+  final ProfessionalField? field;
+
+  /// Backend fields of the chosen field's form; `null` until known.
+  final Set<String>? formFields;
+
+  /// Fields the backend requires.
+  final Set<String> requiredFields;
+
+  /// Conditional rules by field; they override [requiredFields].
+  final Map<String, RequiredWhen> requiredWhen;
+
   bool get busy =>
       progressLoading ||
       savingField ||
@@ -86,6 +109,11 @@ class ProfileSetupState {
     Map<ProfileLookup, List<ProfileLookupOption>>? lookupOptions,
     Set<ProfileLookup>? lookupLoading,
     Map<ProfileLookup, Failure>? lookupFailures,
+    List<ProfessionalField>? fields,
+    Object? field = _keep,
+    Object? formFields = _keep,
+    Set<String>? requiredFields,
+    Map<String, RequiredWhen>? requiredWhen,
   }) => ProfileSetupState(
     step: step ?? this.step,
     fieldsLoading: fieldsLoading ?? this.fieldsLoading,
@@ -115,5 +143,12 @@ class ProfileSetupState {
     lookupOptions: lookupOptions ?? this.lookupOptions,
     lookupLoading: lookupLoading ?? this.lookupLoading,
     lookupFailures: lookupFailures ?? this.lookupFailures,
+    fields: fields ?? this.fields,
+    field: identical(field, _keep) ? this.field : field as ProfessionalField?,
+    formFields: identical(formFields, _keep)
+        ? this.formFields
+        : formFields as Set<String>?,
+    requiredFields: requiredFields ?? this.requiredFields,
+    requiredWhen: requiredWhen ?? this.requiredWhen,
   );
 }
