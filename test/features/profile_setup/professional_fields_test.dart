@@ -532,7 +532,6 @@ void main() {
         size: 4,
         bytes: Uint8List.fromList([1, 2, 3, 4]),
       );
-      step.draft.refresh();
       await tester.pumpAndSettle();
       Future<void> savePersonal() async {
         await tester.ensureVisible(nextButton);
@@ -598,13 +597,11 @@ void main() {
         findsNothing,
       );
       step.draft.formFields = {'tool_ids'};
-      step.draft.refresh();
       await tester.pumpAndSettle();
       expect(sections(), ['Technical Information']);
       expect(find.byType(ProfileLookupMultiSelect), findsOneWidget);
       expect(find.byType(TextFormField), findsNothing);
       step.draft.formFields = {'industry_ids'};
-      step.draft.refresh();
       await tester.pumpAndSettle();
       expect(sections(), ['Technical Information']);
       expect(
@@ -618,7 +615,6 @@ void main() {
         'behance_url': 'Behance',
       }.entries) {
         step.draft.formFields = {link.key};
-        step.draft.refresh();
         await tester.pumpAndSettle();
         expect(sections(), ['Portfolio & Social Links']);
         expect(
@@ -643,7 +639,6 @@ void main() {
         'notice_period_days',
         'willing_to_relocate',
       };
-      step.draft.refresh();
       await tester.pumpAndSettle();
       expect(sections(), ['Work Info']);
       expect(
@@ -655,7 +650,6 @@ void main() {
       expect(find.byType(ProfileChoices), findsOneWidget);
       expect(find.byType(ProfileLookupMultiSelect), findsNWidgets(2));
       step.draft.formFields = {};
-      step.draft.refresh();
       await tester.pumpAndSettle();
       expect(sections(), isEmpty);
       step.draft.formFields = {

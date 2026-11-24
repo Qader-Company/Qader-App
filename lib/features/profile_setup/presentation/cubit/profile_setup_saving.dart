@@ -5,9 +5,7 @@ part of 'profile_setup_cubit.dart';
 extension ProfileSetupSaving on ProfileSetupCubit {
   Future<bool> savePersonalInformation() async {
     if (busy || !isConnected || isClosed) return false;
-    savingPersonalInfo = true;
-    personalFailure = null;
-    refresh();
+    _set(state.copyWith(savingPersonalInfo: true, personalFailure: null));
     try {
       final repository = _stepsRepository;
       final edit = _editRepository;
@@ -51,16 +49,13 @@ extension ProfileSetupSaving on ProfileSetupCubit {
     } finally {
       if (!isClosed) {
         savingPersonalInfo = false;
-        refresh();
       }
     }
   }
 
   Future<bool> saveDetails({required bool work}) async {
     if (busy || !isConnected || isClosed) return false;
-    savingDetails = true;
-    stepFailure = null;
-    refresh();
+    _set(state.copyWith(savingDetails: true, stepFailure: null));
     try {
       final repository = _stepsRepository;
       final edit = _editRepository;
@@ -97,7 +92,6 @@ extension ProfileSetupSaving on ProfileSetupCubit {
     } finally {
       if (!isClosed) {
         savingDetails = false;
-        refresh();
       }
     }
   }

@@ -12,10 +12,13 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
     final repository = _stepsRepository;
     if (repository == null || !isConnected || isClosed) return;
     final request = ++_parseRequest;
-    parsingCv = true;
-    cvParseFailure = null;
-    cvAutofilled = false;
-    refresh();
+    _set(
+      state.copyWith(
+        parsingCv: true,
+        cvParseFailure: null,
+        cvAutofilled: false,
+      ),
+    );
     try {
       final result = await repository.parseResume(
         ProfileCv(name: file.name, path: file.path, bytes: file.bytes),
@@ -36,7 +39,6 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
     } finally {
       if (!isClosed && request == _parseRequest) {
         parsingCv = false;
-        refresh();
       }
     }
   }
@@ -44,10 +46,13 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
   /// Removing the CV drops a pending parse result.
   void cancelCvParse() {
     _parseRequest++;
-    parsingCv = false;
-    cvParseFailure = null;
-    cvAutofilled = false;
-    refresh();
+    _set(
+      state.copyWith(
+        parsingCv: false,
+        cvParseFailure: null,
+        cvAutofilled: false,
+      ),
+    );
   }
 
   Future<void> applyResumeSuggestions(Map<String, dynamic> suggestions) async {
@@ -168,7 +173,7 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
       }
       _setEntries(projects: suggestedEntries);
     }
-    refresh();
+    _textsChanged();
   }
 
   bool _emptyExperience(ExperienceEntry entry) =>

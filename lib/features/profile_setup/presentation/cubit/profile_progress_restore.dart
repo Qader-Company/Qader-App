@@ -7,10 +7,13 @@ extension ProfileProgressRestore on ProfileSetupCubit {
   /// Failure retains the draft and retry only repeats GET, never the successful POST.
   Future<bool> restoreProgress() async {
     if (_progressRepository == null || busy || isClosed) return false;
-    progressLoading = true;
-    progressPending = true;
-    progressFailure = null;
-    refresh();
+    _set(
+      state.copyWith(
+        progressLoading: true,
+        progressPending: true,
+        progressFailure: null,
+      ),
+    );
     try {
       final result = await _progressRepository!.load();
       if (isClosed) return false;
@@ -31,7 +34,6 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     } finally {
       if (!isClosed) {
         progressLoading = false;
-        refresh();
       }
     }
   }
@@ -199,7 +201,7 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     personalFailure = null;
     stepFailure = null;
     step = progress.step;
-    refresh();
+    _textsChanged();
   }
 }
 

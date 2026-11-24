@@ -131,8 +131,10 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     if (!isClosed) emit(next);
   }
 
-  /// Form inputs changed: rebuild listeners.
-  void refresh() => _set(state.copyWith(revision: state.revision + 1));
+  /// Text fields were filled by code (progress restore, CV autofill).
+  /// Controllers do not emit, so this rebuilds what reads their text
+  /// (e.g. rules that depend on years of experience).
+  void _textsChanged() => _set(state.copyWith(revision: state.revision + 1));
   Map<String, dynamic>? get savedCv => state.savedCv;
   set savedCv(Map<String, dynamic>? value) => _set(
     state.copyWith(
@@ -238,9 +240,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
 
   Future<void> loadFields() async {
     if (_fieldsRepository == null || fieldsLoading || busy) return;
-    fieldsLoading = true;
-    fieldFailure = null;
-    refresh();
+    _set(state.copyWith(fieldsLoading: true, fieldFailure: null));
     try {
       final result = await _fieldsRepository.load();
       if (isClosed) return;
@@ -258,7 +258,6 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     } finally {
       if (!isClosed) {
         fieldsLoading = false;
-        refresh();
       }
     }
   }
@@ -268,9 +267,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     if (_fieldsRepository == null) return true;
     final id = _field!.id;
     if (id == null || !fields.contains(_field)) return false;
-    savingField = true;
-    fieldFailure = null;
-    refresh();
+    _set(state.copyWith(savingField: true, fieldFailure: null));
     try {
       final result = await _fieldsRepository.select(id);
       if (isClosed) return false;
@@ -295,7 +292,6 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
     } finally {
       if (!isClosed) {
         savingField = false;
-        refresh();
       }
     }
   }
@@ -340,9 +336,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
       _set(state.copyWith(selections: Map.unmodifiable(values)));
 
   void go(int value) {
-    stepFailure = null;
-    step = value;
-    refresh();
+    _set(state.copyWith(stepFailure: null, step: value));
   }
 
   void chooseField(ProfessionalField value) {
@@ -371,9 +365,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
           ..remove('tool_ids'),
       );
     }
-    _field = value;
-    fieldFailure = null;
-    refresh();
+    _set(state.copyWith(field: value, fieldFailure: null));
   }
 
   @override

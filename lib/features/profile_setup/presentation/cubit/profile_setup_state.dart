@@ -17,7 +17,8 @@ const _keep = Object();
 /// and failure state.
 ///
 /// Form inputs (text controllers, selections, entries) live on the cubit as
-/// form state; every change to them emits a new [revision].
+/// form state; changes to them emit through the state above, and filling
+/// them by code bumps [revision].
 class ProfileSetupState {
   const ProfileSetupState({
     this.step = 0,
@@ -69,7 +70,8 @@ class ProfileSetupState {
   final Failure? cvParseFailure;
   final bool cvAutofilled;
 
-  /// Bumped whenever form inputs change so listeners rebuild.
+  /// Bumped when text fields are filled by code, so what reads their text
+  /// rebuilds.
   final int revision;
 
   /// Loaded options of each master-data list.
