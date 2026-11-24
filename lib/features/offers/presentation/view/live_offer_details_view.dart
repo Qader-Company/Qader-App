@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/resources/app_colors.dart';
-import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/app_page_header.dart';
-import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/locale_change_listener.dart';
-import '../../domain/entities/hiring_interview.dart';
 import '../../domain/entities/hiring_offer_details.dart';
 import '../../domain/entities/talent_offer.dart';
 import '../../domain/repositories/offers_repository.dart';
 import '../cubit/offer_details_cubit.dart';
 import '../offers_copy.dart';
-import '../widgets/apologize_dialog.dart';
-import '../widgets/counter_offer_dialog.dart';
+import '../widgets/offer_detail_flows.dart';
+import '../widgets/offer_details_states.dart';
 import '../widgets/live_interview_card.dart';
 import '../widgets/offer_back_link.dart';
 import '../widgets/offer_card_skeleton.dart';
@@ -59,104 +54,15 @@ class LiveOfferDetailsView extends StatelessWidget {
               // 404: the item is gone (or a notification pointed at the
               // wrong id); retrying cannot help.
               else if (state.failure?.statusCode == 404)
-                const _Unavailable()
+                const OfferUnavailable()
               else
-                _LoadError(onRetry: cubit.load),
+                OfferDetailsLoadError(onRetry: cubit.load),
             ],
           ),
         );
       },
     ),
   );
-
-  Future<void> _accept(BuildContext context, OfferDetailsCubit cubit) async {
-    final go = await confirmOfferAction(
-      context,
-      title: ot(context, 'accept_confirm_title'),
-      message: ot(context, 'accept_confirm_message'),
-      action: ot(context, 'accept_offer'),
-    );
-    if (!go || !context.mounted) return;
-    final failure = await cubit.accept();
-    if (!context.mounted) return;
-    showOfferActionResult(
-      context,
-      failure: failure?.message,
-      success: ot(context, 'accepted_done'),
-    );
-  }
-
-  Future<void> _reject(BuildContext context, OfferDetailsCubit cubit) async {
-    final go = await confirmOfferAction(
-      context,
-      title: ot(context, 'reject_confirm_title'),
-      message: ot(context, 'reject_confirm_message'),
-      action: ot(context, 'reject'),
-      destructive: true,
-    );
-    if (!go || !context.mounted) return;
-    final failure = await cubit.reject();
-    if (!context.mounted) return;
-    showOfferActionResult(
-      context,
-      failure: failure?.message,
-      success: ot(context, 'rejected_done'),
-    );
-  }
-
-  Future<void> _counter(
-    BuildContext context,
-    OfferDetailsCubit cubit,
-    OfferTerms base,
-  ) async {
-    final offer = await showCounterOfferDialog(context, base);
-    if (offer == null || !context.mounted) return;
-    final failure = await cubit.counter(offer);
-    if (!context.mounted) return;
-    showOfferActionResult(
-      context,
-      failure: failure?.message,
-      success: ot(context, 'counter_done'),
-    );
-  }
-
-  Future<void> _acceptTime(
-    BuildContext context,
-    OfferDetailsCubit cubit,
-  ) async {
-    final failure = await cubit.acceptInterviewTime();
-    if (!context.mounted) return;
-    showOfferActionResult(
-      context,
-      failure: failure?.message,
-      success: ot(context, 'time_accepted'),
-    );
-  }
-
-  /// Request a new time ([change]) or apologize: both need a reason.
-  Future<void> _interviewReason(
-    BuildContext context,
-    OfferDetailsCubit cubit,
-    HiringInterview interview, {
-    required bool change,
-  }) async {
-    final reason = await showInterviewReasonDialog(
-      context,
-      start: interview.start,
-      end: interview.end,
-      change: change,
-    );
-    if (reason == null || !context.mounted) return;
-    final failure = change
-        ? await cubit.requestInterviewChange(reason)
-        : await cubit.apologizeForInterview(reason);
-    if (!context.mounted) return;
-    showOfferActionResult(
-      context,
-      failure: failure?.message,
-      success: ot(context, change ? 'change_requested' : 'apology_sent'),
-    );
-  }
 
   /// Accept / reject / counter buttons (see [HiringOfferDetails.allows]).
   /// Countering starts from the newest client terms.
@@ -172,13 +78,13 @@ class LiveOfferDetailsView extends StatelessWidget {
     final actions = OfferActions(
       busy: busy,
       onAccept: details.allows(OfferAction.accept)
-          ? () => _accept(context, cubit)
+          ? () => acceptOfferFlow(context, cubit)
           : null,
       onReject: details.allows(OfferAction.reject)
-          ? () => _reject(context, cubit)
+          ? () => rejectOfferFlow(context, cubit)
           : null,
       onNegotiate: details.allows(OfferAction.counter) && base != null
-          ? () => _counter(context, cubit, base)
+          ? () => counterOfferFlow(context, cubit, base)
           : null,
     );
     return actions.isEmpty ? null : actions;
@@ -257,14 +163,20 @@ class LiveOfferDetailsView extends StatelessWidget {
           busy: busy,
           // Buttons follow `interview.available_actions` only.
           onAccept: interview.actions.contains(InterviewAction.acceptSchedule)
-              ? () => _acceptTime(context, cubit)
+              ? () => acceptInterviewTimeFlow(context, cubit)
               : null,
           onRequestChange:
               interview.actions.contains(InterviewAction.requestChange)
-              ? () => _interviewReason(context, cubit, interview, change: true)
+              ? () =>
+                    interviewReasonFlow(context, cubit, interview, change: true)
               : null,
           onApologize: interview.actions.contains(InterviewAction.apologize)
-              ? () => _interviewReason(context, cubit, interview, change: false)
+              ? () => interviewReasonFlow(
+                  context,
+                  cubit,
+                  interview,
+                  change: false,
+                )
               : null,
         )
       else if (terms.length == 1)
@@ -294,71 +206,4 @@ class LiveOfferDetailsView extends StatelessWidget {
           ),
     ];
   }
-}
-
-class _Unavailable extends StatelessWidget {
-  const _Unavailable();
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 8),
-    child: Column(
-      children: [
-        const Icon(
-          Icons.work_off_outlined,
-          size: 40,
-          color: AppColors.neutral500,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          ot(context, 'unavailable_title'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          ot(context, 'unavailable_message'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 13,
-            height: 20 / 13,
-            color: AppColors.neutral600,
-          ),
-        ),
-        const SizedBox(height: 16),
-        DefaultButton.compact(
-          text: ot(context, 'back_to_offers'),
-          onPressed: () => context.go(AppRouter.offers),
-        ),
-      ],
-    ),
-  );
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.onRetry});
-  final VoidCallback onRetry;
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 8),
-    child: Column(
-      children: [
-        const Icon(
-          Icons.cloud_off_outlined,
-          size: 40,
-          color: AppColors.neutral500,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          ot(context, 'details_failed'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, height: 20 / 14),
-        ),
-        const SizedBox(height: 16),
-        DefaultButton.compact(
-          text: ot(context, 'try_again'),
-          onPressed: onRetry,
-        ),
-      ],
-    ),
-  );
 }
