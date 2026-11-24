@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/profile_evaluation.dart';
+import '../preview/profile_evaluation_preview.dart';
 import '../profile_copy.dart';
 import '../widgets/profile_components.dart';
 import '../widgets/evaluation_report_widgets.dart';

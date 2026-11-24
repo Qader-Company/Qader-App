@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_button.dart';
-import '../../domain/profile_evaluation.dart';
+import '../preview/profile_evaluation_preview.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
 import '../../../../core/resources/app_colors.dart';

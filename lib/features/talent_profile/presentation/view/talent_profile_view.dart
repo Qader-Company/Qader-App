@@ -35,6 +35,14 @@ class TalentProfileView extends StatelessWidget {
       create: (context) =>
           TalentProfileCubit(context.read<TalentProfileRepository>())..load(),
       child: BlocBuilder<TalentProfileCubit, TalentProfileState>(
+        // Once a profile is shown, a reload only matters when it brings a
+        // new profile; the loading and failure flags change nothing on
+        // screen then.
+        buildWhen: (previous, current) =>
+            previous.profile != current.profile ||
+            (current.profile == null &&
+                (previous.loading != current.loading ||
+                    previous.failure != current.failure)),
         builder: (context, state) {
           final cubit = context.read<TalentProfileCubit>();
           final profile = state.profile;
