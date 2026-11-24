@@ -181,6 +181,8 @@ void main() {
       ]);
       await tap(find.byType(ProfileUpload));
       expect(draft.cv, isNull);
+      // The "too big" toast floats over the bottom buttons; close it.
+      await tap(find.byIcon(Icons.close_rounded));
       picker.result = FilePickerResult([
         PlatformFile(name: 'cv.pdf', size: 1024),
       ]);

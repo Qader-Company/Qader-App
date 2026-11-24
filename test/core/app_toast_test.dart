@@ -47,20 +47,52 @@ void main() {
     await capture('toast_success');
     expect(find.text('Saved'), findsOneWidget);
     expect(find.byKey(const ValueKey('app-toast-success')), findsOneWidget);
-    expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
 
     // A new message replaces the old one.
     showAppToast(context, 'Failed', type: ToastType.error);
     await tester.pumpAndSettle();
     expect(find.text('Saved'), findsNothing);
     expect(find.text('Failed'), findsOneWidget);
-    expect(find.byIcon(Icons.error_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.priority_high_rounded), findsOneWidget);
     await capture('toast_error');
 
     showAppToast(context, 'Coming soon');
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('app-toast-info')), findsOneWidget);
     await capture('toast_info');
+
+    // The close button dismisses it.
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Coming soon'), findsNothing);
+
+    // Arabic: the accent and icon move to the start (right) side.
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: key,
+        child: MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: Builder(
+                builder: (ctx) {
+                  context = ctx;
+                  return const SizedBox.expand();
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    showAppToast(context, 'Failed', type: ToastType.error);
+    await tester.pumpAndSettle();
+    expect(
+      tester.getCenter(find.byIcon(Icons.priority_high_rounded)).dx,
+      greaterThan(tester.getCenter(find.text('Failed')).dx),
+    );
+    await capture('toast_error_rtl');
     expect(tester.takeException(), isNull);
   });
 
