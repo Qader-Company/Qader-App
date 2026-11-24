@@ -43,8 +43,8 @@ extension ProfileProgressRestore on ProfileSetupCubit {
       _lookupRequests[lookup] = (_lookupRequests[lookup] ?? 0) + 1;
     }
     _setLookups(options: {}, loading: {}, failures: {});
-    selections.clear();
-    multiSelections.clear();
+    _setSelections({});
+    _setMultiSelections({});
     final seedName = text('name').text;
     final seedEmail = text('email').text;
     for (final controller in _text.values) {
@@ -92,7 +92,7 @@ extension ProfileProgressRestore on ProfileSetupCubit {
     if (personal['email'] == null) text('email').text = seedEmail;
     birthday = DateTime.tryParse(personal['date_of_birth']?.toString() ?? '');
     text('birthday').text = _dateText(birthday);
-    selections.addAll({
+    selectAll({
       'gender': personal['gender'] as String?,
       'religion': personal['religion'] as String?,
       'nationality': id(personal['nationality_country']),
@@ -136,10 +136,10 @@ extension ProfileProgressRestore on ProfileSetupCubit {
       'tools': 'tool_ids',
       'industries': 'industry_ids',
     }.entries) {
-      multiSelections[entry.value] = {
+      selectValues(entry.value, {
         for (final item in skillsData[entry.key] as List? ?? [])
           if (id(item) != null) id(item)!,
-      };
+      });
     }
     experiences.clear();
     for (final item in skillsData['experiences'] as List? ?? []) {
@@ -179,7 +179,7 @@ extension ProfileProgressRestore on ProfileSetupCubit {
       });
     }
     for (final key in ['work_types', 'work_modes']) {
-      multiSelections[key] = Set<String>.from(work[key] as List? ?? []);
+      selectValues(key, Set<String>.from(work[key] as List? ?? []));
     }
     texts(work, {
       'notice_period_days': 'noticeDays',

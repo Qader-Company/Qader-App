@@ -55,7 +55,7 @@ void main() {
       form.text('name').text = '  Ahmed Wael ';
       form.text('phoneCountryCode').text = '+20';
       form.text('phone').text = '106 527-5078';
-      form.selections.addAll({'gender': 'male', 'country': '1', 'city': '10'});
+      form.selectAll({'gender': 'male', 'country': '1', 'city': '10'});
       form.birthday = DateTime(1998, 3, 7);
       form.languages
         ..clear()
@@ -136,7 +136,7 @@ void main() {
       form.text('summary').text = 'Designer.';
       form.text('years').text = '4';
       form.text('LinkedIn').text = 'https://linkedin.com/in/ahmed';
-      form.selections.addAll({'job': '13', 'level': 'senior'});
+      form.selectAll({'job': '13', 'level': 'senior'});
       form.selectValues('skill_ids', {'16', '18'});
       form.addExperience();
       final job = form.experiences.single
@@ -211,7 +211,7 @@ void main() {
     form.text('noticeDays').text = '30';
     form.text('minSalary').text = '20000';
     form.text('maxSalary').text = '30000';
-    form.selections['expectedCurrency'] = '1';
+    form.select('expectedCurrency', '1');
     expect(form.detailsPayload(work: true).values, {
       'work_types': ['full_time'],
       'work_modes': ['remote'],

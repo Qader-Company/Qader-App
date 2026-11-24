@@ -60,7 +60,7 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
     }
 
     void choose(String key, Object? value) {
-      if (value != null) selections[key] = value.toString();
+      if (value != null) select(key, value.toString());
     }
 
     // Personal information: the CV replaces the signup name and email.
@@ -73,8 +73,7 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
     choose('nationality', personal['nationality_country_id']);
     final countryId = personal['residence_country_id']?.toString();
     if (countryId != null && selections['country'] != countryId) {
-      selections['country'] = countryId;
-      selections.remove('city');
+      _setSelections({...selections, 'country': countryId}..remove('city'));
       if (showsField('residence_city_id')) {
         // Cities depend on the country; load them so the city can show.
         _setLookups(options: {...lookupOptions}..remove(ProfileLookup.cities));
@@ -128,7 +127,7 @@ extension ProfileResumeAutofill on ProfileSetupCubit {
           if (id != null) id.toString(),
       ];
       if (ids.isNotEmpty) {
-        multiSelections[key] = {...selectedValues(key), ...ids};
+        selectValues(key, {...selectedValues(key), ...ids});
       }
     }
     final suggestedExperiences = skills['experiences'] as List? ?? const [];

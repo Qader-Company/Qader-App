@@ -72,8 +72,7 @@ extension ProfileLookups on ProfileSetupCubit {
   Future<void> selectResidenceCountry(String? key) async {
     if (key == value('country')) return;
     if (key != null && lookupId(ProfileLookup.countries, key) == null) return;
-    selections['country'] = key;
-    selections.remove('city');
+    _setSelections({...selections, 'country': key}..remove('city'));
     _lookupRequests[ProfileLookup.cities] =
         (_lookupRequests[ProfileLookup.cities] ?? 0) + 1;
     _setLookups(

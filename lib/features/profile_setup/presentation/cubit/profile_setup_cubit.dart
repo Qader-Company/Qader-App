@@ -141,7 +141,12 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
 
   /// Form inputs changed: rebuild listeners.
   void refresh() => _set(state.copyWith(revision: state.revision + 1));
-  Map<String, dynamic>? savedCv;
+  Map<String, dynamic>? get savedCv => state.savedCv;
+  set savedCv(Map<String, dynamic>? value) => _set(
+    state.copyWith(
+      savedCv: value == null ? null : Map<String, dynamic>.unmodifiable(value),
+    ),
+  );
   Set<String> get requiredFields => state.requiredFields;
 
   /// Conditional rules by field; they override [requiredFields].
@@ -172,12 +177,19 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
 
   int _parseRequest = 0;
   bool get busy => state.busy;
-  final multiSelections = <String, Set<String>>{};
+  Map<String, Set<String>> get multiSelections => state.multiSelections;
   Set<String> selectedValues(String key) => multiSelections[key] ?? const {};
-  void selectValues(String key, Set<String> values) {
-    multiSelections[key] = Set.of(values);
-    refresh();
-  }
+  void selectValues(String key, Set<String> values) =>
+      _setMultiSelections({...multiSelections, key: values});
+
+  void _setMultiSelections(Map<String, Set<String>> values) => _set(
+    state.copyWith(
+      multiSelections: Map.unmodifiable({
+        for (final entry in values.entries)
+          entry.key: Set<String>.unmodifiable(entry.value),
+      }),
+    ),
+  );
 
   Map<ProfileLookup, List<ProfileLookupOption>> get lookupOptions =>
       state.lookupOptions;
@@ -298,7 +310,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
 
   int _nextId = 3;
   final _text = <String, TextEditingController>{};
-  final selections = <String, String?>{};
+  Map<String, String?> get selections => state.selections;
   final skills = [...ProfileSetupPreviewData.skills];
   final languages = [
     LanguageEntry(
@@ -310,15 +322,21 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
   ];
   final experiences = [ExperienceEntry(1)];
   final projects = [ProjectEntry(1)];
-  PlatformFile? cv;
-  DateTime? birthday;
+  PlatformFile? get cv => state.cv;
+  set cv(PlatformFile? value) => _set(state.copyWith(cv: value));
+  DateTime? get birthday => state.birthday;
+  set birthday(DateTime? value) => _set(state.copyWith(birthday: value));
   TextEditingController text(String key) =>
       _text.putIfAbsent(key, TextEditingController.new);
   String? value(String key) => selections[key];
-  void select(String key, String? value) {
-    selections[key] = value;
-    refresh();
-  }
+  void select(String key, String? value) => selectAll({key: value});
+
+  /// Sets several single choices at once.
+  void selectAll(Map<String, String?> values) =>
+      _setSelections({...selections, ...values});
+
+  void _setSelections(Map<String, String?> values) =>
+      _set(state.copyWith(selections: Map.unmodifiable(values)));
 
   void go(int value) {
     stepFailure = null;
@@ -329,7 +347,7 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
   void chooseField(ProfessionalField value) {
     if (busy || fieldsLoading || !fields.contains(value)) return;
     if (_field != value) {
-      selections.remove('job');
+      _setSelections({...selections}..remove('job'));
       formFields = null;
       _setRequired({}, {});
       final scoped = {
@@ -346,8 +364,11 @@ class ProfileSetupCubit extends Cubit<ProfileSetupState> {
           ..removeWhere((lookup, _) => scoped.contains(lookup)),
         loading: {...lookupLoading}..removeAll(scoped),
       );
-      multiSelections.remove('skill_ids');
-      multiSelections.remove('tool_ids');
+      _setMultiSelections(
+        {...multiSelections}
+          ..remove('skill_ids')
+          ..remove('tool_ids'),
+      );
     }
     _field = value;
     fieldFailure = null;

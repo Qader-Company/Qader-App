@@ -157,8 +157,7 @@ void main() {
     draft.text('name').text = 'Old Name';
     draft.text('email').text = 'account@example.test';
     draft.text('phone').text = '1000000000';
-    draft.selections['country'] = '7';
-    draft.selections['city'] = '70';
+    draft.selectAll({'country': '7', 'city': '70'});
 
     await draft.parseCv(_cv());
 

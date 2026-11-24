@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import '../../../../core/network/failure.dart';
 import '../../domain/entities/onboarding_progress.dart';
 import '../../domain/entities/professional_field.dart';
@@ -9,7 +10,8 @@ const _keep = Object();
 /// loading or saving, and the last failure of each operation.
 ///
 /// It also holds the professional fields with the chosen one and the
-/// form schema the backend sends for it, and the master-data lists (unmodifiable) with their loading
+/// form schema the backend sends for it, the talent's choices (dropdowns,
+/// chips, CV, birthday), and the master-data lists (unmodifiable) with their loading
 /// and failure state.
 ///
 /// Form inputs (text controllers, selections, entries) live on the cubit as
@@ -39,6 +41,11 @@ class ProfileSetupState {
     this.formFields,
     this.requiredFields = const {},
     this.requiredWhen = const {},
+    this.selections = const {},
+    this.multiSelections = const {},
+    this.cv,
+    this.savedCv,
+    this.birthday,
   });
 
   final int step;
@@ -83,6 +90,20 @@ class ProfileSetupState {
   /// Conditional rules by field; they override [requiredFields].
   final Map<String, RequiredWhen> requiredWhen;
 
+  /// Single choices by form key (e.g. `gender`, `country`, `job`).
+  final Map<String, String?> selections;
+
+  /// Multiple choices by backend field (e.g. `skill_ids`, `work_types`).
+  final Map<String, Set<String>> multiSelections;
+
+  /// A CV picked on this device, not uploaded yet.
+  final PlatformFile? cv;
+
+  /// The CV already saved on the server.
+  final Map<String, dynamic>? savedCv;
+
+  final DateTime? birthday;
+
   bool get busy =>
       progressLoading ||
       savingField ||
@@ -114,6 +135,11 @@ class ProfileSetupState {
     Object? formFields = _keep,
     Set<String>? requiredFields,
     Map<String, RequiredWhen>? requiredWhen,
+    Map<String, String?>? selections,
+    Map<String, Set<String>>? multiSelections,
+    Object? cv = _keep,
+    Object? savedCv = _keep,
+    Object? birthday = _keep,
   }) => ProfileSetupState(
     step: step ?? this.step,
     fieldsLoading: fieldsLoading ?? this.fieldsLoading,
@@ -150,5 +176,14 @@ class ProfileSetupState {
         : formFields as Set<String>?,
     requiredFields: requiredFields ?? this.requiredFields,
     requiredWhen: requiredWhen ?? this.requiredWhen,
+    selections: selections ?? this.selections,
+    multiSelections: multiSelections ?? this.multiSelections,
+    cv: identical(cv, _keep) ? this.cv : cv as PlatformFile?,
+    savedCv: identical(savedCv, _keep)
+        ? this.savedCv
+        : savedCv as Map<String, dynamic>?,
+    birthday: identical(birthday, _keep)
+        ? this.birthday
+        : birthday as DateTime?,
   );
 }

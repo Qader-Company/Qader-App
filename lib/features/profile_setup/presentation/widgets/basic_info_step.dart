@@ -75,7 +75,6 @@ class BasicInfoStep extends StatelessWidget {
       value: draft.birthday,
       onChanged: (v) {
         draft.birthday = v;
-        draft.refresh();
       },
     );
     final showGender = draft.showsField('gender');
@@ -124,7 +123,6 @@ class BasicInfoStep extends StatelessWidget {
                     files: [if (draft.cv != null) draft.cv!],
                     onChanged: (files) {
                       draft.cv = files.isEmpty ? null : files.first;
-                      draft.refresh();
                       // A new CV fills the empty fields of every step.
                       if (draft.cv case final file?) {
                         draft.parseCv(file);
@@ -226,8 +224,7 @@ class BasicInfoStep extends StatelessWidget {
                     value: draft.value('country'),
                     items: cities.keys.toList(),
                     onChanged: (v) {
-                      draft.selections['city'] = null;
-                      draft.select('country', v);
+                      draft.selectAll({'country': v, 'city': null});
                     },
                   ),
               if (draft.showsField('residence_city_id'))
