@@ -1,88 +1,93 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/resources/app_colors.dart';
+import '../../../../core/widgets/default_button.dart';
+import '../../../../core/widgets/locale_change_listener.dart';
+import '../../domain/repositories/talent_evaluation_repository.dart';
+import '../cubit/talent_evaluation_cubit.dart';
 import '../preview/profile_evaluation_preview.dart';
 import '../profile_copy.dart';
+import '../widgets/evaluation_content.dart';
+import '../widgets/evaluation_skeleton.dart';
 import '../widgets/profile_components.dart';
-import '../widgets/evaluation_report_widgets.dart';
-import '../widgets/evaluation_salary_card.dart';
-import '../../../../core/resources/app_colors.dart';
 
-class ProfileEvaluationView extends StatefulWidget {
-  const ProfileEvaluationView({super.key});
+/// The talent's evaluation report. In [preview] it shows a sample (signed
+/// out and preview screens); otherwise it loads
+/// `GET /talent/profile/evaluation`.
+class ProfileEvaluationView extends StatelessWidget {
+  const ProfileEvaluationView({super.key, this.preview = false});
+  final bool preview;
+
   @override
-  State<ProfileEvaluationView> createState() => _ProfileEvaluationViewState();
+  Widget build(BuildContext context) {
+    if (preview) {
+      return TalentProfileScaffold(
+        child: EvaluationContent(evaluation: previewEvaluation(context)),
+      );
+    }
+    return BlocProvider(
+      create: (context) =>
+          TalentEvaluationCubit(context.read<TalentEvaluationRepository>())
+            ..load(),
+      child: BlocBuilder<TalentEvaluationCubit, TalentEvaluationState>(
+        builder: (context, state) {
+          final cubit = context.read<TalentEvaluationCubit>();
+          final evaluation = state.evaluation;
+          // Reports come in the app language: reload when it changes.
+          return LocaleChangeListener(
+            onChanged: cubit.load,
+            child: TalentProfileScaffold(
+              onRefresh: evaluation == null ? null : cubit.load,
+              child: evaluation != null
+                  ? EvaluationContent(evaluation: evaluation)
+                  : state.loading
+                  ? const EvaluationSkeleton()
+                  : state.unavailable
+                  ? const _Message(
+                      icon: Icons.hourglass_empty_rounded,
+                      text: 'talent_evaluation_unavailable',
+                    )
+                  : _Message(
+                      icon: Icons.cloud_off_outlined,
+                      text: 'talent_evaluation_failed',
+                      onRetry: cubit.load,
+                    ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
-class _ProfileEvaluationViewState extends State<ProfileEvaluationView> {
-  final _open = <int>{0};
+class _Message extends StatelessWidget {
+  const _Message({required this.icon, required this.text, this.onRetry});
+  final IconData icon;
+
+  /// Translation key.
+  final String text;
+  final VoidCallback? onRetry;
   @override
-  Widget build(BuildContext context) => TalentProfileScaffold(
-    child: ProfileStack(
-      gap: 24,
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 96, horizontal: 8),
+    child: Column(
       children: [
-        const EvaluationSalaryCard(),
-        Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: TextButton(
-            onPressed: () => setState(() {
-              if (_open.isEmpty) {
-                _open.addAll([0, 1]);
-              } else {
-                _open.clear();
-              }
-            }),
-            child: Text(
-              tc(context, _open.isEmpty ? 'Expand all' : 'Collapse all'),
-              style: const TextStyle(fontSize: 12),
-            ),
+        Icon(icon, size: 40, color: AppColors.neutral500),
+        const SizedBox(height: 12),
+        Text(
+          text.tr(context: context),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14, height: 20 / 14),
+        ),
+        if (onRetry != null) ...[
+          const SizedBox(height: 16),
+          DefaultButton.compact(
+            text: tc(context, 'Try again'),
+            onPressed: onRetry,
           ),
-        ),
-        ProfileStack(
-          gap: 6,
-          children: [
-            const ProfileHeading('Interview Evaluations'),
-            Text(
-              tc(context, 'Detailed evaluation criteria for each review stage'),
-              style: const TextStyle(fontSize: 12, color: AppColors.neutral500),
-            ),
-          ],
-        ),
-        EvaluationAccordion(
-          number: 1,
-          title: 'Profile Review',
-          open: _open.contains(0),
-          onTap: () => _toggle(0),
-          children: [
-            Text(
-              tc(context, 'Evaluation Criteria'),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-            for (final metric in ProfileEvaluation.metrics)
-              EvaluationMetricCard(metric: metric),
-            for (final report in ProfileEvaluation.reports)
-              EvaluationTextCard(title: report.$1, text: report.$2),
-            const ProfileHeading('Personalized Expert Tips & Guidance'),
-            for (var i = 0; i < ProfileEvaluation.tips.length; i++)
-              ExpertTipCard(text: ProfileEvaluation.tips[i], index: i),
-          ],
-        ),
-        EvaluationAccordion(
-          number: 2,
-          title: 'Overall HR Interview',
-          open: _open.contains(1),
-          onTap: () => _toggle(1),
-          children: [
-            EvaluationTextCard(
-              title: 'HR Report',
-              text: ProfileEvaluation.reports.first.$2,
-            ),
-            for (final metric in ProfileEvaluation.metrics.take(2))
-              EvaluationMetricCard(metric: metric),
-          ],
-        ),
+        ],
       ],
     ),
   );
-  void _toggle(int id) => setState(() {
-    if (!_open.remove(id)) _open.add(id);
-  });
 }

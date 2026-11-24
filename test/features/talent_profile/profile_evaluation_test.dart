@@ -128,11 +128,8 @@ void main() {
       expect(find.byType(ProfileEvaluationView), findsOneWidget);
       expect(find.byType(EvaluationMetricCard), findsNWidgets(4));
       await capture('talent_evaluation', 2718);
-      await tap(find.text('Your Recommended Position (25K)'));
-      expect(
-        find.textContaining('Improve your profile with measurable'),
-        findsOneWidget,
-      );
+      // The sample salary recommendation.
+      expect(find.text('20,000–30,000 EGP'), findsOneWidget);
       await tap(find.text('Collapse all'));
       expect(find.byType(EvaluationMetricCard), findsNothing);
       await capture('talent_evaluation_collapsed', 922);

@@ -56,6 +56,8 @@ class _ProfileContentState extends State<ProfileContent> {
           onEvaluation: () => context.push(
             status == null || status == TalentProfileStatus.accepted
                 ? AppRouter.profileReview
+                : widget.preview
+                ? '${AppRouter.profileReport}?preview=true'
                 : AppRouter.profileReport,
           ),
           onEdit: _edit,

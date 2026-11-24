@@ -15,6 +15,7 @@ import '../features/profile_setup/domain/repositories/professional_fields_reposi
 import '../features/profile_setup/domain/repositories/profile_edit_repository.dart';
 import '../features/profile_setup/domain/repositories/profile_lookups_repository.dart';
 import '../features/offers/domain/repositories/offers_repository.dart';
+import '../features/talent_profile/domain/repositories/talent_evaluation_repository.dart';
 import '../features/talent_profile/domain/repositories/talent_profile_repository.dart';
 
 /// Hands the registered dependencies to the widget tree, so screens use
@@ -40,6 +41,7 @@ class AppProviders extends StatelessWidget {
       RepositoryProvider<ProfileLookupsRepository>(create: (_) => sl()),
       RepositoryProvider<OnboardingStepsRepository>(create: (_) => sl()),
       RepositoryProvider<TalentProfileRepository>(create: (_) => sl()),
+      RepositoryProvider<TalentEvaluationRepository>(create: (_) => sl()),
       RepositoryProvider<OffersRepository>(create: (_) => sl()),
       RepositoryProvider<ProfileEditRepository>(create: (_) => sl()),
       RepositoryProvider<NotificationsRepository>(create: (_) => sl()),

@@ -23,7 +23,9 @@ import '../../features/auth/domain/repositories/google_sign_in_client.dart';
 import '../../features/auth/presentation/cubit/auth_session_cubit.dart';
 import '../../features/offers/data/repositories/api_offers_repository.dart';
 import '../../features/offers/domain/repositories/offers_repository.dart';
+import '../../features/talent_profile/data/repositories/api_talent_evaluation_repository.dart';
 import '../../features/talent_profile/data/repositories/api_talent_profile_repository.dart';
+import '../../features/talent_profile/domain/repositories/talent_evaluation_repository.dart';
 import '../../features/talent_profile/domain/repositories/talent_profile_repository.dart';
 import '../../features/profile_setup/data/repositories/api_profile_edit_repository.dart';
 import '../../features/profile_setup/domain/repositories/profile_edit_repository.dart';
@@ -113,6 +115,9 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<TalentProfileRepository>(
     () => ApiTalentProfileRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<TalentEvaluationRepository>(
+    () => ApiTalentEvaluationRepository(sl<ApiConsumer>()),
   );
   sl.registerLazySingleton<AuthSessionCubit>(
     () => AuthSessionCubit(sl<AuthRepository>(), sl<AppPreferences>()),

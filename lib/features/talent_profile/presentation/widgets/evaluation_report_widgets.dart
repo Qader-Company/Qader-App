@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_button.dart';
-import '../preview/profile_evaluation_preview.dart';
+import '../../domain/entities/talent_evaluation.dart';
 import '../profile_copy.dart';
 import 'profile_components.dart';
 import '../../../../core/resources/app_colors.dart';
 
+/// A collapsible evaluation stage; [title] is already localized.
 class EvaluationAccordion extends StatelessWidget {
   const EvaluationAccordion({
     super.key,
@@ -56,7 +57,7 @@ class EvaluationAccordion extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  tc(context, title),
+                  title,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -78,24 +79,24 @@ class EvaluationAccordion extends StatelessWidget {
   );
 }
 
+/// One criterion rated out of 5 ([criterion] is the backend key, e.g.
+/// `technical_skills`), shown as a percentage with a level chip.
 class EvaluationMetricCard extends StatelessWidget {
-  const EvaluationMetricCard({super.key, required this.metric});
-  final EvaluationMetric metric;
+  const EvaluationMetricCard({
+    super.key,
+    required this.criterion,
+    required this.rating,
+  });
+  final String criterion;
+  final num rating;
   @override
   Widget build(BuildContext context) {
-    final (label, background, foreground) = switch (metric.level) {
-      EvaluationLevel.poor => (
-        'Poor',
-        AppColors.yellow100,
-        AppColors.yellow700,
-      ),
-      EvaluationLevel.average => ('AVG', AppColors.red50, AppColors.orange500),
-      EvaluationLevel.good => ('Good', AppColors.green50, AppColors.green600),
-      EvaluationLevel.veryGood => (
-        'VG',
-        AppColors.purple50,
-        AppColors.purple600,
-      ),
+    final percent = (rating.clamp(0, 5) * 20).round();
+    final (label, background, foreground) = switch (rating.round()) {
+      <= 2 => ('Poor', AppColors.yellow100, AppColors.yellow700),
+      3 => ('AVG', AppColors.red50, AppColors.orange500),
+      4 => ('Good', AppColors.green50, AppColors.green600),
+      _ => ('VG', AppColors.purple50, AppColors.purple600),
     };
     return Container(
       padding: const EdgeInsets.all(12),
@@ -107,7 +108,7 @@ class EvaluationMetricCard extends StatelessWidget {
         gap: 8,
         children: [
           Text(
-            tc(context, metric.title),
+            talentCodeLabel(context, criterion),
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
           Row(
@@ -129,7 +130,7 @@ class EvaluationMetricCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                '${metric.score}%',
+                '$percent%',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -140,7 +141,7 @@ class EvaluationMetricCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: metric.score / 100,
+              value: percent / 100,
               minHeight: 6,
               color: profileBlue,
               backgroundColor: AppColors.neutral200,
@@ -152,6 +153,8 @@ class EvaluationMetricCard extends StatelessWidget {
   }
 }
 
+/// A titled block of text written by the reviewer; [title] is localized,
+/// [text] comes from the backend as is.
 class EvaluationTextCard extends StatelessWidget {
   const EvaluationTextCard({
     super.key,
@@ -164,7 +167,7 @@ class EvaluationTextCard extends StatelessWidget {
     gap: 6,
     children: [
       Text(
-        tc(context, title),
+        title,
         style: const TextStyle(
           fontSize: 12,
           color: AppColors.neutral800,
@@ -179,7 +182,7 @@ class EvaluationTextCard extends StatelessWidget {
           border: Border.all(color: AppColors.blueLight),
         ),
         child: Text(
-          tc(context, text),
+          text,
           style: const TextStyle(
             fontSize: 12,
             height: 1.5,
@@ -191,13 +194,17 @@ class EvaluationTextCard extends StatelessWidget {
   );
 }
 
+/// One expert tip with its priority chip.
 class ExpertTipCard extends StatelessWidget {
-  const ExpertTipCard({super.key, required this.text, required this.index});
-  final String text;
-  final int index;
+  const ExpertTipCard({super.key, required this.tip});
+  final EvaluationTip tip;
   @override
   Widget build(BuildContext context) {
-    final color = [AppColors.orange500, profileBlue, AppColors.green500][index];
+    final color = switch (tip.priority) {
+      'high' => AppColors.orange500,
+      'low' => AppColors.green500,
+      _ => profileBlue,
+    };
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -216,39 +223,45 @@ class ExpertTipCard extends StatelessWidget {
                 color: AppColors.green500,
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: .08),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  tc(context, 'High Priority'),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: color,
+              if (tip.priority.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: .08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    talentCodeLabel(context, '${tip.priority}_priority'),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
-          Text(
-            tc(context, 'Enrich Project Details with Numbers and Achievements'),
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.5,
-              fontWeight: FontWeight.w600,
+          if (tip.title.isNotEmpty)
+            Text(
+              tip.title,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          Text(
-            tc(context, text),
-            style: const TextStyle(
-              fontSize: 12,
-              height: 1.5,
-              color: AppColors.neutral500,
+          if (tip.description.isNotEmpty)
+            Text(
+              tip.description,
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.5,
+                color: AppColors.neutral500,
+              ),
             ),
-          ),
         ],
       ),
     );

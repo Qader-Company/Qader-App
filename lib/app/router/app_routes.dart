@@ -217,7 +217,12 @@ GoRouter buildAppRouter() => GoRouter(
     ),
     GoRoute(
       path: AppRouter.profileReport,
-      builder: (context, state) => const ProfileEvaluationView(),
+      // A sample when signed out or opened from a preview profile.
+      builder: (context, state) => ProfileEvaluationView(
+        preview:
+            !sl<AppPreferences>().isLoggedIn ||
+            state.uri.queryParameters['preview'] == 'true',
+      ),
     ),
     GoRoute(
       path: AppRouter.home,
