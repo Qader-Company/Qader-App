@@ -43,8 +43,13 @@ class ApplicationStatusView extends StatefulWidget {
     this.onSelectSlot,
     this.onRejectSlots,
     this.onCancelInterview,
+    this.busy = false,
   });
   final ApplicationStatus initialStatus;
+
+  /// A live action is in flight: shows a progress bar and locks the
+  /// sections until the application has been reloaded.
+  final bool busy;
   final TalentApplication? application;
   final String? userName;
   final Future<void> Function()? onRefresh;
@@ -120,16 +125,13 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
     }
   }
 
-  bool _busy = false;
-
-  /// Runs a live action with a progress bar and reports a failure.
+  /// Runs a live action and reports a failure. The caller's state drives
+  /// [ApplicationStatusView.busy] meanwhile.
   Future<void> _runAction(Future<String?> Function()? action) async {
     if (action == null) return notConnected();
-    if (_busy) return;
-    setState(() => _busy = true);
+    if (widget.busy) return;
     final error = await action();
     if (!mounted) return;
-    setState(() => _busy = false);
     if (error != null) showAppToast(context, error, type: ToastType.error);
   }
 
@@ -141,7 +143,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
       child: Column(
         children: [
           const HomeHeader(),
-          if (_busy) const LinearProgressIndicator(minHeight: 2),
+          if (widget.busy) const LinearProgressIndicator(minHeight: 2),
           Expanded(
             child: ColoredBox(
               color: AppColors.background,
@@ -154,7 +156,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                         child: AbsorbPointer(
-                          absorbing: _busy,
+                          absorbing: widget.busy,
                           child: SpacedColumn(gap: 12, children: _sections()),
                         ),
                       ),

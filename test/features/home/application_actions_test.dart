@@ -81,4 +81,23 @@ void main() {
     expect(failure?.message, 'You can no longer reschedule this interview.');
     expect(api.gets, 3);
   });
+
+  test('the screen stays busy until the reload after an action ends', () async {
+    final api = _Api();
+    final cubit = ApplicationCubit(ApiApplicationRepository(api));
+    addTearDown(cubit.close);
+    await cubit.load();
+    final states = <ApplicationState>[];
+    final subscription = cubit.stream.listen(states.add);
+    addTearDown(subscription.cancel);
+
+    final action = cubit.selectSlot(21);
+    // A pull to refresh during the action does nothing: the action reloads.
+    await cubit.load();
+    await action;
+    await Future<void>.delayed(Duration.zero);
+    expect(api.gets, 2);
+    expect(states.map((state) => state.submitting), [true, false]);
+    expect(states.any((state) => state.loading), isFalse);
+  });
 }

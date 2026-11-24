@@ -53,6 +53,15 @@ class HomeView extends StatelessWidget {
         builder: (context) => LocaleChangeListener(
           onChanged: context.read<ApplicationCubit>().load,
           child: BlocBuilder<ApplicationCubit, ApplicationState>(
+            // Once an application is shown, only a new one or an action
+            // starting or ending changes the screen; loading and failure
+            // flags matter only before the first application arrives.
+            buildWhen: (previous, current) =>
+                previous.application != current.application ||
+                previous.submitting != current.submitting ||
+                (current.application == null &&
+                    (previous.loading != current.loading ||
+                        previous.failure != current.failure)),
             builder: _buildState,
           ),
         ),
@@ -86,6 +95,7 @@ class HomeView extends StatelessWidget {
         onRejectSlots: (reason) async =>
             (await cubit.rejectSlots(reason))?.message,
         onCancelInterview: () async => (await cubit.cancelInterview())?.message,
+        busy: state.submitting,
       );
     }
     return _Dashboard(

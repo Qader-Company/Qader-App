@@ -25,7 +25,15 @@ class ApplicationCubit extends Cubit<ApplicationState> {
   final ApplicationRepository _repository;
 
   Future<void> load() async {
+    // An action reloads by itself when it ends; a pull to refresh meanwhile
+    // would end its busy state early.
+    if (state.submitting) return;
     emit(ApplicationState(loading: true, application: state.application));
+    await _reload();
+  }
+
+  /// Fetches the application and ends any loading or submitting state.
+  Future<void> _reload() async {
     final result = await _repository.load();
     if (isClosed) return;
     emit(
@@ -39,15 +47,16 @@ class ApplicationCubit extends Cubit<ApplicationState> {
 
   /// Runs a talent action, then reloads the application so the screen
   /// follows the backend's new `screen_state`. Returns the failure, if any.
+  /// [ApplicationState.submitting] stays on until that reload ends, so the
+  /// screen stays locked while it still shows the old state.
   Future<Failure?> _run(Future<Either<Failure, void>> Function() action) async {
     if (state.submitting) return null;
     emit(ApplicationState(submitting: true, application: state.application));
     final result = await action();
     if (isClosed) return null;
     final failure = result.fold<Failure?>((failure) => failure, (_) => null);
-    emit(ApplicationState(application: state.application));
     // Reload either way: on failure the server state may still have moved.
-    await load();
+    await _reload();
     return failure;
   }
 
