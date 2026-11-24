@@ -19,6 +19,7 @@ abstract final class AppColors {
 
   // ─── Neutrals (Tailwind neutral) ───
   static const white = Color(0xFFFFFFFF);
+  static const black = Color(0xFF000000);
   static const neutral50 = Color(0xFFFAFAFA);
   static const neutral100 = Color(0xFFF5F5F5);
   static const neutral200 = Color(0xFFE5E5E5);

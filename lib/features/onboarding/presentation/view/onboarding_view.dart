@@ -1,24 +1,47 @@
 import 'package:easy_localization/easy_localization.dart';
-import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/resources/qader_design.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/storage/app_preferences.dart';
+import '../../../../core/widgets/app_toast.dart';
+import '../cubit/onboarding_cubit.dart';
 import '../models/onboarding_page_data.dart';
 import 'widgets/onboarding_page.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class OnboardingView extends StatefulWidget {
+class OnboardingView extends StatelessWidget {
   const OnboardingView({super.key});
+
   @override
-  State<OnboardingView> createState() => _OnboardingViewState();
+  Widget build(BuildContext context) => BlocProvider(
+    create: (context) => OnboardingCubit(context.read<AppPreferences>()),
+    child: BlocListener<OnboardingCubit, OnboardingStatus>(
+      listener: (context, status) {
+        if (status == OnboardingStatus.done) context.go(AppRouter.chooseRole);
+        if (status == OnboardingStatus.failed) {
+          showAppToast(
+            context,
+            'intro_save_failed'.tr(context: context),
+            type: ToastType.error,
+          );
+        }
+      },
+      child: const _Pages(),
+    ),
+  );
 }
 
-class _OnboardingViewState extends State<OnboardingView> {
+/// The intro pages and the progress bar; the page index is local UI state.
+class _Pages extends StatefulWidget {
+  const _Pages();
+  @override
+  State<_Pages> createState() => _PagesState();
+}
+
+class _PagesState extends State<_Pages> {
   final _controller = PageController();
   int _index = 0;
-  bool _finishing = false;
 
   @override
   void dispose() {
@@ -26,33 +49,20 @@ class _OnboardingViewState extends State<OnboardingView> {
     super.dispose();
   }
 
-  Future<void> _next() async {
-    if (_finishing) return;
+  void _next() {
     if (_index < onboardingPages.length - 1) {
-      await _controller.nextPage(
+      _controller.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
       return;
     }
-    setState(() => _finishing = true);
-    try {
-      await context.read<AppPreferences>().setOnBoardingViewed();
-      if (mounted) context.go(AppRouter.chooseRole);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _finishing = false);
-      showAppToast(
-        context,
-        'intro_save_failed'.tr(context: context),
-        type: ToastType.error,
-      );
-    }
+    context.read<OnboardingCubit>().finish();
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: Colors.white,
+    backgroundColor: AppColors.white,
     body: SafeArea(
       child: Center(
         child: ConstrainedBox(
@@ -75,15 +85,21 @@ class _OnboardingViewState extends State<OnboardingView> {
                 ),
               ),
               Expanded(
-                child: PageView.builder(
-                  controller: _controller,
-                  itemCount: onboardingPages.length,
-                  onPageChanged: (index) => setState(() => _index = index),
-                  itemBuilder: (context, index) => OnboardingPage(
-                    data: onboardingPages[index],
-                    isLast: index == onboardingPages.length - 1,
-                    finishing: _finishing,
-                    onNext: _next,
+                // Only the button's busy state follows the cubit.
+                child: BlocSelector<OnboardingCubit, OnboardingStatus, bool>(
+                  selector: (status) =>
+                      status == OnboardingStatus.finishing ||
+                      status == OnboardingStatus.done,
+                  builder: (context, finishing) => PageView.builder(
+                    controller: _controller,
+                    itemCount: onboardingPages.length,
+                    onPageChanged: (index) => setState(() => _index = index),
+                    itemBuilder: (context, index) => OnboardingPage(
+                      data: onboardingPages[index],
+                      isLast: index == onboardingPages.length - 1,
+                      finishing: finishing,
+                      onNext: _next,
+                    ),
                   ),
                 ),
               ),
