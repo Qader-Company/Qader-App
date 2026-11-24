@@ -12,9 +12,12 @@ String nt(BuildContext context, String key) =>
 /// `hiring_*` notifications point at a hiring item (`target_id`), shown by
 /// the offer details screen; `talent_*` ones are about the talent's own
 /// application and interview, shown on home. Unknown types stay put.
-String? notificationRoute(AppNotification notification) {
-  final type = notification.type;
-  final target = notification.targetId;
+String? notificationRoute(AppNotification notification) =>
+    notificationRouteFor(notification.type, notification.targetId);
+
+/// [notificationRoute] from the raw `type` and `target_id`, shared with
+/// push taps, whose data carry the same fields.
+String? notificationRouteFor(String type, String? target) {
   if (type.startsWith('hiring_')) {
     return target == null
         ? AppRouter.offers

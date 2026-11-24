@@ -7,7 +7,9 @@ import '../../core/network/api_consumer.dart';
 import '../../core/network/network_info.dart';
 import '../../core/notifications/notification_badge.dart';
 import '../../core/notifications/push_notifications.dart';
+import '../../features/notifications/data/repositories/api_device_token_repository.dart';
 import '../../features/notifications/data/repositories/api_notifications_repository.dart';
+import '../../features/notifications/domain/repositories/device_token_repository.dart';
 import '../../features/notifications/domain/repositories/notifications_repository.dart';
 import '../../features/notifications/presentation/cubit/notification_badge_controller.dart';
 import '../../core/storage/app_preferences.dart';
@@ -98,6 +100,9 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   );
   sl.registerLazySingleton<NotificationsRepository>(
     () => ApiNotificationsRepository(sl<ApiConsumer>()),
+  );
+  sl.registerLazySingleton<DeviceTokenRepository>(
+    () => ApiDeviceTokenRepository(sl<ApiConsumer>()),
   );
   sl.registerLazySingleton<NotificationBadge>(
     () => NotificationBadgeController(

@@ -1,5 +1,13 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+/// One received push: its visible [title] and [body], and the [data] the
+/// backend attached for the app (where a tap should lead).
+class PushMessage {
+  const PushMessage({this.title, this.body, this.data = const {}});
+  final String? title, body;
+  final Map<String, dynamic> data;
+}
+
 /// Push notifications, kept behind an interface so features and tests never
 /// depend on Firebase directly.
 abstract class PushNotifications {
@@ -13,8 +21,14 @@ abstract class PushNotifications {
   /// Emits a new token whenever Firebase rotates it.
   Stream<String> get onTokenRefresh;
 
-  /// Emits when a push arrives while the app is in the foreground.
-  Stream<void> get onForegroundMessage;
+  /// Emits a push that arrives while the app is in the foreground.
+  Stream<PushMessage> get onForegroundMessage;
+
+  /// Emits a push the talent tapped while the app was in the background.
+  Stream<PushMessage> get onMessageOpened;
+
+  /// The push whose tap launched the app from closed, if any.
+  Future<PushMessage?> initialMessage();
 }
 
 /// [PushNotifications] backed by Firebase Cloud Messaging.
@@ -48,5 +62,22 @@ class FirebasePushNotifications implements PushNotifications {
   Stream<String> get onTokenRefresh => _fcm.onTokenRefresh;
 
   @override
-  Stream<void> get onForegroundMessage => FirebaseMessaging.onMessage;
+  Stream<PushMessage> get onForegroundMessage =>
+      FirebaseMessaging.onMessage.map(_message);
+
+  @override
+  Stream<PushMessage> get onMessageOpened =>
+      FirebaseMessaging.onMessageOpenedApp.map(_message);
+
+  @override
+  Future<PushMessage?> initialMessage() async {
+    final message = await _fcm.getInitialMessage();
+    return message == null ? null : _message(message);
+  }
+
+  static PushMessage _message(RemoteMessage message) => PushMessage(
+    title: message.notification?.title,
+    body: message.notification?.body,
+    data: Map<String, dynamic>.unmodifiable(message.data),
+  );
 }
