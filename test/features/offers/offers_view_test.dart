@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qader/core/widgets/app_toast.dart';
 import 'package:qader/core/resources/theme_manager.dart';
 import 'package:qader/core/router/app_router.dart';
 import 'package:qader/features/offers/presentation/preview/offers_preview_data.dart';
@@ -188,9 +189,7 @@ void main() {
       find.text('Offers are not connected yet, so nothing was sent.'),
       findsOneWidget,
     );
-    ScaffoldMessenger.of(
-      tester.element(find.text('Back to offers')),
-    ).hideCurrentSnackBar();
+    hideAppToast();
     await tester.pumpAndSettle();
 
     // Apologize from the interview menu.

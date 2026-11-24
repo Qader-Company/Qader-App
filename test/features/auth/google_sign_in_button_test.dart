@@ -120,7 +120,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.tokens, ['google-id-token / Sara Ali']);
     expect(find.text('Profile setup'), findsNothing);
-    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.byKey(const ValueKey('app-toast-error')), findsOneWidget);
 
     // Success: the session opens profile setup like the email login.
     repo.failure = null;

@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qader/core/widgets/app_toast.dart';
 import 'package:qader/app/app.dart';
 import 'package:qader/features/home/presentation/view/home_view.dart';
 import 'package:qader/core/storage/app_preferences.dart';
@@ -139,9 +140,7 @@ void main() {
 
       Future<void> capture(String name, Size size) async {
         tester.view.physicalSize = size;
-        ScaffoldMessenger.of(
-          tester.element(find.byType(ProfileSetupView)),
-        ).clearSnackBars();
+        hideAppToast();
         await tester.pumpAndSettle();
         final scroll = find.byType(SingleChildScrollView);
         if (scroll.evaluate().isNotEmpty) {

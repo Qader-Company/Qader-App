@@ -48,6 +48,15 @@ void main() {
     expect(find.text('Saved'), findsOneWidget);
     expect(find.byKey(const ValueKey('app-toast-success')), findsOneWidget);
     expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    // At the top, clear of the screen's bottom buttons.
+    expect(tester.getRect(find.text('Saved')).bottom, lessThan(80));
+
+    // It goes away by itself.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+    expect(find.text('Saved'), findsNothing);
+    showAppToast(context, 'Saved', type: ToastType.success);
+    await tester.pumpAndSettle();
 
     // A new message replaces the old one.
     showAppToast(context, 'Failed', type: ToastType.error);
