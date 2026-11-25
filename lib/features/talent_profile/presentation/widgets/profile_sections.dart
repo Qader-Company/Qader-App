@@ -15,9 +15,9 @@ class ProfileBasicInfo extends StatelessWidget {
     final birth = profile.dateOfBirth;
     final details = [
       if (profile.shows('phone_number') && profile.phone.isNotEmpty)
-        ProfileDetail('Phone Number', profile.phone),
+        ProfileDetail('Phone Number', profile.phone, ltr: true),
       if (profile.shows('whatsapp_number') && profile.whatsapp.isNotEmpty)
-        ProfileDetail('WhatsApp', profile.whatsapp),
+        ProfileDetail('WhatsApp', profile.whatsapp, ltr: true),
       if (profile.shows('email') && profile.email.isNotEmpty)
         ProfileDetail('Email', profile.email),
       if (profile.shows('nationality_country_id') &&

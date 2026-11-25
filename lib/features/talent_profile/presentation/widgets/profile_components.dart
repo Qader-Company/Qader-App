@@ -59,8 +59,11 @@ class ProfileHeading extends StatelessWidget {
 
 /// A labelled value. [label] is translated; [value] is shown as is.
 class ProfileDetail extends StatelessWidget {
-  const ProfileDetail(this.label, this.value, {super.key});
+  const ProfileDetail(this.label, this.value, {super.key, this.ltr = false});
   final String label, value;
+
+  /// Phone numbers read left to right in both languages.
+  final bool ltr;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(12),
@@ -80,7 +83,16 @@ class ProfileDetail extends StatelessWidget {
             color: AppColors.neutral500,
           ),
         ),
-        Text(value, style: const TextStyle(fontSize: 14, height: 1.5)),
+        // Sized to its text so a left-to-right number still starts on the
+        // label's side in Arabic.
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            value,
+            textDirection: ltr ? TextDirection.ltr : null,
+            style: const TextStyle(fontSize: 14, height: 1.5),
+          ),
+        ),
       ],
     ),
   );

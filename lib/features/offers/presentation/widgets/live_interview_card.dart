@@ -1,3 +1,4 @@
+import '../../../../core/widgets/text_direction_of.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/widgets/app_toast.dart';
 import 'package:flutter/material.dart';
@@ -114,6 +115,10 @@ class LiveInterviewCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   reason,
+                  textDirection: textDirectionOf(
+                    reason,
+                    Directionality.of(context),
+                  ),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.neutral600,

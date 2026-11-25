@@ -1,3 +1,4 @@
+import '../../../../core/widgets/text_direction_of.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/resources/app_colors.dart';
@@ -55,6 +56,10 @@ class NotificationTile extends StatelessWidget {
                   children: [
                     Text(
                       notification.title,
+                      textDirection: textDirectionOf(
+                        notification.title,
+                        Directionality.of(context),
+                      ),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: unread ? FontWeight.w600 : FontWeight.w500,
@@ -65,6 +70,10 @@ class NotificationTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         notification.body,
+                        textDirection: textDirectionOf(
+                          notification.body,
+                          Directionality.of(context),
+                        ),
                         style: const TextStyle(
                           fontSize: 13,
                           height: 18 / 13,

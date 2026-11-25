@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import '../../../../../core/widgets/text_direction_of.dart';
 import '../../../../../core/widgets/qader_design.dart';
 
 class ReviewFaq extends StatefulWidget {
@@ -56,6 +57,11 @@ class _ReviewFaqState extends State<ReviewFaq> {
                             child: Text(
                               widget.items?[i].question ??
                                   'faq_q$i'.tr(context: context),
+                              // Backend FAQs may be in either language.
+                              textDirection: textDirectionOf(
+                                widget.items?[i].question ?? '',
+                                Directionality.of(context),
+                              ),
                               style: TextStyle(
                                 fontSize: 14,
                                 height: 20 / 14,
@@ -83,6 +89,10 @@ class _ReviewFaqState extends State<ReviewFaq> {
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
                     child: Text(
                       widget.items?[i].answer ?? 'faq_a$i'.tr(context: context),
+                      textDirection: textDirectionOf(
+                        widget.items?[i].answer ?? '',
+                        Directionality.of(context),
+                      ),
                       style: const TextStyle(
                         fontSize: 12,
                         height: 1.5,

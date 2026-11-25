@@ -1,4 +1,5 @@
-import 'package:easy_localization/easy_localization.dart';
+import '../../../../core/widgets/text_direction_of.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/default_image.dart';
@@ -112,6 +113,7 @@ class ProfileSummaryCard extends StatelessWidget {
               _Contact(
                 const QaderAsset('phone', width: 14, height: 14),
                 profile.phone,
+                ltr: true,
               ),
             if (profile.yearsOfExperience case final years?)
               _Contact(
@@ -130,6 +132,10 @@ class ProfileSummaryCard extends StatelessWidget {
         if (profile.summary.isNotEmpty)
           Text(
             profile.summary,
+            textDirection: textDirectionOf(
+              profile.summary,
+              Directionality.of(context),
+            ),
             style: const TextStyle(
               fontSize: 12,
               height: 1.5,
@@ -302,17 +308,22 @@ class _LinkText extends StatelessWidget {
 }
 
 class _Contact extends StatelessWidget {
-  const _Contact(this.icon, this.text);
+  const _Contact(this.icon, this.text, {this.ltr = false});
   final Widget icon;
   final String text;
+
+  /// Phone numbers read left to right in both languages.
+  final bool ltr;
   @override
   Widget build(BuildContext context) => Row(
     children: [
       icon,
       const SizedBox(width: 6),
-      Expanded(
+      // Flexible keeps a left-to-right number next to its icon in Arabic.
+      Flexible(
         child: Text(
           text,
+          textDirection: ltr ? TextDirection.ltr : null,
           style: const TextStyle(
             fontSize: 12,
             color: AppColors.neutral500,

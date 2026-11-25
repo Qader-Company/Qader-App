@@ -1,3 +1,4 @@
+import '../../../../core/widgets/text_direction_of.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/resources/app_colors.dart';
 import '../offers_copy.dart';
@@ -42,6 +43,10 @@ class OfferAlertBanner extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   message,
+                  textDirection: textDirectionOf(
+                    message,
+                    Directionality.of(context),
+                  ),
                   style: const TextStyle(
                     fontSize: 12,
                     height: 1.5,
@@ -78,6 +83,7 @@ class OfferInfoBox extends StatelessWidget {
         Expanded(
           child: Text(
             message,
+            textDirection: textDirectionOf(message, Directionality.of(context)),
             style: const TextStyle(
               fontSize: 12,
               height: 1.5,
