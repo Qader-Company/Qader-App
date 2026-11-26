@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../../../../../core/widgets/notification_bell.dart';
-import '../../../../../core/widgets/qader_design.dart';
+import 'notification_bell.dart';
+import 'qader_design.dart';
 
-class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+/// Header of the home screens (talent home, client workspace): menu,
+/// logo and notifications. Needs a [Scaffold] with a drawer above it.
+class AppHomeHeader extends StatelessWidget {
+  const AppHomeHeader({super.key});
   @override
   Widget build(BuildContext context) => ColoredBox(
     color: Colors.white,

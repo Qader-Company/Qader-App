@@ -9,7 +9,7 @@ import 'application_status_view.dart';
 import 'widgets/application_review_banner.dart';
 import 'widgets/application_submitted_notice.dart';
 import 'widgets/home_drawer.dart';
-import 'widgets/home_header.dart';
+import '../../../../core/widgets/app_home_header.dart';
 import 'widgets/home_profile_card.dart';
 import 'widgets/home_skeleton.dart';
 import 'widgets/review_steps.dart';
@@ -166,7 +166,7 @@ class _Dashboard extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const HomeHeader(),
+            const AppHomeHeader(),
             Expanded(
               child: ColoredBox(color: AppColors.background, child: content),
             ),

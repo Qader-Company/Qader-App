@@ -14,7 +14,7 @@ import '../../domain/entities/talent_application.dart';
 import '../preview/status_preview_data.dart';
 import '../status_copy.dart';
 import 'widgets/home_drawer.dart';
-import 'widgets/home_header.dart';
+import '../../../../core/widgets/app_home_header.dart';
 import 'widgets/review_faq.dart';
 
 part 'application_status/status_palette.dart';
@@ -142,7 +142,7 @@ class _ApplicationStatusViewState extends State<ApplicationStatusView> {
     body: SafeArea(
       child: Column(
         children: [
-          const HomeHeader(),
+          const AppHomeHeader(),
           if (widget.busy) const LinearProgressIndicator(minHeight: 2),
           Expanded(
             child: ColoredBox(
