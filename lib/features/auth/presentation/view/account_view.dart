@@ -59,6 +59,16 @@ class _AccountViewState extends State<AccountView> {
                         ),
                       ),
               ),
+            ] else ...[
+              // Workspace screens are design previews until their API is
+              // confirmed.
+              const SizedBox(height: 16),
+              DefaultButton.compact(
+                text: 'workspace_preview_screens'.tr(context: context),
+                isOutlined: true,
+                onPressed: () =>
+                    context.push('${AppRouter.workspaces}?preview=true'),
+              ),
             ],
           ],
           if (state.failure case final failure?) ...[

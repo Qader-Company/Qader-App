@@ -36,6 +36,7 @@ import '../../features/offers/presentation/view/offers_view.dart';
 import '../../features/notifications/presentation/view/notifications_view.dart';
 import '../../features/talent_profile/presentation/preview/talent_profile_preview.dart';
 import '../../core/router/app_router.dart';
+import 'client_routes.dart';
 export '../../core/router/app_router.dart';
 
 /// Routes whose screens call talent endpoints.
@@ -77,6 +78,7 @@ GoRouter buildAppRouter() => GoRouter(
   observers: [routeObserver],
   debugLogDiagnostics: !AppEnv.instance.isProd,
   routes: [
+    ...clientRoutes,
     GoRoute(
       path: AppRouter.statusPreview,
       builder: (context, state) => ApplicationStatusView(

@@ -27,6 +27,11 @@ abstract class AppRouter {
   static const profileReport = '/profile-report';
   static const notifications = '/notifications';
 
+  /// Client: pick or create a workspace, then its dashboard (`?id=`).
+  static const workspaces = '/workspaces';
+  static const createWorkspace = '/workspaces/new';
+  static const workspaceDashboard = '/workspace-dashboard';
+
   /// The list; one offer is `'$offers/<id>'`.
   static const offers = '/offers';
   static GoRouter Function()? _build;
