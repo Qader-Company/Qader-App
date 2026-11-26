@@ -1,17 +1,20 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/helpers/validators.dart';
 import '../../../../../core/router/app_router.dart';
 import '../../../../../core/widgets/default_button.dart';
 import '../../../../../core/widgets/qader_asset.dart';
-import '../../../domain/entities/account_role.dart';
+import '../../cubit/auth_session_cubit.dart';
 import 'auth_form_field.dart';
-import 'talent_sign_in_form.dart';
 import 'auth_password_field.dart';
+import '../../../domain/entities/account_role.dart';
+import '../../signed_in_destination.dart';
 
+/// Email sign-in for either role; each role uses its own auth endpoints.
 class SignInForm extends StatefulWidget {
-  const SignInForm({super.key, required this.role});
+  const SignInForm({super.key, this.role = AccountRole.talent});
   final AccountRole role;
   @override
   State<SignInForm> createState() => _SignInFormState();
@@ -21,6 +24,16 @@ class _SignInFormState extends State<SignInForm> {
   final _form = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  late final _session = context.read<AuthSessionCubit>();
+  void _submit() {
+    if (_session.state.status == AuthStatus.loading ||
+        !_form.currentState!.validate()) {
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    _session.login(_email.text.trim(), _password.text, role: widget.role);
+  }
+
   @override
   void dispose() {
     _email.dispose();
@@ -28,84 +41,65 @@ class _SignInFormState extends State<SignInForm> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (!_form.currentState!.validate()) return;
-    FocusScope.of(context).unfocus();
-    // Authentication is deliberately not simulated: no session/token is saved.
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('preview_title'.tr(context: context)),
-        content: Text('preview_hint'.tr(context: context)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text('cancel'.tr(context: context)),
+  @override
+  Widget build(
+    BuildContext context,
+  ) => BlocConsumer<AuthSessionCubit, AuthSessionState>(
+    bloc: _session,
+    listener: (context, state) {
+      if (state.status == AuthStatus.authenticated) {
+        goToSignedInHome(context, state.user!);
+      }
+    },
+    builder: (context, state) => Form(
+      key: _form,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AuthFormField(
+            controller: _email,
+            labelKey: 'email',
+            hintKey: 'email_hint',
+            icon: const QaderAsset('mail', width: 17.9, height: 15.4),
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) => Validators.email(value?.trim()),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.go(
-                '${AppRouter.home}?preview=true&role=${widget.role.name}',
-              );
-            },
-            child: Text('preview_home'.tr(context: context)),
+          const SizedBox(height: 12),
+          AuthPasswordField(
+            controller: _password,
+            validator: (value) =>
+                Validators.required(value) ?? Validators.minLength(value, 8),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton(
+              onPressed: state.status == AuthStatus.loading
+                  ? null
+                  : () => context.push(
+                      '${AppRouter.forgotPassword}?role=${widget.role.name}',
+                    ),
+              child: Text('forgot_password'.tr(context: context)),
+            ),
+          ),
+          if (state.failure != null) ...[
+            Text(
+              state.failure!.message.startsWith('auth_')
+                  ? state.failure!.message.tr(context: context)
+                  : state.failure!.message,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            const SizedBox(height: 12),
+          ],
+          const SizedBox(height: 16),
+          DefaultButton.compact(
+            text: 'sign_in'.tr(context: context),
+            isLoading: state.status == AuthStatus.loading,
+            onPressed: _submit,
           ),
         ],
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.role == AccountRole.talent
-      ? const TalentSignInForm()
-      : Form(
-          key: _form,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AuthFormField(
-                controller: _email,
-                labelKey: 'email',
-                hintKey: 'email_hint',
-                icon: const QaderAsset('mail', width: 17.9, height: 15.4),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) => Validators.email(value?.trim()),
-              ),
-              const SizedBox(height: 12),
-              AuthPasswordField(
-                controller: _password,
-                validator: Validators.required,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _submit(),
-              ),
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.only(top: 6),
-                    minimumSize: const Size(0, 24),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () => context.push(
-                    '${AppRouter.forgotPassword}?role=${widget.role.name}',
-                  ),
-                  child: Text(
-                    'forgot_password'.tr(context: context),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      height: 1.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              DefaultButton.compact(
-                text: 'sign_in'.tr(context: context),
-                onPressed: _submit,
-              ),
-            ],
-          ),
-        );
+    ),
+  );
 }

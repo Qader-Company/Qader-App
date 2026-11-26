@@ -16,9 +16,7 @@ import '../../features/auth/domain/entities/account_role.dart';
 import '../../features/auth/presentation/view/sign_in_view.dart';
 import '../../features/auth/presentation/view/sign_up_view.dart';
 import '../../features/auth/presentation/view/forgot_password_view.dart';
-import '../../features/auth/presentation/view/otp_view.dart';
 import '../../features/onboarding/presentation/view/onboarding_view.dart';
-import '../../features/auth/domain/entities/password_recovery_request.dart';
 
 import '../../features/profile_setup/presentation/view/profile_setup_view.dart';
 import '../../features/profile_setup/presentation/cubit/profile_setup_cubit.dart';
@@ -40,6 +38,19 @@ import '../../features/talent_profile/presentation/preview/talent_profile_previe
 import '../../core/router/app_router.dart';
 export '../../core/router/app_router.dart';
 
+/// Routes whose screens call talent endpoints.
+const _talentOnly = [
+  AppRouter.home,
+  AppRouter.statusPreview,
+  AppRouter.profileSetup,
+  AppRouter.profileEdit,
+  AppRouter.talentProfile,
+  AppRouter.profileReview,
+  AppRouter.profileReport,
+  AppRouter.offers,
+  AppRouter.notifications,
+];
+
 /// Every route of the app. Registered through [AppRouter.configure] by the
 /// composition root, so `core` never imports a feature.
 GoRouter buildAppRouter() => GoRouter(
@@ -47,9 +58,19 @@ GoRouter buildAppRouter() => GoRouter(
   initialLocation: AppRouter.root,
   refreshListenable: sl<AppPreferences>().sessionRevision,
   redirect: (context, state) {
-    if (state.uri.path == AppRouter.account &&
-        !sl<AppPreferences>().isLoggedIn) {
+    final preferences = sl<AppPreferences>();
+    if (state.uri.path == AppRouter.account && !preferences.isLoggedIn) {
       return '${AppRouter.signIn}?role=talent';
+    }
+    // Talent screens call talent endpoints: a signed-in client stays on
+    // the client side.
+    if (preferences.isLoggedIn &&
+        preferences.getAccountRole() == AccountRole.client.name &&
+        _talentOnly.any(
+          (path) =>
+              state.uri.path == path || state.uri.path.startsWith('$path/'),
+        )) {
+      return AppRouter.account;
     }
     return null;
   },
@@ -113,21 +134,6 @@ GoRouter buildAppRouter() => GoRouter(
             ? AccountRole.client
             : AccountRole.talent,
       ),
-    ),
-    GoRoute(
-      path: AppRouter.otp,
-      redirect: (context, state) => state.extra is PasswordRecoveryRequest
-          ? null
-          : Uri(
-              path: AppRouter.forgotPassword,
-              queryParameters: {
-                'role': state.uri.queryParameters['role'] == 'client'
-                    ? 'client'
-                    : 'talent',
-              },
-            ).toString(),
-      builder: (context, state) =>
-          OtpView(request: state.extra! as PasswordRecoveryRequest),
     ),
     GoRoute(
       path: AppRouter.profileSetup,

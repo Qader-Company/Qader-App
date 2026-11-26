@@ -20,7 +20,12 @@ class SignInView extends StatelessWidget {
         SignInForm(role: role),
         const SizedBox(height: 16),
         AuthFooter(
+          role: role,
           onAction: () => context.push('${AppRouter.signUp}?role=${role.name}'),
+          // Companies register through the client sign-up.
+          onCompanySignUp: role == AccountRole.client
+              ? () => context.push('${AppRouter.signUp}?role=client')
+              : null,
         ),
       ],
     ),

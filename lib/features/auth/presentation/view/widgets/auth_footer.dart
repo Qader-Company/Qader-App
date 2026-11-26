@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/helpers/feature_dialog.dart';
 import '../../../../../core/resources/qader_design.dart';
+import '../../../domain/entities/account_role.dart';
 import 'google_sign_in_button.dart';
 
 class AuthFooter extends StatelessWidget {
@@ -9,9 +10,15 @@ class AuthFooter extends StatelessWidget {
     super.key,
     required this.onAction,
     this.registration = false,
+    this.role = AccountRole.talent,
+    this.onCompanySignUp,
   });
   final VoidCallback onAction;
   final bool registration;
+  final AccountRole role;
+
+  /// Shows "Sign up as company" (client sign-in, Figma) when set.
+  final VoidCallback? onCompanySignUp;
   @override
   Widget build(BuildContext context) => Column(
     children: [
@@ -43,7 +50,7 @@ class AuthFooter extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 12),
-      const AuthSocialButtons(),
+      AuthSocialButtons(role: role),
       const SizedBox(height: 12),
       Wrap(
         alignment: WrapAlignment.center,
@@ -77,16 +84,39 @@ class AuthFooter extends StatelessWidget {
           ),
         ],
       ),
+      if (onCompanySignUp case final onCompanySignUp?) ...[
+        const SizedBox(height: 12),
+        Center(
+          child: TextButton(
+            onPressed: onCompanySignUp,
+            style: TextButton.styleFrom(
+              minimumSize: Size.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'sign_up_as_company'.tr(context: context),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: QaderDesign.blue,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ),
+      ],
     ],
   );
 }
 
 class AuthSocialButtons extends StatelessWidget {
-  const AuthSocialButtons({super.key});
+  const AuthSocialButtons({super.key, this.role = AccountRole.talent});
+  final AccountRole role;
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      const Expanded(child: GoogleSignInButton()),
+      Expanded(child: GoogleSignInButton(role: role)),
       const SizedBox(width: 12),
       Expanded(
         child: SocialButton(

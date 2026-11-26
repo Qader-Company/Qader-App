@@ -19,7 +19,6 @@ abstract class AppRouter {
   static const statusPreview = '/status-preview';
   static const account = '/account';
   static const forgotPassword = '/forgot-password';
-  static const otp = '/otp';
   static const verifyEmail = '/verify-email';
   static const profileSetup = '/profile-setup';
   static const profileEdit = '/profile-edit';

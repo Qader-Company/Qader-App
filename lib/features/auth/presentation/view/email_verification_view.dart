@@ -12,6 +12,8 @@ import 'widgets/auth_layout.dart';
 import 'widgets/auth_skeletons.dart';
 import 'widgets/auth_heading.dart';
 import 'widgets/otp_code_field.dart';
+import 'widgets/otp_resend_link.dart';
+import '../../domain/entities/account_role.dart';
 
 class EmailVerificationView extends StatefulWidget {
   const EmailVerificationView({super.key, required this.challenge});
@@ -38,6 +40,10 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
     _cubit.submit(_code.text);
   }
 
+  /// Clients follow their own Figma frame: the email sits in the subtitle,
+  /// and resending is a link.
+  bool get _client => widget.challenge.role == AccountRole.client;
+
   @override
   Widget build(BuildContext context) => AuthLayout(
     child: BlocConsumer<EmailVerificationCubit, EmailVerificationState>(
@@ -52,7 +58,7 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
           'auth_email_verified'.tr(context: context),
           type: ToastType.success,
         );
-        context.go('${AppRouter.signIn}?role=talent');
+        context.go('${AppRouter.signIn}?role=${widget.challenge.role.name}');
       },
       builder: (context, state) {
         if (state.status == EmailVerificationStatus.success) {
@@ -61,11 +67,19 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const AuthHeading(
-              title: 'otp_title',
-              subtitle: 'auth_verify_email_hint',
-            ),
-            Text(widget.challenge.email, textAlign: TextAlign.center),
+            if (_client)
+              AuthHeading(
+                title: 'auth_verify_email_title',
+                subtitle: 'auth_verify_email_sent',
+                subtitleArgs: [widget.challenge.email],
+              )
+            else ...[
+              const AuthHeading(
+                title: 'otp_title',
+                subtitle: 'auth_verify_email_hint',
+              ),
+              Text(widget.challenge.email, textAlign: TextAlign.center),
+            ],
             const SizedBox(height: 16),
             OtpCodeField(
               controller: _code,
@@ -76,31 +90,45 @@ class _EmailVerificationViewState extends State<EmailVerificationView> {
               const SizedBox(height: 12),
               Text(
                 failure.message.startsWith('auth_')
-                    ? failure.message.tr()
+                    ? failure.message.tr(context: context)
                     : failure.message,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
             const SizedBox(height: 16),
             DefaultButton.compact(
-              text: 'otp_done'.tr(),
+              text: (_client ? 'auth_verify_code' : 'otp_done').tr(
+                context: context,
+              ),
               isLoading: state.status == EmailVerificationStatus.loading,
               onPressed: state.status == EmailVerificationStatus.resending
                   ? null
                   : _submit,
             ),
             const SizedBox(height: 12),
-            DefaultButton.compact(
-              text: 'otp_resend'.tr(),
-              isOutlined: true,
-              isLoading: state.status == EmailVerificationStatus.resending,
-              onPressed: state.status == EmailVerificationStatus.loading
-                  ? null
-                  : _cubit.resend,
-            ),
+            if (_client)
+              OtpResendLink(
+                onPressed:
+                    state.status == EmailVerificationStatus.loading ||
+                        state.status == EmailVerificationStatus.resending
+                    ? null
+                    : _cubit.resend,
+              )
+            else
+              DefaultButton.compact(
+                text: 'otp_resend'.tr(context: context),
+                isOutlined: true,
+                isLoading: state.status == EmailVerificationStatus.resending,
+                onPressed: state.status == EmailVerificationStatus.loading
+                    ? null
+                    : _cubit.resend,
+              ),
             if (state.status == EmailVerificationStatus.resent) ...[
               const SizedBox(height: 12),
-              Text('auth_otp_resent'.tr(), textAlign: TextAlign.center),
+              Text(
+                'auth_otp_resent'.tr(context: context),
+                textAlign: TextAlign.center,
+              ),
             ],
           ],
         );

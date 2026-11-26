@@ -7,10 +7,9 @@ import '../../../../../core/helpers/feature_dialog.dart';
 import '../../../../../core/resources/qader_design.dart';
 import '../../../../../core/widgets/default_button.dart';
 import '../../../../../core/widgets/qader_asset.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../../core/router/app_router.dart';
-import '../../../../../core/router/route_args.dart';
+import '../../../domain/entities/account_role.dart';
 import '../../../domain/repositories/google_sign_in_client.dart';
+import '../../signed_in_destination.dart';
 import '../../cubit/auth_session_cubit.dart';
 import '../../cubit/google_sign_in_cubit.dart';
 
@@ -46,7 +45,8 @@ class SocialButton extends StatelessWidget {
 /// Without a [GoogleSignInClient] (tests, previews) it falls back to the
 /// "not connected yet" dialog.
 class GoogleSignInButton extends StatefulWidget {
-  const GoogleSignInButton({super.key});
+  const GoogleSignInButton({super.key, this.role = AccountRole.talent});
+  final AccountRole role;
   @override
   State<GoogleSignInButton> createState() => _GoogleSignInButtonState();
 }
@@ -101,7 +101,11 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
       _show(context, failure.message);
     } else if (state.account case final account?) {
       setState(() => _signingIn = true);
-      session.googleLogin(account.idToken, name: account.name);
+      session.googleLogin(
+        account.idToken,
+        name: account.name,
+        role: widget.role,
+      );
     }
   }
 
@@ -109,11 +113,7 @@ class _GoogleSignInButtonState extends State<GoogleSignInButton> {
     if (!_signingIn || state.status == AuthStatus.loading) return;
     setState(() => _signingIn = false);
     if (state.status == AuthStatus.authenticated) {
-      final user = state.user!;
-      context.go(
-        AppRouter.profileSetup,
-        extra: ProfileSetupSeed(name: user.fullName, email: user.email),
-      );
+      goToSignedInHome(context, state.user!);
     } else if (state.failure case final failure?) {
       _show(context, failure.message);
     }

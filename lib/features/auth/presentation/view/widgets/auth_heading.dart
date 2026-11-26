@@ -8,9 +8,13 @@ class AuthHeading extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.titleHeight = 1.5,
+    this.subtitleArgs,
   });
   final String title;
   final String subtitle;
+
+  /// Values for the `{}` placeholders of [subtitle].
+  final List<String>? subtitleArgs;
   final double titleHeight;
   @override
   Widget build(BuildContext context) => Column(
@@ -26,7 +30,7 @@ class AuthHeading extends StatelessWidget {
       ),
       const SizedBox(height: 8),
       Text(
-        subtitle.tr(context: context),
+        subtitle.tr(context: context, args: subtitleArgs),
         style: const TextStyle(
           fontSize: 12,
           height: 1.5,

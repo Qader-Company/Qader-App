@@ -5,13 +5,17 @@ import '../../../../core/env/app_env.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../../../core/widgets/qader_design.dart';
+import '../../domain/entities/account_role.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Where the splash goes: a signed-in talent resumes profile setup (which
-/// moves on by itself once the profile is done), a returning visitor picks
-/// a role, and a first visit starts the intro.
+/// moves on by itself once the profile is done), a signed-in client opens
+/// their account, a returning visitor picks a role, and a first visit
+/// starts the intro.
 String splashDestination(AppPreferences preferences) => preferences.isLoggedIn
-    ? AppRouter.profileSetup
+    ? (preferences.getAccountRole() == AccountRole.client.name
+          ? AppRouter.account
+          : AppRouter.profileSetup)
     : preferences.isOnBoardingViewed()
     ? AppRouter.chooseRole
     : AppRouter.onboarding;

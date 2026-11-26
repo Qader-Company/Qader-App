@@ -27,7 +27,11 @@ class SignUpView extends StatelessWidget {
         const SizedBox(height: 16),
         SignUpForm(role: role),
         const SizedBox(height: 12),
-        AuthFooter(registration: true, onAction: () => _signIn(context)),
+        AuthFooter(
+          role: role,
+          registration: true,
+          onAction: () => _signIn(context),
+        ),
       ],
     ),
   );

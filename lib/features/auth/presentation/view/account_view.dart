@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/default_button.dart';
 import '../../../../core/widgets/language_toggle_button.dart';
+import '../../domain/entities/account_role.dart';
 import '../cubit/auth_session_cubit.dart';
 import 'widgets/auth_layout.dart';
 import 'widgets/auth_skeletons.dart';
@@ -43,19 +44,22 @@ class _AccountViewState extends State<AccountView> {
             Text(user.fullName, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(user.email),
-            const SizedBox(height: 16),
-            DefaultButton.compact(
-              text: 'auth_complete_profile'.tr(context: context),
-              onPressed: state.status == AuthStatus.loading
-                  ? null
-                  : () => context.push(
-                      AppRouter.profileSetup,
-                      extra: ProfileSetupSeed(
-                        name: user.fullName,
-                        email: user.email,
+            // Clients have no talent profile to complete.
+            if (user.role == AccountRole.talent) ...[
+              const SizedBox(height: 16),
+              DefaultButton.compact(
+                text: 'auth_complete_profile'.tr(context: context),
+                onPressed: state.status == AuthStatus.loading
+                    ? null
+                    : () => context.push(
+                        AppRouter.profileSetup,
+                        extra: ProfileSetupSeed(
+                          name: user.fullName,
+                          email: user.email,
+                        ),
                       ),
-                    ),
-            ),
+              ),
+            ],
           ],
           if (state.failure case final failure?) ...[
             Text(

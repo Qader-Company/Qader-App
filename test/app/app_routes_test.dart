@@ -13,12 +13,15 @@ import 'package:qader/core/storage/app_preferences.dart';
 import 'package:qader/features/auth/presentation/view/splash_view.dart';
 
 class _Prefs extends Fake implements AppPreferences {
-  _Prefs({this.loggedIn = false, this.onboarded = false});
+  _Prefs({this.loggedIn = false, this.onboarded = false, this.role = ''});
   final bool loggedIn, onboarded;
+  final String role;
   @override
   bool get isLoggedIn => loggedIn;
   @override
   bool isOnBoardingViewed() => onboarded;
+  @override
+  String getAccountRole() => role;
 }
 
 class _Translations extends AssetLoader {
@@ -47,6 +50,12 @@ void main() {
     expect(
       splashDestination(_Prefs(loggedIn: true, onboarded: true)),
       AppRouter.profileSetup,
+    );
+    expect(
+      splashDestination(
+        _Prefs(loggedIn: true, onboarded: true, role: 'client'),
+      ),
+      AppRouter.account,
     );
   });
 
@@ -92,10 +101,6 @@ void main() {
     expect(
       await _land(tester, AppRouter.verifyEmail),
       '${AppRouter.signIn}?role=talent',
-    );
-    expect(
-      await _land(tester, '${AppRouter.otp}?role=client'),
-      '${AppRouter.forgotPassword}?role=client',
     );
     // Signed out, only sample offers open; an unknown id goes to the list.
     expect(
