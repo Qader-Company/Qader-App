@@ -8,8 +8,10 @@ import 'package:qader/core/network/api_consumer.dart';
 import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
 import 'package:qader/core/storage/app_preferences.dart';
-import 'package:qader/features/auth/data/datasources/talent_auth_remote_data_source.dart';
-import 'package:qader/features/auth/data/repositories/talent_auth_repository.dart';
+import 'package:qader/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:qader/features/auth/data/repositories/api_auth_repository.dart';
+import 'package:qader/features/auth/domain/entities/account_role.dart';
+import 'package:qader/features/auth/domain/entities/email_verification_challenge.dart';
 import 'package:qader/features/auth/presentation/cubit/auth_session_cubit.dart';
 
 class AuthApi extends Fake implements ApiConsumer {
@@ -78,6 +80,18 @@ Map<String, Object?> loginResponse({bool verified = true}) => {
   },
 };
 
+/// [loginResponse] for a client account: the client folder in Apidog has no
+/// response example, and the backend shares one auth response for both
+/// roles (`user.type` tells them apart).
+Map<String, Object?> clientLoginResponse() {
+  final response = loginResponse();
+  final user = (response['data'] as Map)['user'] as Map;
+  user['type'] = 'client';
+  user['last_name'] = 'Client';
+  user['email'] = 'client@qader.test';
+  return response;
+}
+
 Map<String, Object?> registrationResponse() => {
   'success': true,
   'message': 'auth.verify_account',
@@ -106,12 +120,12 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late AppPreferences prefs;
   late AuthApi api;
-  late TalentAuthRepository repository;
+  late ApiAuthRepository repository;
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = AppPreferencesImpl(await SharedPreferences.getInstance());
     api = AuthApi()..response = loginResponse();
-    repository = TalentAuthRepository(TalentAuthRemoteDataSource(api), prefs);
+    repository = ApiAuthRepository(AuthRemoteDataSource(api), prefs);
   });
   test('login parses observed response and saves a complete session', () async {
     final result = await repository.login(
@@ -123,6 +137,7 @@ void main() {
     expect(prefs.getToken(), 'access');
     expect(prefs.getRefreshToken(), 'refresh');
     expect(api.path, '/auth/talent/login');
+    expect(prefs.getAccountRole(), 'talent');
     expect(api.body, {
       'email': 'talent@example.test',
       'password': 'password123',
@@ -442,4 +457,104 @@ void main() {
       await cubit.close();
     },
   );
+
+  group('client', () {
+    test('login uses the client endpoint and remembers the role', () async {
+      api.response = clientLoginResponse();
+      final result = await repository.login(
+        'client@qader.test',
+        'Password123!',
+        role: AccountRole.client,
+      );
+      expect(result.getOrThrow().role, AccountRole.client);
+      expect(api.path, '/auth/client/login');
+      expect(api.body, {
+        'email': 'client@qader.test',
+        'password': 'Password123!',
+      });
+      expect(prefs.getToken(), 'access');
+      expect(prefs.getAccountRole(), 'client');
+    });
+
+    test('a talent account cannot sign in as a client', () async {
+      final result = await repository.login(
+        'talent@example.test',
+        'password123',
+        role: AccountRole.client,
+      );
+      expect(result.isError, isTrue);
+      expect(result.getErrorOrThrow().message, 'auth_wrong_role');
+      expect(prefs.isLoggedIn, isFalse);
+      expect(prefs.getAccountRole(), isEmpty);
+    });
+
+    test('Google login uses the client endpoint', () async {
+      api.response = clientLoginResponse();
+      final result = await repository.googleLogin(
+        'google-id-token',
+        role: AccountRole.client,
+      );
+      expect(result.isSuccess, isTrue);
+      expect(api.path, '/auth/client/social/google/login');
+      expect(prefs.getAccountRole(), 'client');
+    });
+
+    test('restore keeps a client session', () async {
+      await prefs.setAccountRole('client');
+      await prefs.saveToken('access');
+      api.response = clientLoginResponse();
+      final result = await repository.currentUser();
+      expect(result.getOrThrow().role, AccountRole.client);
+      expect(prefs.isLoggedIn, isTrue);
+    });
+
+    test('registration and verification use the client endpoints', () async {
+      final response = registrationResponse();
+      ((response['data'] as Map)['user'] as Map)['type'] = 'client';
+      api.response = response;
+      const request = RegistrationRequest(
+        firstName: 'New',
+        lastName: 'Client',
+        email: 'new.client@qader.test',
+        password: 'Password123!',
+        passwordConfirmation: 'Password123!',
+        role: AccountRole.client,
+      );
+      final challenge = (await repository.register(request)).getOrThrow();
+      expect(api.path, '/auth/client/register');
+      expect(api.body, {
+        'first_name': 'New',
+        'last_name': 'Client',
+        'email': 'new.client@qader.test',
+        'password': 'Password123!',
+        'password_confirmation': 'Password123!',
+      });
+      expect(challenge.role, AccountRole.client);
+
+      api.response = {'success': true};
+      await repository.resendVerificationEmail(challenge);
+      expect(api.path, '/auth/client/email-verification/send-otp');
+      await repository.verifyEmail(challenge, '123456');
+      expect(api.path, '/auth/client/email-verification');
+      expect(api.credential, 'verification-only');
+    });
+
+    test('a talent registration cannot finish as a client', () async {
+      api.response = registrationResponse();
+      const request = RegistrationRequest(
+        firstName: 'New',
+        lastName: 'Client',
+        email: 'new.client@qader.test',
+        password: 'Password123!',
+        passwordConfirmation: 'Password123!',
+        role: AccountRole.client,
+      );
+      final result = await repository.register(request);
+      expect(result.getErrorOrThrow().message, 'auth_wrong_role');
+      expect(
+        const EmailVerificationChallenge(email: 'x').role,
+        AccountRole.talent,
+      );
+    });
+  });
 }

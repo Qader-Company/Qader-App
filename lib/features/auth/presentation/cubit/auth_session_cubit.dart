@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/either.dart';
 import '../../../../core/network/failure.dart';
 import '../../../../core/storage/app_preferences.dart';
+import '../../domain/entities/account_role.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -30,12 +31,18 @@ class AuthSessionCubit extends Cubit<AuthSessionState> {
     }
   }
 
-  Future<void> login(String email, String password) =>
-      _signIn(() => _repository.login(email, password));
+  Future<void> login(
+    String email,
+    String password, {
+    AccountRole role = AccountRole.talent,
+  }) => _signIn(() => _repository.login(email, password, role: role));
 
   /// Signs in with the ID token from Google's account picker.
-  Future<void> googleLogin(String idToken, {String? name}) =>
-      _signIn(() => _repository.googleLogin(idToken, name: name));
+  Future<void> googleLogin(
+    String idToken, {
+    String? name,
+    AccountRole role = AccountRole.talent,
+  }) => _signIn(() => _repository.googleLogin(idToken, name: name, role: role));
 
   Future<void> _signIn(
     Future<Either<Failure, AuthUser>> Function() request,

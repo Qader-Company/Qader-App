@@ -3,12 +3,17 @@ import '../../../../core/network/either.dart';
 import '../../../../core/network/failure.dart';
 import '../../domain/repositories/device_token_repository.dart';
 
-/// [DeviceTokenRepository] backed by `PUT /auth/talent/device-token`.
+/// [DeviceTokenRepository] backed by `PUT /auth/<role>/device-token`, for
+/// the signed-in role ([role] returns `talent` or `client`).
 class ApiDeviceTokenRepository implements DeviceTokenRepository {
-  const ApiDeviceTokenRepository(this._api);
+  const ApiDeviceTokenRepository(this._api, {String Function()? role})
+    : _role = role;
   final ApiConsumer _api;
+  final String Function()? _role;
 
-  static const path = '/auth/talent/device-token';
+  /// A session saved before roles were stored is a talent session.
+  String get path =>
+      '/auth/${_role?.call() == 'client' ? 'client' : 'talent'}/device-token';
 
   @override
   Future<Either<Failure, void>> register(

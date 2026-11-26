@@ -92,6 +92,46 @@ void main() {
     expect(prefs.getToken(), 'new');
   });
 
+  test('a client session refreshes through the client endpoint', () async {
+    await prefs.setAccountRole('client');
+    final paths = <String>[];
+    client.httpClientAdapter = CallbackAdapter(
+      (request) async => jsonResponse({}, 401),
+    );
+    refresh.httpClientAdapter = CallbackAdapter((request) async {
+      paths.add(request.path);
+      return request.path.endsWith('/refresh')
+          ? jsonResponse({
+              'data': {
+                'access_token': {'token': 'new'},
+              },
+            }, 200)
+          : jsonResponse({'ok': true}, 200);
+    });
+    await client.get<dynamic>(
+      '/one',
+      options: Options(headers: {'authorization': 'Bearer old'}),
+    );
+    expect(paths.first, endsWith('/auth/client/refresh'));
+  });
+
+  test('a 401 on a client login is passed through, not refreshed', () async {
+    var refreshes = 0;
+    client.httpClientAdapter = CallbackAdapter(
+      (request) async => jsonResponse({'message': 'wrong'}, 401),
+    );
+    refresh.httpClientAdapter = CallbackAdapter((request) async {
+      refreshes++;
+      return jsonResponse({}, 200);
+    });
+    await expectLater(
+      client.post<dynamic>('/auth/client/login'),
+      throwsA(isA<DioException>()),
+    );
+    expect(refreshes, 0);
+    expect(prefs.isLoggedIn, isTrue);
+  });
+
   test('refresh network failure preserves login', () async {
     client.httpClientAdapter = CallbackAdapter(
       (_) async => jsonResponse({}, 401),

@@ -15,8 +15,9 @@ import 'package:qader/core/network/either.dart';
 import 'package:qader/core/network/failure.dart';
 import 'package:qader/core/router/app_router.dart';
 import 'package:qader/core/storage/app_preferences.dart';
-import 'package:qader/features/auth/data/datasources/talent_auth_remote_data_source.dart';
+import 'package:qader/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:qader/features/auth/data/repositories/password_recovery_repository.dart';
+import 'package:qader/features/auth/domain/entities/account_role.dart';
 import 'package:qader/features/auth/presentation/cubit/password_recovery_cubit.dart';
 import 'package:qader/features/auth/presentation/view/sign_in_view.dart';
 import 'auth_repository_test.dart' show AuthApi;
@@ -42,10 +43,39 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     prefs = AppPreferencesImpl(await SharedPreferences.getInstance());
     api = AuthApi()..response = {'success': true};
-    repository = PasswordRecoveryRepository(
-      TalentAuthRemoteDataSource(api),
-      prefs,
+    repository = PasswordRecoveryRepository(AuthRemoteDataSource(api), prefs);
+  });
+
+  test('client recovery uses the client endpoints', () async {
+    final cubit = PasswordRecoveryCubit(repository, role: AccountRole.client);
+    addTearDown(cubit.close);
+    await cubit.send('client@qader.test');
+    expect(api.path, '/auth/client/password-reset/send-otp');
+    expect(api.body, {'email': 'client@qader.test'});
+    final request = (await repository.begin(
+      'client@qader.test',
+      role: AccountRole.client,
+    )).getOrThrow();
+    expect(request.role, AccountRole.client);
+    api.response = {
+      'success': true,
+      'data': {
+        'reset_password_token': {'token': 'reset-only', 'ttl': 60},
+      },
+    };
+    expect((await repository.verify(request, '123456')).isSuccess, isTrue);
+    expect(api.path, '/auth/client/reset-password-verification');
+    api.response = {'success': true};
+    expect(
+      (await repository.reset(
+        request,
+        'Password123!',
+        'Password123!',
+      )).isSuccess,
+      isTrue,
     );
+    expect(api.path, '/auth/client/reset-password');
+    expect(api.credential, 'reset-only');
   });
 
   test(

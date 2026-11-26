@@ -48,6 +48,15 @@ void main() {
     },
   );
 
+  test('a signed-in client sends its token to the client endpoint', () async {
+    final api = _Api(const Right({'success': true}));
+    await ApiDeviceTokenRepository(
+      api,
+      role: () => 'client',
+    ).register('fcm-token', platform: 'android');
+    expect(api.path, '/auth/client/device-token');
+  });
+
   test('a bad body or a failure comes back as a failure', () async {
     final invalid = await ApiDeviceTokenRepository(
       _Api(const Right({'success': false})),

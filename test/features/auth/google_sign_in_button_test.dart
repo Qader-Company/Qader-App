@@ -32,6 +32,7 @@ class _Repo extends Fake implements AuthRepository {
   Future<Either<Failure, AuthUser>> googleLogin(
     String idToken, {
     String? name,
+    AccountRole role = AccountRole.talent,
   }) async {
     tokens.add('$idToken / $name');
     if (failure case final failure?) return Left(failure);

@@ -15,8 +15,8 @@ import '../../features/notifications/domain/repositories/notifications_repositor
 import '../../features/notifications/presentation/cubit/notification_badge_controller.dart';
 import '../../core/storage/app_preferences.dart';
 import '../../core/storage/secure_app_preferences.dart';
-import '../../features/auth/data/datasources/talent_auth_remote_data_source.dart';
-import '../../features/auth/data/repositories/talent_auth_repository.dart';
+import '../../features/auth/data/datasources/auth_remote_data_source.dart';
+import '../../features/auth/data/repositories/api_auth_repository.dart';
 import '../../features/auth/data/repositories/password_recovery_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/plugin_google_sign_in_client.dart';
@@ -77,18 +77,15 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
   sl.registerLazySingleton<ProfileLookupsRepository>(
     () => ApiProfileLookupsRepository(sl<ApiConsumer>()),
   );
-  sl.registerLazySingleton<TalentAuthRemoteDataSource>(
-    () => TalentAuthRemoteDataSource(sl<ApiConsumer>()),
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSource(sl<ApiConsumer>()),
   );
   sl.registerLazySingleton<AuthRepository>(
-    () => TalentAuthRepository(
-      sl<TalentAuthRemoteDataSource>(),
-      sl<AppPreferences>(),
-    ),
+    () => ApiAuthRepository(sl<AuthRemoteDataSource>(), sl<AppPreferences>()),
   );
   sl.registerLazySingleton<PasswordRecoveryRepository>(
     () => PasswordRecoveryRepository(
-      sl<TalentAuthRemoteDataSource>(),
+      sl<AuthRemoteDataSource>(),
       sl<AppPreferences>(),
     ),
   );
@@ -108,12 +105,19 @@ Future<void> initServiceLocator({AppPreferences? preferencesOverride}) async {
     () => ApiNotificationsRepository(sl<ApiConsumer>()),
   );
   sl.registerLazySingleton<DeviceTokenRepository>(
-    () => ApiDeviceTokenRepository(sl<ApiConsumer>()),
+    () => ApiDeviceTokenRepository(
+      sl<ApiConsumer>(),
+      role: () => sl<AppPreferences>().getAccountRole(),
+    ),
   );
   sl.registerLazySingleton<NotificationBadge>(
     () => NotificationBadgeController(
       sl<NotificationsRepository>(),
-      isSignedIn: () => sl<AppPreferences>().isLoggedIn,
+      // The bell reads talent notifications; clients get theirs with the
+      // client notification screens.
+      isSignedIn: () =>
+          sl<AppPreferences>().isLoggedIn &&
+          sl<AppPreferences>().getAccountRole() != 'client',
     ),
     dispose: (badge) => (badge as NotificationBadgeController).dispose(),
   );

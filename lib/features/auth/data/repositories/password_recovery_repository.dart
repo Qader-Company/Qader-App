@@ -3,12 +3,12 @@ import '../../../../core/network/failure.dart';
 import '../../../../core/storage/app_preferences.dart';
 import '../../domain/entities/account_role.dart';
 import '../../domain/entities/password_recovery_request.dart';
-import '../datasources/talent_auth_remote_data_source.dart';
+import '../datasources/auth_remote_data_source.dart';
 
 /// Reset credentials are separate from login and email-verification credentials.
 class PasswordRecoveryRepository {
   PasswordRecoveryRepository(this._remote, this._preferences);
-  final TalentAuthRemoteDataSource _remote;
+  final AuthRemoteDataSource _remote;
   final AppPreferences _preferences;
   PasswordRecoveryRequest? _request;
   bool _verified = false;
@@ -23,13 +23,17 @@ class PasswordRecoveryRepository {
   static const _missing = ServerFailure(message: 'auth_recovery_missing');
   static const _invalid = ServerFailure(message: 'auth_invalid_response');
 
-  Future<Either<Failure, PasswordRecoveryRequest>> begin(String email) async {
+  Future<Either<Failure, PasswordRecoveryRequest>> begin(
+    String email, {
+    AccountRole role = AccountRole.talent,
+  }) async {
     final operation = ++_operation;
     final revision = _preferences.sessionRevision.value;
     _request = null;
     _verified = false;
     await _preferences.clearResetPasswordToken();
     final result = await _remote.sendOtp(
+      role: role,
       purpose: 'password-reset',
       email: email,
       credential: '',
@@ -40,10 +44,7 @@ class PasswordRecoveryRepository {
     }
     if (result.isError) return Left(result.getErrorOrThrow());
     if (!_ack(result.getOrThrow())) return const Left(_invalid);
-    final request = PasswordRecoveryRequest(
-      email: email.trim(),
-      role: AccountRole.talent,
-    );
+    final request = PasswordRecoveryRequest(email: email.trim(), role: role);
     _request = request;
     _revision = revision;
     return Right(request);
@@ -52,6 +53,7 @@ class PasswordRecoveryRepository {
   Future<Either<Failure, void>> resend(PasswordRecoveryRequest request) async {
     if (!_current(request) || _verified) return const Left(_missing);
     final result = await _remote.sendOtp(
+      role: request.role,
       purpose: 'password-reset',
       email: request.email,
       credential: '',
@@ -70,6 +72,7 @@ class PasswordRecoveryRepository {
       return const Left(ServerFailure(message: 'auth_otp_invalid'));
     }
     final result = await _remote.verifyPasswordResetOtp(
+      role: request.role,
       email: request.email,
       otp: otp,
       credential: '',
@@ -101,6 +104,7 @@ class PasswordRecoveryRepository {
       return const Left(ServerFailure(message: 'auth_reset_password_invalid'));
     }
     final result = await _remote.resetPassword(
+      role: request.role,
       password: password,
       passwordConfirmation: confirmation,
       credential: token,

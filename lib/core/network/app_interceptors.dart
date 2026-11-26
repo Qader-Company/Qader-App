@@ -17,7 +17,7 @@ import '../env/app_env.dart';
 ///  1. Every request goes out normally with the current access_token.
 ///  2. If the server returns 401 (Unauthorized), we attempt a token refresh:
 ///     - Send the refresh_token as a Bearer in the Authorization header
-///       to [EndPoints.refreshToken].
+///       to the signed-in role's [EndPoints.refreshToken].
 ///     - On success: save the new access_token (and refresh_token if rotated),
 ///       then retry the original request transparently.
 ///     - On failure: clear all tokens and emit [AppEvents.logout] so the app
@@ -45,7 +45,7 @@ class AppInterceptors extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     options.extra['sessionRevision'] =
         sl<AppPreferences>().sessionRevision.value;
-    if (kDebugMode && options.path.endsWith(EndPoints.googleLogin)) {
+    if (kDebugMode && EndPoints.isGoogleLogin(options.path)) {
       final headers = {
         for (final entry in options.headers.entries)
           entry.key.toLowerCase(): entry.value,
@@ -81,19 +81,6 @@ class AppInterceptors extends Interceptor {
     handler.next(response);
   }
 
-  /// Auth endpoints that should NOT trigger token refresh or force logout on 401.
-  /// These are public endpoints where 401 means a real API error (e.g. wrong credentials).
-  static const _publicAuthPaths = {
-    EndPoints.login,
-    EndPoints.googleLogin,
-    EndPoints.register,
-    EndPoints.verifyOtp,
-    EndPoints.resendOtp,
-    EndPoints.forgotPassword,
-    EndPoints.verifyResetPasswordOtp,
-    EndPoints.resetPassword,
-  };
-
   @override
   Future<void> onError(
     DioException err,
@@ -110,11 +97,9 @@ class AppInterceptors extends Interceptor {
     if (body is Map && body['message'] == 'api.unauthorized') {
       return handler.next(err);
     }
-    final requestPath = err.requestOptions.path;
-    final isPublicEndpoint = _publicAuthPaths.any(
-      (p) => requestPath.endsWith(p),
-    );
-    if (isPublicEndpoint) {
+    // Public auth endpoints: a 401 is a real API error (e.g. wrong
+    // credentials), so no refresh and no forced logout.
+    if (EndPoints.isPublicAuthPath(err.requestOptions.path)) {
       return handler.next(err);
     }
 
@@ -177,7 +162,7 @@ class AppInterceptors extends Interceptor {
       // ── Call the refresh endpoint ──────────────────────────────────────
       // The API expects the refresh_token as a Bearer token in the header.
       final refreshResponse = await _refreshDio.post(
-        '${EndPoints.baseUrl}${EndPoints.refreshToken}',
+        '${EndPoints.baseUrl}${EndPoints.refreshToken(prefs.getAccountRole())}',
         options: Options(
           headers: {
             HttpHeaders.authorizationHeader: 'Bearer $refreshToken',
@@ -226,13 +211,14 @@ class AppInterceptors extends Interceptor {
     }
   }
 
-  /// Clears the session and returns to root. Set the auth route when ready.
+  /// Clears the session and returns to the sign-in of the same role.
   Future<void> _forceLogout(AppPreferences prefs) async {
+    // Read before logout clears it.
+    final role = prefs.getAccountRole() == 'client' ? 'client' : 'talent';
     await prefs.logout();
-    // Navigate to root — safe to call from any isolate via post-frame callback.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!prefs.isLoggedIn) {
-        navigatorKey.currentContext?.go('${AppRouter.signIn}?role=talent');
+        navigatorKey.currentContext?.go('${AppRouter.signIn}?role=$role');
       }
     });
   }

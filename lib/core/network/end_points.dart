@@ -1,17 +1,37 @@
 import '../env/app_env.dart';
 
-/// Talent routes; OTP purpose values still await confirmation.
+/// Auth routes. Talents and clients share the same actions under their own
+/// prefix: `/auth/talent/...` or `/auth/client/...`.
 class EndPoints {
   static String get baseUrl => AppEnv.instance.baseUrl;
-  static const login = '/auth/talent/login';
-  static const refreshToken = '/auth/talent/refresh';
-  static const register = '/auth/talent/register';
-  static const verifyOtp = '/auth/talent/email-verification';
-  static const resendOtp = '/auth/talent/email-verification/send-otp';
-  static const forgotPassword = '/auth/talent/password-reset/send-otp';
-  static const verifyResetPasswordOtp =
-      '/auth/talent/reset-password-verification';
-  static const resetPassword = '/auth/talent/reset-password';
-  static const logout = '/auth/logout';
-  static const googleLogin = '/auth/talent/social/google/login';
+
+  /// The auth prefix of a role name (`talent` or `client`).
+  static String authPrefix(String role) => '/auth/$role';
+
+  /// Refresh endpoint of the signed-in role; a session saved before roles
+  /// were stored is a talent session.
+  static String refreshToken(String role) =>
+      '${authPrefix(role.isEmpty ? 'talent' : role)}/refresh';
+
+  /// Auth actions without a session: a 401 there is a real error (e.g. wrong
+  /// credentials), not an expired access token.
+  static const publicAuthActions = [
+    'login',
+    'social/google/login',
+    'register',
+    'email-verification',
+    'email-verification/send-otp',
+    'password-reset/send-otp',
+    'reset-password-verification',
+    'reset-password',
+  ];
+
+  /// Whether [path] is a public auth action of any role.
+  static bool isPublicAuthPath(String path) => [
+    for (final role in const ['talent', 'client'])
+      for (final action in publicAuthActions) '${authPrefix(role)}/$action',
+  ].any(path.endsWith);
+
+  static bool isGoogleLogin(String path) =>
+      path.endsWith('/social/google/login') && path.contains('/auth/');
 }

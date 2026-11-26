@@ -57,7 +57,8 @@ class DebugNetworkLogger extends Interceptor {
       _body(data, label: 'Request Body');
     }
     if (options.method == 'POST' &&
-        options.uri.path.endsWith('/auth/talent/login')) {
+        (options.uri.path.endsWith('/auth/talent/login') ||
+            options.uri.path.endsWith('/auth/client/login'))) {
       _loginDiagnostics(options);
     }
     handler.next(options);

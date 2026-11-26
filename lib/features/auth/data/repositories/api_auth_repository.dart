@@ -6,35 +6,47 @@ import '../../domain/entities/email_verification_challenge.dart';
 import '../../domain/entities/account_role.dart';
 import '../../domain/entities/registration_request.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../datasources/talent_auth_remote_data_source.dart';
+import '../datasources/auth_remote_data_source.dart';
 import '../models/auth_response.dart';
 
-class TalentAuthRepository implements AuthRepository {
-  TalentAuthRepository(this._remote, this._preferences);
-  final TalentAuthRemoteDataSource _remote;
+/// [AuthRepository] for both roles: talents and clients sign in through
+/// their own auth prefix, and the session remembers which role it is.
+class ApiAuthRepository implements AuthRepository {
+  ApiAuthRepository(this._remote, this._preferences);
+  final AuthRemoteDataSource _remote;
   final AppPreferences _preferences;
   EmailVerificationChallenge? _challenge;
   int _registrationOperation = 0;
 
   @override
-  Future<Either<Failure, AuthUser>> login(String email, String password) async {
+  Future<Either<Failure, AuthUser>> login(
+    String email,
+    String password, {
+    AccountRole role = AccountRole.talent,
+  }) async {
     final revision = _preferences.sessionRevision.value;
-    final result = await _remote.login(email: email, password: password);
-    return _startSession(result, revision);
+    final result = await _remote.login(
+      role: role,
+      email: email,
+      password: password,
+    );
+    return _startSession(result, revision, role);
   }
 
   @override
   Future<Either<Failure, AuthUser>> googleLogin(
     String idToken, {
     String? name,
+    AccountRole role = AccountRole.talent,
   }) async {
     final revision = _preferences.sessionRevision.value;
     final result = await _remote.socialLogin(
+      role: role,
       provider: 'google',
       token: idToken,
       name: name,
     );
-    return _startSession(result, revision);
+    return _startSession(result, revision, role);
   }
 
   /// Saves the session of a login response (email or social): the same
@@ -42,6 +54,7 @@ class TalentAuthRepository implements AuthRepository {
   Future<Either<Failure, AuthUser>> _startSession(
     Either<Failure, Object?> result,
     int revision,
+    AccountRole role,
   ) async {
     if (revision != _preferences.sessionRevision.value) {
       return const Left(ServerFailure(message: 'auth_session_changed'));
@@ -56,7 +69,7 @@ class TalentAuthRepository implements AuthRepository {
         try {
           final data = AuthResponse.data(raw);
           final user = AuthResponse.user(data);
-          if (user.role != AccountRole.talent) {
+          if (user.role != role) {
             return const Left(ServerFailure(message: 'auth_wrong_role'));
           }
           final access = AuthResponse.token(data, 'access_token');
@@ -73,6 +86,7 @@ class TalentAuthRepository implements AuthRepository {
           await _preferences.saveUserName(user.fullName);
           await _preferences.setUserEmail(user.email);
           await _preferences.setUserId(user.id);
+          await _preferences.setAccountRole(user.role.name);
           await _preferences.saveRefreshToken(refresh);
           if (revision != _preferences.sessionRevision.value) {
             return const Left(ServerFailure(message: 'auth_session_changed'));
@@ -97,6 +111,7 @@ class TalentAuthRepository implements AuthRepository {
     final operation = ++_registrationOperation;
     final revision = _preferences.sessionRevision.value;
     final result = await _remote.register(
+      role: request.role,
       firstName: request.firstName,
       lastName: request.lastName,
       email: request.email,
@@ -112,10 +127,13 @@ class TalentAuthRepository implements AuthRepository {
       final data = AuthResponse.data(result.getOrThrow());
       final user = AuthResponse.user(data);
       final token = AuthResponse.token(data, 'verification_token');
-      if (user.role != AccountRole.talent) {
+      if (user.role != request.role) {
         return const Left(ServerFailure(message: 'auth_wrong_role'));
       }
-      final challenge = EmailVerificationChallenge(email: user.email);
+      final challenge = EmailVerificationChallenge(
+        email: user.email,
+        role: request.role,
+      );
       await _preferences.saveVerificationToken(token);
       if (operation != _registrationOperation ||
           revision != _preferences.sessionRevision.value) {
@@ -140,6 +158,7 @@ class TalentAuthRepository implements AuthRepository {
       return const Left(ServerFailure(message: 'auth_verification_missing'));
     }
     final result = await _remote.sendOtp(
+      role: challenge.role,
       purpose: 'email-verification',
       email: challenge.email,
       credential: '',
@@ -184,7 +203,11 @@ class TalentAuthRepository implements AuthRepository {
     if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
       return const Left(ServerFailure(message: 'auth_otp_invalid'));
     }
-    final result = await _remote.verifyEmail(otp: otp, credential: token);
+    final result = await _remote.verifyEmail(
+      role: challenge.role,
+      otp: otp,
+      credential: token,
+    );
     if (!identical(challenge, _challenge) ||
         revision != _preferences.sessionRevision.value) {
       return const Left(ServerFailure(message: 'auth_session_changed'));
@@ -210,8 +233,8 @@ class TalentAuthRepository implements AuthRepository {
     if (result.isError) return Left(result.getErrorOrThrow());
     try {
       final user = AuthResponse.user(AuthResponse.data(result.getOrThrow()));
-      if (user.role != AccountRole.talent) {
-        // Retire a client session left by the previous integration.
+      if (user.role != _sessionRole) {
+        // The account no longer matches the role it signed in as.
         await _preferences.logout();
         return const Left(ServerFailure(message: 'auth_wrong_role'));
       }
@@ -229,6 +252,13 @@ class TalentAuthRepository implements AuthRepository {
       return const Left(ServerFailure(message: 'auth_invalid_response'));
     }
   }
+
+  /// The role saved with the session; sessions saved before roles were
+  /// stored belong to talents.
+  AccountRole get _sessionRole =>
+      _preferences.getAccountRole() == AccountRole.client.name
+      ? AccountRole.client
+      : AccountRole.talent;
 
   @override
   Future<Either<Failure, void>> logout() async {

@@ -15,6 +15,7 @@ abstract class _Keys {
   static const userPhone = 'PREFS_KEY_USER_PHONE';
   static const userEmail = 'PREFS_KEY_USER_EMAIL';
   static const userId = 'PREFS_KEY_USER_ID';
+  static const accountRole = 'PREFS_KEY_ACCOUNT_ROLE';
   static const locationPermissionPrompted =
       'PREFS_KEY_LOCATION_PERMISSION_PROMPTED';
 }
@@ -59,6 +60,11 @@ abstract class AppPreferences {
   Future<void> setUserEmail(String email);
   int getUserId();
   Future<void> setUserId(int id);
+
+  /// The signed-in account's role name (`talent` or `client`), or an empty
+  /// string when unknown. Kept as text so `core` stays feature-free.
+  String getAccountRole();
+  Future<void> setAccountRole(String role);
 
   // ── Location permission prompt ─────────────────────────────────────────
   bool hasLocationPermissionPrompted();
@@ -181,6 +187,13 @@ class AppPreferencesImpl implements AppPreferences {
 
   @override
   Future<void> setUserId(int id) => _prefs.setInt(_Keys.userId, id);
+
+  @override
+  String getAccountRole() => _prefs.getString(_Keys.accountRole) ?? '';
+
+  @override
+  Future<void> setAccountRole(String role) =>
+      _prefs.setString(_Keys.accountRole, role);
 
   // ── Location permission prompt ─────────────────────────────────────────
   @override

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/network/either.dart';
 import '../../../../core/network/failure.dart';
 import '../../data/repositories/password_recovery_repository.dart';
+import '../../domain/entities/account_role.dart';
 import '../../domain/entities/password_recovery_request.dart';
 
 enum PasswordRecoveryStep { email, code, password, done }
@@ -22,9 +23,12 @@ class PasswordRecoveryState {
 }
 
 class PasswordRecoveryCubit extends Cubit<PasswordRecoveryState> {
-  PasswordRecoveryCubit(this._repository)
+  PasswordRecoveryCubit(this._repository, {this.role = AccountRole.talent})
     : super(const PasswordRecoveryState());
   final PasswordRecoveryRepository _repository;
+
+  /// Whose password is reset: each role has its own auth endpoints.
+  final AccountRole role;
   PasswordRecoveryRequest? _request;
   String get email => _request?.email ?? '';
 
@@ -32,7 +36,7 @@ class PasswordRecoveryCubit extends Cubit<PasswordRecoveryState> {
     if (state.loading || state.step != PasswordRecoveryStep.email) return;
     emit(const PasswordRecoveryState(loading: true));
     try {
-      final result = await _repository.begin(email);
+      final result = await _repository.begin(email, role: role);
       if (isClosed) return;
       result.fold((failure) => emit(PasswordRecoveryState(failure: failure)), (
         request,

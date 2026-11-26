@@ -1,3 +1,5 @@
+import 'account_role.dart';
+
 class RegistrationRequest {
   const RegistrationRequest({
     required this.firstName,
@@ -5,10 +7,12 @@ class RegistrationRequest {
     required this.email,
     required this.password,
     required this.passwordConfirmation,
+    this.role = AccountRole.talent,
   });
   final String firstName;
   final String lastName;
   final String email;
   final String password;
   final String passwordConfirmation;
+  final AccountRole role;
 }
